@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="dtm_odt_action" model="ir.actions.act_window">
+            <field name="name">ORDEN DE TRABAJO</field>
+            <field name="res_model">dtm.odt</field>
+            <field name="view_mode">tree,form,kanban</field>
+        </record>
+        
+        <record id="dtm_odt_tree" model="ir.ui.view">
+            <field name="name">dtm.odt.tree</field>
+            <field name="model">dtm.odt</field>
+            <field name="arch" type="xml">
+                <tree string="List View" js_class="lazy_column_list"
+                    decoration-danger="status== 'Pausado'" >
+                    <field name="sequence" widget="handle"></field>
+                    <field name="ot_number"/>
+                    <field name="po_number"/>                  
+                    <field name="date_rel" widget="date"/>
+                    <field name="name_client"/>
+                    <field name="product_name"/> 
+                    <field name="status" widget="many2many_tags" options="{'color_field': 'color'}"/>                    
+                </tree>
+            </field>
+        </record>
+
+        <record id="dtm_odt_form" model="ir.ui.view">
+            <field name="name">dtm.odt.form</field>
+            <field name="model">dtm.odt</field>
+            <field name="arch" type="xml">
+                <form string="formulario">
+                    <header>
+                        <button type="object" name="action_autoNum" string="Generar No Orden"/>
+                        <button type="object" name="action_imprimir_formato" string="Imprimir" attrs="{'invisible': [('tipe_order', '=', '')]}"/>
+                    </header>
+                    
+                    <sheet>
+                        
+                            <h1 > ORDEN DE TRABAJO </h1>
+                      
+                        
+                            <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
+                       
+                        <group >
+
+                                <field name="status" widget="many2many_tags" options="{'color_field': 'color'}"/>
+
+                        </group>
+                        <group >
+                            <group>
+                                <field name="tipe_order"/>                                 
+                                <field name="name_client" attrs="{'required': [('tipe_order', '!=', '')]}"/>                                
+                            </group>
+                            <group>      
+                                <field name="product_name" attrs="{'required': [('tipe_order', '!=', '')]}"/>                          
+                                <field name="ot_number"/>       
+                            </group>        
+                        </group>
+                      
+                        <group>                                                   
+                            <group>
+                                <field name="po_number" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="date_in" />
+                                <field name="date_rel"/>
+                            </group>
+                             <group>
+                                <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="color" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="cuantity" options='{"type": "number"}'/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page  string="RESUMEN">
+                                <group>
+                                    <field name="description"/>
+                                </group>
+                            </page>
+
+                            <!-- ANEXOS ODT -->
+<!--                            <page  string="ANEXOS" attrs="{'invisible': [('tipe_order', '!=', 'ot')]}">                               -->
+<!--                                <group col="6">                                   -->
+<!--&lt;!&ndash;                                    <field name="ann_material_list"/>&ndash;&gt;-->
+<!--                                    <field name="ann_blue_prints"/>                                  -->
+<!--                                    <field name="ann_nests"/>      -->
+<!--                                    <field name="ann_documents" filename="ann_documents_name" attrs="{'invisible': [('ann_blue_prints', '!=', True)]}"/>  -->
+<!--                                    <field name="ann_documents_name" invisible="1"></field>  -->
+<!--                                </group> -->
+<!--                                <group>-->
+<!--                                    <field name="ann_notes"/>  -->
+<!--                                </group>       -->
+<!--                            </page>-->
+                            <!-- ANEXOS NPI -->
+<!--                            <page  string="ANEXOS" attrs="{'invisible': [('tipe_order', '!=', 'npi')]}">                               -->
+<!--                                <group col="6">                                   -->
+<!--                                    <field name="npi_blue_prints"/>-->
+<!--                                    <field name="npi_nests"/>-->
+<!--                                    <field name="npi_purchase_order"/>  -->
+<!--                                </group> -->
+<!--                                <group>-->
+<!--                                    <field name="ann_notes"/>  -->
+<!--                                </group>       -->
+<!--                            </page>-->
+                             <!-- MATERIALES OR -->
+                            <page string="MATERIALES" >
+                                    <field name="materials_ids" >                                
+                                        <tree>
+                                            <field name="materials_list"/>
+                                            <field name="materials_cuantity" options='{"type": "number"}'/> 
+                                            <field name="materials_inventory"/>
+                                            <field name="materials_required" options='{"type": "number"}'/>                                           
+                                        </tree>
+                                        <form>
+                                            <group>
+                                                <field name="materials_list"/>
+                                                <field name="materials_cuantity" options='{"type": "number"}'/> 
+                                                <field name="materials_inventory"/>
+                                                <field name="materials_required" options='{"type": "number"}'/> 
+                                            </group>
+                                        </form>
+                                    </field>
+                            </page>  
+                            <page string="NOTAS">
+                                <field name="notes"></field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>              
+            </field>
+        </record>
+        <!--                         Kanba                       
+        <record id="dtm_odt_kanban" model="ir.ui.view">
+            <field name="name">dtm.odt.kanban</field>
+            <field name="model">dtm.odt</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <field name="ot_number"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+          -->
+
+        <menuitem id="dtm_odt_menu_root" name="Ordenes de Trabajo">
+            <!-- <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> -->
+                <menuitem id="dtm_odt_menu_action" action="dtm_odt_action"/>
+            <!-- </menuitem> -->
+        </menuitem>
+        
+    </data>
+</odoo>

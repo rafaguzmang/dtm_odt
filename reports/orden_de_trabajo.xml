@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <!-- <report
+            id = "formato_orden_de_trabajo"
+            string = "ORDEN DE TRABAJO"
+            model = "dtm.odt"
+            report_type= "qweb-pdf"
+            name = "dtm_odt.orden_de_trabajo_template"            
+        /> -->
+
+        <record id="papperformat_ordendetrabajo" model="report.paperformat">
+            <field name="name">US Letter</field>
+            <field name="default" eval="True" />
+            <field name="format">Letter</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="formato_orden_de_trabajo" model="ir.actions.report">
+            <field name="name">ORDEN DE TRABAJO</field>
+            <field name="model">dtm.odt</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">dtm_odt.orden_de_trabajo_template</field>
+            <field name="report_file">dtm_odt.orden_de_trabajo_template</field>
+            <field name="paperformat_id" ref="dtm_odt.papperformat_ordendetrabajo" />
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="orden_de_trabajo_template" >         
+            <t t-call="web.html_container">               
+                <t t-foreach="docs" t-as="o">
+                    <head>
+                         <meta charset="UTF-8"/>
+                    </head>
+                    <!-- Background Image -->
+                    <div class="backgroundimage" style="position:absolute;font-size:3em;width:100%;height:100%;z-index:-1000;">
+                        <img src="C:\Users\lasser PC\Desktop\modulos\dtm_odt\static\img\ods_1.jpg" style="width: 101%;"/>                    
+                    </div>
+                    <!-- Contenido -->
+                    <div class="container" style="position: absolute;top:70px;left: 150px;">
+                        <!-- Número de orden -->
+                        <div  style="position: absolute;top: 222px;left: 1030px;font-family: Arial;color: red;
+                            font-size: 18pt;font-weight: bold;width: 316px;text-align: center;">
+                            <p t-field="o.ot_number">gfsdgfd</p>
+                        </div>
+                        <div style="position: absolute; text-align: center;top:330px; left:620px;
+                            font-family:Arial;font-size:17pt;font-weight: bold;">
+                            <div>
+                                <!-- Fecha de entrada -->
+                                <p t-field="o.date_in">dasfdsf</p>
+                            </div>
+                            <div style=" color:#102cf8;">
+                                <!-- Nombre del cliente -->
+                                <p t-field="o.name_client">fdsfsa</p>
+                            </div>
+                            <div>
+                                <!-- PO -->
+                                <p t-field="o.tipe_order">asdfdsfa</p>
+                            </div>
+                            <div>
+                                <!-- Fecha de salida -->
+                                <p t-field="o.date_rel">asdfdsfsd</p>
+                            </div>
+                        </div>
+                        <div style="position: absolute; text-align: center;top:331px; left:1260px; font-family:Arial;font-size:17pt;">
+                            <div>
+                                <!-- NPI -->
+                                <p t-field="o.tipe_order">fdsfa</p>
+                            </div>
+                            <div>
+                                <!-- Versión OT -->
+                                <p t-field="o.version_ot">asdff</p>
+                            </div>
+                            <div>
+                                <!-- Color -->
+                                <p t-field="o.color">NA</p>
+                            </div>
+                            <div>
+                                <!-- Cantidad -->
+                                <p t-field="o.cuantity">1</p>
+                            </div>
+                        </div>
+                         <!-- Nombre del producto -->
+                        <div style="position: absolute; text-align: center;top: 570px; left:443px;color:#102cf8;width: 780px;">
+                            <div style=" font-family:Arial;font-size:18pt;font-style:italic;">
+                               
+                                <p t-field="o.product_name">dfasdfasfds</p>
+                            </div>       
+                        </div>
+                         <!-- Resumen de descripción -->
+                        <div style="position: absolute; text-align: center;top: 717px; left:0px;width: 1280px;height: 120px;">
+                            <div style=" font-family:Arial;font-size:17pt;font-weight: bold;">
+                                <p t-field="o.description">sadfdsagfdgfdag</p>
+                            </div>       
+                        </div>
+                        <div style="position: absolute; text-align: center;top:965px; left:935px;font-family:Arial;font-size:16pt;">
+                            <div>
+                                <!-- Listado de Materiales -->
+                                <p >x</p>
+                            </div>
+                            <div>
+                                <!-- Planos -->
+                                <p >x</p>
+                            </div>
+                            <div>
+                                <!-- Nesteos -->
+                                <p >x</p>
+                            </div>      
+                        </div>
+                    </div>
+
+                    <div class="page2" style="position:absolute;font-size:3em;width:100%;height:100%;z-index:-1000;top: 1645px;" >
+                        <img src="C:\Users\lasser PC\Desktop\modulos\dtm_odt\static\img\ods_2.jpg" style="width: 95%;"/>
+                    </div>
+                    
+                    <div class="page3" style="position:absolute;font-size:3em;width:50%;height:50%;z-index:-1000;top: 3950px; left: -160px;" >
+                        <img src="C:\Users\lasser PC\Desktop\modulos\dtm_odt\static\img\materiales.png"/>   
+                           
+                    </div>
+
+                    <div style="font-family:Arial;font-size:16pt;font-weight: bold;
+                        position: absolute;top: 4125px; left:45px;width: 1358px;height: 49px;">   
+                            <div t-foreach="o.materials_ids" t-as="cont" style="display: flex;display: -webkit-box;margin-bottom: -27px;">
+                                <p t-raw="cont.materials_list" style="width: 815px;text-align:center;"></p>
+                                <p t-raw="cont.materials_cuantity" style="width: 187px;text-align: center;"></p>
+                                <p t-raw="cont.materials_inventory" style="width: 179px;text-align:center;"></p>
+                                <p t-raw="cont.materials_required" style="width: 177px;text-align:center;"></p>
+                            </div>   
+                                                
+                    </div> 
+
+                   
+
+                   
+                    
+                    
+                </t>
+            </t>
+        </template>
+    </data>
+    
+
+</odoo>

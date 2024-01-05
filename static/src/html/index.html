@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <!-- Background Image -->
+    <div class="backgroundimage" style="top:0px;right:75px;position:absolute;font-size:3em;width:100%;height:100%;z-index:-1000;">
+        <img src="C:\Users\lasser PC\Desktop\modulos\dtm_odt\static\img\NPI.png" style="width:106%"/>                    
+    </div>
+    <!-- Contenido -->
+    <div class="container" style="position: absolute;top: -8px;left:-56px;">
+        
+        <div  style="position: absolute;top: 203px;left: 563px;font-family: Arial;font-size: 26pt;font-weight: bold;width: 450px;text-align: center;">           
+            <div style=" color: red;">
+            <!-- Número de orden -->
+                <p t-field="o.ot_number">fasfasd</p>
+            </div>
+            <div style=" color:#102cf8;margin: -27px;">
+                <!-- Nombre del cliente -->
+                <p t-field="o.name_client">dfadfdasf</p>
+            </div>
+            <div style="color:#102cf8;margin: -17px;">
+                <!-- Cantidad -->
+                <p t-field="o.cuantity">fafdfasdf</p>
+            </div>
+
+        </div>
+        <div style=" font-family:Arial;font-weight: bold;position: absolute; top:300px;color:#102cf8;font-size: 24pt;width: 799px;left: 1071px;
+        display: flex;display: -webkit-box; -webkit-box-pack: center;">
+            <div style="text-align: center;width: 50%;">
+                <!-- Fecha de entrada -->
+                <p t-field="o.date_in">sadsafdsaf</p>
+            </div>
+            <div style="text-align: center;width: 50%;">
+                <!-- Fecha de salida -->
+                <p t-field="o.date_rel">hgfhdf</p>
+            </div>
+        </div>
+    
+            <!-- Nombre del producto -->
+        <div style="position:absolute; text-align: center;top: 487px; left:268px;color:#102cf8;width: 1366px;font-weight: bold;">
+            <div style=" font-family:Arial;font-size:24pt;font-style:italic;">                              
+                <p t-field="o.product_name">kjhfkkyu</p>
+            </div>       
+        </div>
+          <!-- Resumen de descripción -->
+        <div style="position: absolute;top: 649px; left:116px;width: 563px;height: 474px;color:#102cf8;line-height: 454px;text-align: center;">
+            <div style=" font-family:Arial;font-size:14pt;font-weight: bold;">                              
+                <p t-field="o.description">urtsdwrty</p>
+            </div>       
+        </div>
+              <!-- Listado de materiales --> 
+         <div style="font-family:Arial;font-size:20pt;font-weight: bold;
+            position: absolute;top: 637px; left:686px;width: 1185px;height: 411px;">
+                <div t-foreach="o.materials_ids" t-as="cont" style="display: flex;display: -webkit-box;margin-bottom: -27px;">
+                    <p t-raw="cont.materials_cuantity" style="width: 64px;text-align:center;">1</p>
+                    <p t-raw="cont.materials_list" style="width: 425px;">Lamina inox @16(12.625 x 7.25)</p>
+                </div>
+        </div>
+       
+        <div style="font-family:Arial;font-size:20pt;position: absolute; text-align: center;top:1481px; left:979px;">
+                <!-- Planos -->
+            <div >
+                <t t-if="o.npi_blue_prints == True">
+                    <p >x</p>
+                </t>
+                 <t t-else="">
+                    <p >NA</p>
+                </t>
+            </div>
+                 <!-- Nesteos -->
+            <div>
+                <t t-if="o.npi_nests == True">
+                    <p >x</p>
+                </t>
+                 <t t-else="">
+                    <p >NA</p>
+                </t>
+            </div>
+                 <!-- Orden de Compra Interna -->
+            <div>
+                <t t-if="o.npi_purchase_order == True">
+                    <p >x</p>
+                </t>
+                 <t t-else="">
+                    <p >NA</p>
+                </t>
+            </div>      
+        </div>
+    </div>
+  
+    
+</body>
+</html>

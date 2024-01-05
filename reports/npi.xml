@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <!-- <report
+            id = "formato_NPI"
+            string = "NPI"
+            model = "dtm.odt"
+            report_type= "qweb-pdf"
+            name = "dtm_odt.npi_template"            
+        /> -->
+
+        <record id="papperformat_npi" model="report.paperformat">
+            <field name="name">US Letter</field>
+            <field name="default" eval="True" />
+            <field name="format">Letter</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">3</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="formato_npi" model="ir.actions.report">
+            <field name="name">NPI</field>
+            <field name="model">dtm.odt</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">dtm_odt.npi_template</field>
+            <field name="report_file">dtm_odt.npi_template</field>
+            <field name="paperformat_id" ref="dtm_odt.papperformat_npi" />
+            <field name="binding_type">report</field>
+        </record>
+
+        <template id="npi_template" >         
+            <t t-call="web.html_container">               
+                <t t-foreach="docs" t-as="o">
+                    <head>
+                         <meta charset="UTF-8"/>
+                    </head>
+                    <!-- Background Image -->
+                    <div class="backgroundimage" style="top:0px;right:75px;position:absolute;font-size:3em;width:100%;height:100%;z-index:-1000;">
+                        <img src="C:\Users\lasser PC\Desktop\modulos\dtm_odt\static\img\NPI.png" style="width:106%"/>                    
+                    </div>
+                    <!-- Contenido -->
+                    <div class="container" style="position: absolute;top: -0px;left:-175px;">                        
+                        <div  style="position: absolute;top: 210px;left: 563px;font-family: Arial;font-size: 24pt;font-weight: bold;width: 450px;text-align: center;">           
+                            <div style=" color: red;">
+                            <!-- Número de orden -->
+                                <p t-field="o.ot_number"></p>
+                            </div>
+                            <div style=" color:#102cf8;margin: -35px;">
+                                <!-- Nombre del cliente -->
+                                <p t-field="o.name_client">dfadfdasf</p>
+                            </div>
+                            <div style="color:#102cf8;margin: -25px;">
+                                <!-- Cantidad -->
+                                <p t-field="o.cuantity"></p>
+                            </div>
+
+                        </div>
+                        <!-- Fechas -->
+                        <div style=" font-family:Arial;font-weight: bold;position: absolute; top:312px;color:#102cf8;font-size: 24pt;width: 710px;left: 950px;
+                        display: flex;display: -webkit-box; -webkit-box-pack: center;">
+                            <div style="text-align: center;width: 50%;">
+                                <!-- Fecha de entrada -->
+                                <p t-field="o.date_in">sadsafdsaf</p>
+                            </div>
+                            <div style="text-align: center;width: 50%;">
+                                <!-- Fecha de salida -->
+                                <p t-field="o.date_rel">hgfhdf</p>
+                            </div>
+                        </div>                    
+                        <!-- Nombre del producto -->
+                        <div style="position:absolute; text-align: center;top: 420px; left:268px;color:#102cf8;width: 1366px;font-weight: bold;">
+                            <div style=" font-family:Arial;font-size:24pt;font-style:italic;">                              
+                                <p t-field="o.product_name">kjhfkkyu</p>
+                            </div>       
+                        </div>
+                        <!-- Resumen de descripción -->
+                        <div style="position: absolute;top: 475px; left:190px;width: 563px;height: 474px;color:#102cf8;line-height: 454px;text-align: center;">
+                            <div style=" font-family:Arial;font-size:14pt;font-weight: bold;">                              
+                                <p t-field="o.description">urtsdwrty</p>
+                            </div>       
+                        </div>
+                            <!-- Listado de materiales --> 
+                        <div style="font-family:Arial;font-size:20pt;font-weight: bold;
+                            position: absolute;top: 537px; left:686px;width: 1185px;height: 411px;">
+                                <div t-foreach="o.materials_ids" t-as="cont" style="display: flex;display: -webkit-box;margin-bottom: -45px;">
+                                    <p t-raw="cont.materials_cuantity" style="width: 64px;text-align:center;">1</p>
+                                    <p t-raw="cont.materials_list" style="width: 425px;"></p>
+                                </div>
+                        </div>
+                    
+                        <div style="font-family:Arial;font-size:20pt;position: absolute; text-align: center;top:1200px; left:920px;margin-bottom: -70px;">
+                                <!-- Planos -->
+                            <div style="margin-bottom: -7px;">
+                                <t t-if="o.npi_blue_prints == True">
+                                    <p >x</p>
+                                </t>
+                                <t t-else="">
+                                    <p >NA</p>
+                                </t>
+                            </div>
+                                <!-- Nesteos -->
+                            <div style="margin-bottom: -10px;">
+                                <t t-if="o.npi_nests == True">
+                                    <p >x</p>
+                                </t>
+                                <t t-else="">
+                                    <p >NA</p>
+                                </t>
+                            </div>
+                                <!-- Orden de Compra Interna -->
+                            <div style="margin-bottom: -10px;">
+                                <t t-if="o.npi_purchase_order == True">
+                                    <p >x</p>
+                                </t>
+                                <t t-else="">
+                                    <p >NA</p>
+                                </t>
+                            </div>      
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+    
+
+</odoo>

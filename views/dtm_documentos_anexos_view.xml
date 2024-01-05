@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+        <record id="dtm_documentos_anexos_view_tree" model="ir.ui.view">
+            <field name="name">dtm_documentos_anexos.view.tree</field>
+            <field name="model">dtm.documentos.anexos</field>
+            <field name="arch" type="xml">
+                <tree string="">
+                    <field name="documentos"></field>
+                    <field name="nombre"></field>
+                </tree>
+            </field>
+        </record>
+    </data>
+    
+
+</odoo>

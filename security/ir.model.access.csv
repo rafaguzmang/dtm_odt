@@ -1,0 +1,8 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_dtm_odt,access.dtm.odt,model_dtm_odt,base.group_user,1,1,1,1
+access_dtm_ing,access.dtm.ing,model_dtm_ing,base.group_user,1,1,1,1
+access_dtm_materials_line,access.dtm.materials.line,model_dtm_materials_line,base.group_user,1,1,1,1
+access_dtm_cotizacion,access.dtm.cotizacion,model_dtm_cotizacion,base.group_user,1,1,1,1
+access_cot_list_material,access.cot.list.material,model_cot_list_material,base.group_user,1,1,1,1
+access_dtm_documentos_anexos,access.dtm.documentos.anexos,model_dtm_documentos_anexos,base.group_user,1,1,1,1
+

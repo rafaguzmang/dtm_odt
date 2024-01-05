@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+        <record id="dtm_cotizacion_view_actions" model="ir.actions.act_window">
+            <field name="name">COTIZACIONES</field>
+            <field name="res_model">dtm.cotizacion</field>
+            <field name="view_mode">tree,form,kanban</field>
+        </record>
+
+       <record id="dtm_cotizacion_view_tree" model="ir.ui.view">
+        <field name="name">dtm.cotizacion.view.tree</field>
+        <field name="model">dtm.cotizacion</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="po"></field>
+                <field name="cliente_ids"></field>
+                <field name="atencion"></field>
+                <field name="no_cotizacion"></field>
+                <field name="date"></field>                
+            </tree>
+        </field>
+       </record>
+
+       <record id="dtm_cotizacion_view_form" model="ir.ui.view">
+        <field name="name">dtm.cotizacion.view.form</field>
+        <field name="model">dtm.cotizacion</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+
+                    <group>
+                        <group string="Cliente">
+                            <field name="cliente_ids"></field>
+                            <field name="atencion"></field>
+                            <field name="no_cotizacion"></field>
+                            <field name="date"></field> 
+                            <field name="telefono"></field>
+                            <field name="correo"></field>
+                            <field name="po"></field>
+                        </group>
+
+                        <group string="Documentos Anexos">
+                            <field name="dibujos"></field>
+                            <field name="fotos"></field>
+                            <field name="planos"></field>
+                        </group>
+                        <group string="Solicitudes del Cliente">
+                            <field name="npi"></field>
+                            <field name="instalacion"></field>
+                        </group>
+                        <group>
+                            <field name="muestras_cliente" options='{"type": "number"}'></field>
+                            <field name="numero_muestras" options='{"type": "number"}'></field>
+                        </group>
+                       
+                    </group>
+                    <group>
+                       <notebook>
+                            <page string="Descripción">
+                                <field name="list_materials_ids">                              
+                                    <tree>
+                                        <field name="name"></field>
+                                        <field name="descripcion"></field>
+                                        <field name="cantidad"  options='{"type": "number"}'></field>
+                                        <field name="precio" widget="monetary"></field>
+                                        <field name="total" widget="monetary"></field> 
+                                                                               
+                                    </tree>
+                                    <form>
+                                        <group>
+                                            <field name="name"></field>
+                                            <field name="descripcion"></field>
+                                            <field name="cantidad" options='{"type": "number"}'></field>
+                                            <field name="precio" widget="monetary"></field>
+                                            <field name="total" widget="monetary"></field>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page string="Documentos">
+                                <field name="attachment_ids" widget="many2many_image">  
+                                    <tree>
+                                        <field name="documentos" filename="nombre" widget="binary"></field>
+                                        <field name="nombre" invisible="1"></field>
+                                    </tree>                           
+                                    <form>
+                                        <group>
+                                            <field name="documentos" filename="nombre"></field>
+                                            <field name="nombre" invisible="1"></field>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page  string="Notas">
+                                <field name="notes"></field>
+                            </page>
+                       </notebook>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+       </record>
+
+        <menuitem id="dtm_cotizacion_view_menu_root" name="Cotizaciones">
+            <!-- <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> -->
+                <menuitem id="dtm_cotizacion_view_menu_action" action="dtm_cotizacion_view_actions"/>
+            <!-- </menuitem> -->
+        </menuitem>
+        
+    
+    </data>
+    
+
+</odoo>
