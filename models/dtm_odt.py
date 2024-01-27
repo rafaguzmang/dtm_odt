@@ -13,37 +13,27 @@ class DtmOdt(models.Model):
     #---------------------Basicos----------------------
 
     status = fields.Many2many("dtm.ing" ,string="Estado del Producto")
-
     sequence = fields.Integer()
     ot_number = fields.Char("NÚMERO",default="000",readonly=False)
     tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True)
     # name_client = fields.Many2one("res.partner",string="CLIENTE")
     name_client = fields.Char(string="CLIENTE")
-    
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
-   
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today())
-    
     po_number = fields.Char(string="PO",default="00")
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
-
     version_ot = fields.Integer(string="VERSIÓN OT",default=1,readonly=True)
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD" , default=1)
-
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
 
     #---------------------Resumen de descripción------------
 
     description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
 
-  
-
-
     #------------------------Notas---------------------------
 
     notes = fields.Text()
-   
 
     #-------------------------Acctions------------------------
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
