@@ -30,8 +30,9 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header>
-                        <button type="object" name="action_autoNum" string="Generar No Orden"/>
-                        <button type="object" name="action_imprimir_formato" string="Imprimir" attrs="{'invisible': [('tipe_order', '=', '')]}"/>
+                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_formato" string="ODT" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
                     </header>
                     
                     <sheet>
@@ -62,11 +63,13 @@
                                 <field name="po_number" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
                                 <field name="date_in" />
                                 <field name="date_rel"/>
+                                 <field name="nesteos" widget="boolean_toggle" />
                             </group>
                              <group>
                                 <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
-                                <field name="color" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
                                 <field name="cuantity" options='{"type": "number"}'/>
+                                <field name="color" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="planos" widget="boolean_toggle" />
                             </group>
                         </group>
 
@@ -104,47 +107,32 @@
                              <!-- MATERIALES OR -->
                             <page string="MATERIALES" >
                                     <field name="materials_ids" >                                
-                                        <tree>
+                                        <tree editable="bottom">
                                             <field name="materials_list"/>
                                             <field name="materials_cuantity" options='{"type": "number"}'/> 
                                             <field name="materials_inventory"/>
                                             <field name="materials_required" options='{"type": "number"}'/>                                           
                                         </tree>
-                                        <form>
-                                            <group>
-                                                <field name="materials_list"/>
-                                                <field name="materials_cuantity" options='{"type": "number"}'/> 
-                                                <field name="materials_inventory"/>
-                                                <field name="materials_required" options='{"type": "number"}'/> 
-                                            </group>
-                                        </form>
                                     </field>
-                            </page>  
+                            </page>
+                            <page string="RECHAZO">
+                                <field name="rechazo_id">
+                                    <tree editable="bottom">
+                                        <field name="decripcion"/>
+                                        <field name="fecha"/>
+                                        <field name="hora"/>
+                                    </tree>
+                                </field>
+                            </page>
                             <page string="NOTAS">
-                                <field name="notes"></field>
+                                <field name="notes"/>
                             </page>
                         </notebook>
                     </sheet>
                 </form>              
             </field>
         </record>
-        <!--                         Kanba                       
-        <record id="dtm_odt_kanban" model="ir.ui.view">
-            <field name="name">dtm.odt.kanban</field>
-            <field name="model">dtm.odt</field>
-            <field name="arch" type="xml">
-                <kanban>
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div class="oe_kanban_global_click">
-                                <field name="ot_number"/>
-                            </div>
-                        </t>
-                    </templates>
-                </kanban>
-            </field>
-        </record>
-          -->
+
 
         <menuitem id="dtm_odt_menu_root" name="Ordenes de Trabajo">
             <!-- <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> -->

@@ -28,16 +28,10 @@
             <field name="binding_type">report</field>
         </record>
 
-        <template id="orden_de_trabajo_template" >         
-            <t t-call="web.html_container">               
-                <t t-foreach="docs" t-as="o">
-                    <head>
-                         <meta charset="UTF-8"/>
-                    </head>
-
+        <template id="dtm_odt.orden_de_trabajo_template_page">
                     <div class="page">
-
-                        <div class="header" style="width: 100%;">
+                        <div class="oe_structure" />
+                        <div class="header" style="width: 100%;height:150px">
                             <div style="float: left;width: 60%;text-align: right;">
                                 <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
                             </div>
@@ -48,15 +42,15 @@
                                 <h2>Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
                             </div>
                         </div>
-                        <div style="width: 100%;height: 50px;">
+                        <div style="width: 100%;height: 60px;">
                                 <div class="orden de trabajo" style="text-align: center;float: right;width: 25%;">
 
                                     <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                        <tr style="background: #bfbfbf;">
+                                        <tr style="background: #bfbfbf;height: 30px;">
                                             <th style="font-weight: bold;">ORDEN DE TRABAJO</th>
                                         </tr>
-                                        <tr style="text-align: center;border: 1px solid;border-collapse: collapse;">
-                                            <td style="color: #FF0000;">44524</td>
+                                        <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 30px;">
+                                            <td style="color: #FF0000;"><span  t-field="o.ot_number"></span></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -64,145 +58,256 @@
                         <div style="text-align: center;width: 90%;">
                             <p style="font-family: Arial;font-size: 10px;font-style: italic;margin: 3px">MES/DÍA/AÑO</p>
                         </div>
-                        <div style="width: 100%;height: 105px;">
+                        <div style="width: 100%;height: 120px;margin-bottom:25px">
                             <div style="width: 60%;float: left;">
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">FECHA DE ENTRADA:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.date_in"></span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">CLIENTE:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                    <tr style="height: 30px;">
+                                        <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">CLIENTE:</td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;color:#102CF8;">
+                                            <span t-field="o.name_client"></span>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">PO:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.po_number"></span>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">FECHA DE ENTREGA:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.date_rel"></span>
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
                             <div style="width: 25%;float: right;">
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">NPI:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <t t-if="o.tipe_order == 'ot'">
+                                                <span t-field="o.tipe_order"></span>
+                                            </t>
+                                             <t t-if="o.tipe_order == 'npi'">
+                                                <span t-field="o.tipe_order"></span>
+                                            </t>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">VERSION OT:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.version_ot"></span>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">COLOR:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.color"></span>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">CANTIDAD:</td>
-                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
+                                            <span t-field="o.cuantity"></span>
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
                         </div>
 
-                        <div style="width: 100%;height: 40px;">
+                        <div style="width: 100%;height: 30px;margin-bottom:25px">
                             <div style="width: 100%;float: right;">
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                    <tr>
+                                    <tr style="height: 30px;">
                                         <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 30%;border: 1px solid;border-collapse: collapse;">NOMBRE DEL PRODUCTO:</td>
-                                        <td style="text-align: center;border: 1px solid;border-collapse: collapse"></td>
+                                        <td style="text-align: center;border: 1px solid #000;border-collapse: collapse;color:#102CF8">
+                                            <span t-field="o.product_name"></span>
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
                         </div>
 
-                        <div style="width: 100%;height: 105px;">
+                        <div style="width: 100%;height:120px;margin-bottom:25px">
                             <div class="orden de trabajo" style="text-align: center;">
 
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                    <tr style="background: #bfbfbf;">
+                                    <tr style="background: #bfbfbf;height: 30px;">
                                         <th style="font-weight: bold;">RESUMEN DE DESCRIPCION:</th>
                                     </tr>
-                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 20px;">
-                                        <td ></td>
+                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 90px;">
+                                        <td >
+                                            <span t-field="o.description"></span>
+                                        </td>
                                     </tr>
-                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 20px">
-                                        <td ></td>
-                                    </tr>
-                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 20px">
-                                        <td ></td>
-                                    </tr>
+<!--                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 20px">-->
+<!--                                        <td ></td>-->
+<!--                                    </tr>-->
+<!--                                    <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 20px">-->
+<!--                                        <td ></td>-->
+<!--                                    </tr>-->
                                 </table>
                             </div>
                         </div>
 
-                        <div style="width: 100%;height: 105px;">
+                        <div style="width: 100%;height: 120px;margin-bottom:25px">
                             <div class="orden de trabajo" style="text-align: center;">
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
-                                    <tr style="background: #bfbfbf;">
+                                    <tr style="background: #bfbfbf;height: 30px;">
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">DOCUMENTOS ANEXOS</th>
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">APLICA</th>
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">NO APLICA</th>
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">OBS.</th>
                                     </tr>
-                                    <tr style="text-align: center;height: 20px;">
+                                    <tr style="text-align: center;height: 20px;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;">Listado de Materiales.</td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                            <t t-if="o.materials_ids">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                            <t t-if="not o.materials_ids">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
                                         <td style="border: 1px solid;border-collapse: collapse;"></td>
                                     </tr>
-                                    <tr style="text-align: center;">
+                                    <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;">Planos.</td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                             <t t-if="o.planos == True">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                             <t t-if="o.planos == False">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
                                         <td style="border: 1px solid;border-collapse: collapse;"></td>
                                     </tr>
-                                    <tr style="text-align: center;">
+                                    <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;">Nesteos.</td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
-                                        <td style="border: 1px solid;border-collapse: collapse;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                             <t t-if="o.nesteos == True">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
+                                        <td style="border: 1px solid;border-collapse: collapse;">
+                                             <t t-if="o.nesteos == False">
+                                                <span>x</span>
+                                            </t>
+                                        </td>
                                         <td style="border: 1px solid;border-collapse: collapse;"></td>
                                     </tr>
                                 </table>
                             </div>
                         </div>
 
-                        <div style="width: 100%;height: 137px;">
+                       <div style="width: 100%;height: 180px;">
+                            <div style="width: 33%;float: left;">
+                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
+                                     <tr style="background: #bfbfbf;height: 30px;">
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">ELABORO</th>
+                                     </tr>
+                                     <tr style="text-align: center;height: 90px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">DISEÑO</td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+
+                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;height: 30px;">
+                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
+                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
+                                             </td>
+                                     </tr>
+                                 </table>
+                            </div>
+                            <div style="width: 33%;float: left;margin:0 5px 0 5px">
+                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
+                                     <tr style="background: #bfbfbf;height: 30px;">
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION / AUTORIZACION</th>
+                                     </tr>
+                                     <tr style="text-align: center;height: 90px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">VENTAS / DIRECCION GENERAL</td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+
+                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;height: 30px;">
+                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
+                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
+                                             </td>
+                                     </tr>
+                                 </table>
+                            </div>
+                            <div style="width: 33%;float: left;">
+                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
+                                     <tr style="background: #bfbfbf;height: 30px;">
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION DE LA O/T</th>
+                                     </tr>
+                                     <tr style="text-align: center;height: 90px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">CALIDAD</td>
+                                     </tr>
+                                     <tr style="text-align: center;height: 30px;">
+                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;height: 30px;">
+                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
+                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
+                                             </td>
+                                     </tr>
+                                 </table>
+                            </div>
+                         </div>
+
+
+                       <div style="width: 100%;height: 180px;margin-bottom:5px">
                            <div style="width: 33%;float: left;">
-                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom: 0;">
-                                    <tr style="background: #bfbfbf;">
+                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
+                                    <tr style="background: #bfbfbf;height: 30px;">
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECEPCION</th>
                                     </tr>
-                                    <tr style="text-align: center;height: 85px;">
+                                    <tr style="text-align: center;height: 90px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                     </tr>
-                                    <tr style="text-align: center;">
+                                    <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">COMPRAS</td>
                                     </tr>
-                                    <tr style="text-align: center;">
-
-                                            <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 0;">
-                                                <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
+                                    <tr style="text-align: center;height: 30px;">
+                                            <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;border-bottom: 1;height: 30px;">
+                                                    <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
                                             </td>
                                     </tr>
                                 </table>
                             </div>
                             <div style="width: 33%;float: left;margin:0 5px 0 5px">
-                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom: 0;">
-                                    <tr style="background: #bfbfbf;">
+                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
+                                    <tr style="background: #bfbfbf;height: 30px;">
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">VERIFICACION</th>
                                     </tr>
-                                    <tr style="text-align: center;height: 85px;">
+                                    <tr style="text-align: center;height: 90px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                     </tr>
-                                    <tr style="text-align: center;">
+                                    <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">ALMACEN</td>
                                     </tr>
-                                    <tr style="text-align: center;">
-                                        <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 0;">
+                                    <tr style="text-align: center;height: 30px;">
+                                        <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 1;height: 30px;">
                                             <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
                                             <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
                                         </td>
@@ -210,88 +315,27 @@
                                 </table>
                             </div>
                             <div style="width: 33%;float: left;">
-                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom: 0;">
-                                    <tr style="background: #bfbfbf;">
+                                <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
+                                    <tr style="background: #bfbfbf;height: 30px;">
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECIBIDO</th>
                                     </tr>
-                                    <tr style="text-align: center;height: 85px;">
+                                    <tr style="text-align: center;height: 90px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                     </tr>
-                                    <tr style="text-align: center;">
+                                    <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">PRODUCCION</td>
                                     </tr>
-                                    <tr style="text-align: center;">
-                                            <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 0;">
+                                    <tr style="text-align: center;height: 30px;">
+                                            <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 1;height: 30px;">
                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
                                             </td>
                                     </tr>
                                 </table>
                             </div>
-                        </div>
+                       </div>
 
-                        <div style="width: 100%;height: 137px;">
-                            <div style="width: 33%;float: left;">
-                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
-                                     <tr style="background: #bfbfbf;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">ELABORO</th>
-                                     </tr>
-                                     <tr style="text-align: center;height: 85px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
-                                     </tr>
-                                     <tr style="text-align: center;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">DISEÑO</td>
-                                     </tr>
-                                     <tr style="text-align: center;">
 
-                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;">
-                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
-                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
-                                             </td>
-                                     </tr>
-                                 </table>
-                             </div>
-                             <div style="width: 33%;float: left;margin:0 5px 0 5px">
-                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
-                                     <tr style="background: #bfbfbf;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION / AUTORIZACION</th>
-                                     </tr>
-                                     <tr style="text-align: center;height: 85px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
-                                     </tr>
-                                     <tr style="text-align: center;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">VENTAS / DIRECCION GENERAL</td>
-                                     </tr>
-                                     <tr style="text-align: center;">
-
-                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;">
-                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
-                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
-                                             </td>
-                                     </tr>
-                                 </table>
-                             </div>
-                             <div style="width: 33%;float: left;">
-                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
-                                     <tr style="background: #bfbfbf;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION DE LA O/T</th>
-                                     </tr>
-                                     <tr style="text-align: center;height: 85px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
-                                     </tr>
-                                     <tr style="text-align: center;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">CALIDAD</td>
-                                     </tr>
-                                     <tr style="text-align: center;">
-
-                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;">
-                                                 <p style="float: left;width: 49%;text-align: left;margin:0;padding:0;border-right: 1px solid;height: 100%;">Fecha:</p>
-                                                 <p style="float: left;width: 50%;text-align: left;margin:0;padding:0;height: 100%;">Hora:</p>
-                                             </td>
-                                     </tr>
-                                 </table>
-                             </div>
-                         </div>
 
                         <div style="width: 100%;height: 75px;">
                             <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
@@ -301,7 +345,112 @@
                                 </p>
                             </div>
                         </div>
+<!--                        Rechazo   -->
+                        <div class="header" style="margin-bottom: 10px; width: 100%;height: 70px;">
+                            <div style="float: left;width: 60%;text-align: right;padding-right: 40px;padding-left: 40px">
+                                <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
+                            </div>
+                            <div style="float: left;width: 20%;">
+                                <img src="https://i.postimg.cc/cHvL32gM/DTM-logo.png" alt="DTM logo" style="width: 180px" />
+                            </div>
+                        </div>
+
+                        <div style="width: 100%;height: 85%;">
+                            <table style="border: 1px solid;border-collapse: collapse;width: 100%;">
+                                <tr style="background: #bfbfbf;font-family: Arial;font-size: 36px;font-weight: bold;height:100px ;">
+                                    <th style="border: 1px solid;">Descripcion del Rechazo</th>
+                                    <th style="border: 1px solid;">Fecha</th>
+                                    <th style="border: 1px solid;">Hora</th>
+                                    <th style="border: 1px solid;">Firma</th>
+                                </tr>
+
+                                <t t-foreach="o.rechazo_id" t-as="rechazo">
+                                    <tr style="font-family: Arial;font-size: 16px;height:120px ;">
+                                        <td style="border: 1px solid;text-align: center;">
+                                             <span t-field="rechazo.decripcion"></span>
+                                        </td>
+                                        <td style="border: 1px solid;text-align: center;">
+                                             <span t-field="rechazo.fecha"></span>
+                                        </td>
+                                        <td style="border: 1px solid;text-align: center;">
+                                             <span t-field="rechazo.hora"></span>
+                                        </td>
+                                        <td style="border: 1px solid;"></td>
+                                    </tr>
+                                </t>
+                            </table>
+                       </div>
+
+                        <div style="width: 100%;height: 75px;">
+                            <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
+                                <p>DTM-FOR-DIS-01 <br></br>
+                                    Versión 03 <br></br>
+                                    Fecha de Revisión: 08/23/2023
+                                </p>
+                            </div>
+                        </div>
                     </div>
+
+        </template>
+
+        <template id="dtm_odt.rechazo_template_page">
+            <div class="page">
+                <div class="oe_structure" />
+                <div class="header" style="margin-bottom: 10px; width: 100%;height: 70px;">
+                    <div style="float: left;width: 60%;text-align: right;padding-right: 40px;padding-left: 40px">
+                        <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
+                    </div>
+                    <div style="float: left;width: 20%;">
+                        <img src="https://i.postimg.cc/cHvL32gM/DTM-logo.png" alt="DTM logo" style="width: 180px" />
+                    </div>
+                </div>
+
+                <div style="width: 100%;height: 100%;">
+                    <table style="border: 1px solid;border-collapse: collapse;width: 100%;">
+                        <tr style="background: #bfbfbf;font-family: Arial;font-size: 36px;font-weight: bold;height:100px ;">
+                            <th style="border: 1px solid;">Descripcion del Rechazo</th>
+                            <th style="border: 1px solid;">Fecha</th>
+                            <th style="border: 1px solid;">Hora</th>
+                            <th style="border: 1px solid;">Firma</th>
+                        </tr>
+
+                        <t t-foreach="o.rechazo_id" t-as="rechazo">
+                            <tr style="font-family: Arial;font-size: 16px;height:120px ;">
+                                <td style="border: 1px solid;text-align: center;">
+                                     <span t-field="rechazo.decripcion"></span>
+                                </td>
+                                <td style="border: 1px solid;text-align: center;">
+                                     <span t-field="rechazo.fecha"></span>
+                                </td>
+                                <td style="border: 1px solid;text-align: center;">
+                                     <span t-field="rechazo.hora"></span>
+                                </td>
+                                <td style="border: 1px solid;"></td>
+                            </tr>
+                        </t>
+                    </table>
+               </div>
+
+                <div style="width: 100%;height: 75px;">
+                    <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
+                        <p>DTM-FOR-DIS-01 <br></br>
+                            Versión 03 <br></br>
+                            Fecha de Revisión: 08/23/2023
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template id="orden_de_trabajo_template" >         
+            <t t-call="web.html_container">               
+                <t t-foreach="docs" t-as="o">
+                    <head>
+                        <meta charset="UTF-8"/>
+                    </head>
+
+<!--                    <t t-call="dtm_odt.rechazo_template_page" />-->
+                    <t t-call="dtm_odt.orden_de_trabajo_template_page" />
 
                 </t>
             </t>
