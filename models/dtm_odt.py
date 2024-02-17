@@ -1,5 +1,6 @@
 from odoo import api,models,fields
 from datetime import datetime
+from odoo.exceptions import ValidationError
 import re
 
 
@@ -13,37 +14,33 @@ class DtmOdt(models.Model):
     #---------------------Basicos----------------------
 
     status = fields.Many2many("dtm.ing" ,string="Estado del Producto")
-
     sequence = fields.Integer()
-    ot_number = fields.Char("NÚMERO",default="000",readonly=False)
+    ot_number = fields.Char("NÚMERO",default="000",readonly=True)
     tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True)
     # name_client = fields.Many2one("res.partner",string="CLIENTE")
-    name_client = fields.Char(string="CLIENTE")
-    
-    product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
-   
-    date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today())
-    
-    po_number = fields.Char(string="PO",default="00")
+    name_client = fields.Char(string="CLIENTE",readonly=True)
+    product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
+    date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
+    po_number = fields.Char(string="PO",default="00",readonly=True)
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
-
     version_ot = fields.Integer(string="VERSIÓN OT",default=1,readonly=True)
     color = fields.Char(string="COLOR",default="N/A")
-    cuantity = fields.Integer(string="CANTIDAD" , default=1)
-
+    cuantity = fields.Integer(string="CANTIDAD",readonly=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
+
+    planos = fields.Boolean(string="Planos",default=False)
+    nesteos = fields.Boolean(string="Nesteos",default=False)
+
+    rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
+
 
     #---------------------Resumen de descripción------------
 
     description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
 
-  
-
-
     #------------------------Notas---------------------------
 
     notes = fields.Text()
-   
 
     #-------------------------Acctions------------------------
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
@@ -71,12 +68,37 @@ class DtmOdt(models.Model):
             newres.sort(reverse=True)
             self.ot_number = str(newres[0]  + 1)+ "-NPI"
 
-   
+
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         if self.tipe_order == "npi":
             return self.env.ref("dtm_odt.formato_npi").report_action(self)
         elif self.tipe_order == "ot":
             return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
+            # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
+
+
+
+    def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
+            return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
+
+
+    # def get_view(self, view_id=None, view_type='form', **options):
+    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+    #
+    #     get_info = self.env['dtm.materiales'].search([])
+    #
+    #     self.env.cr.execute("DELETE FROM dtm_materials_line ")
+    #     for result in get_info:
+    #         id = str(result.id)
+    #         material = str(result.material_id.nombre)
+    #         calibre = str(result.calibre)
+    #         largo = str(result.largo)
+    #         ancho = str(result.ancho)
+    #         stock = str(result.cantidad)
+    #
+    #         self.env.cr.execute("INSERT INTO dtm_materials_line (id, materials_list, materials_inventory)" +
+    #                             "VALUES ("+id+",'"+ material + " " + calibre + " " + largo + " " + ancho +"', "+stock+")")
+    #     return res
         
 
     #-----------------------Materiales----------------------
@@ -87,11 +109,62 @@ class DtmOdt(models.Model):
         _description = "Tabla de materiales"
 
         model_id = fields.Many2one("dtm.odt", readonly=True)
-       
-        materials_list = fields.Char("LISTADO DE MATERIALES")
-        materials_cuantity = fields.Char("CANTIDAD", default=1)
-        materials_inventory = fields.Char("INVENTARIO")
-        materials_required = fields.Char("REQUERIDO", default=0)
+        materials_list = fields.Many2one('dtm.materiales',string="LISTADO DE MATERIALES",store=True)
+        materials_cuantity = fields.Integer("CANTIDAD")
+        materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory",store=True)
+        materials_required = fields.Integer("REQUERIDO", compute="_compute_materials_required",store=True)
+        nombre_material = fields.Char(compute="_compute_nombre_material",store=True)
+        @api.depends("materials_cuantity")
+        def _compute_materials_inventory(self):
+            cuantity = self.materials_cuantity
+            inventory = int(self.materials_list.cantidad)
+            if inventory >= cuantity:
+                print(inventory,cuantity)
+                self.materials_inventory = cuantity
+            else:
+                self.materials_inventory = inventory
+
+        @api.depends("materials_cuantity")
+        def _compute_materials_required(self):
+            cuantity = self.materials_cuantity
+            inventory = int(self.materials_list.cantidad)
+            if cuantity > inventory:
+                self.materials_required = cuantity - inventory
+            if cuantity < 0:
+                 raise ValidationError("Cantidad debe ser positivo")
+
+        @api.depends("materials_list")
+        def _compute_nombre_material(self):
+              if self.materials_list:
+                nombre = self.materials_list.material_id.nombre +" "+ str(self.materials_list.largo) +" x "+ str(self.materials_list.ancho) +" @ "+ self.materials_list.calibre_id.calibre
+                # print(nombre,self._origin.id)
+                self.nombre_material = nombre
+                # self.env.cr.execute("UPDATE dtm_materials_line SET nombre_material='"+nombre+"' WHERE materials_list="+str(self.materials_list))
+
+
+    class Rechazo(models.Model):
+        _name = "dtm.odt.rechazo"
+        _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
+
+        model_id = fields.Many2one("dtm.odt")
+
+        decripcion = fields.Text(string="Descripción del Rechazo")
+        fecha = fields.Date(string="Fecha")
+        hora = fields.Char(string="Hora")
+
+        @api.onchange("fecha")
+        def _action_fecha(self):
+            fecha = self.fecha
+
+            if fecha:
+                hora = fecha.strftime("%X")
+                print(hora)
+                self.hora = hora
+
+
+
+
+
 
         
 
