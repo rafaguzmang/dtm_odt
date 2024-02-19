@@ -31,7 +31,7 @@
         <template id="dtm_odt.orden_de_trabajo_template_page">
                     <div class="page">
                         <div class="oe_structure" />
-                        <div class="header" style="width: 100%;height:150px">
+                        <div class="container" style="width: 100%;height:150px">
                             <div style="float: left;width: 60%;text-align: right;">
                                 <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
                             </div>
@@ -42,7 +42,7 @@
                                 <h2>Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
                             </div>
                         </div>
-                        <div style="width: 100%;height: 60px;">
+                        <div style="width: 100%;height: 60px;margin-bottom:20px">
                                 <div class="orden de trabajo" style="text-align: center;float: right;width: 25%;">
 
                                     <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
@@ -101,7 +101,7 @@
                                         </td>
                                     </tr>
                                     <tr style="height: 30px;">
-                                        <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">VERSION OT:</td>
+                                        <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid;border-collapse: collapse;">VERSIÓN OT:</td>
                                         <td style="text-align: center;width: 50%;border: 1px solid;border-collapse: collapse">
                                             <span t-field="o.version_ot"></span>
                                         </td>
@@ -140,7 +140,7 @@
 
                                 <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
                                     <tr style="background: #bfbfbf;height: 30px;">
-                                        <th style="font-weight: bold;">RESUMEN DE DESCRIPCION:</th>
+                                        <th style="font-weight: bold;">RESUMEN DE DESCRIPCIÓN:</th>
                                     </tr>
                                     <tr style="text-align: center;border: 1px solid;border-collapse: collapse;height: 90px;">
                                         <td >
@@ -216,13 +216,13 @@
                             <div style="width: 33%;float: left;">
                                  <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
                                      <tr style="background: #bfbfbf;height: 30px;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">ELABORO</th>
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">ELABORÓ</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">DISEÑO</td>
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">DISEÑÓ</td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
 
@@ -236,13 +236,13 @@
                             <div style="width: 33%;float: left;margin:0 5px 0 5px">
                                  <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
                                      <tr style="background: #bfbfbf;height: 30px;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION / AUTORIZACION</th>
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISIÓN / AUTORIZACIÓN</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">VENTAS / DIRECCION GENERAL</td>
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">VENTAS / DIRECCIÓN GENERAL</td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
 
@@ -256,7 +256,7 @@
                             <div style="width: 33%;float: left;">
                                  <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;border-bottom:0;">
                                      <tr style="background: #bfbfbf;height: 30px;">
-                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISION DE LA O/T</th>
+                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISIÓN DE LA O/T</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
@@ -279,7 +279,7 @@
                            <div style="width: 33%;float: left;">
                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
                                     <tr style="background: #bfbfbf;height: 30px;">
-                                        <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECEPCION</th>
+                                        <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECEPCIÓN</th>
                                     </tr>
                                     <tr style="text-align: center;height: 90px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
@@ -298,13 +298,13 @@
                             <div style="width: 33%;float: left;margin:0 5px 0 5px">
                                 <table style="width: 100%;text-align: center;border: 1px solid;border-collapse: collapse; font-family: Arial;font-size: 16px;">
                                     <tr style="background: #bfbfbf;height: 30px;">
-                                        <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">VERIFICACION</th>
+                                        <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">VERIFICACIÓN</th>
                                     </tr>
                                     <tr style="text-align: center;height: 90px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
-                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">ALMACEN</td>
+                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">ALMACÉN</td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 1;height: 30px;">
@@ -323,7 +323,7 @@
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
-                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">PRODUCCION</td>
+                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">PRODUCCIÓN</td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
                                             <td style="border: 1px solid;border-collapse: collapse;overflow: hidden;padding: 0;border-bottom: 1;height: 30px;">
@@ -337,16 +337,16 @@
 
 
 
-                        <div style="width: 100%;height: 75px;">
+                        <div style="width: 100%;height: 75px;margin-bottom:40px">
                             <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
                                 <p>DTM-FOR-DIS-01 <br></br>
                                     Version 03 <br></br>
-                                    Fecha de Revision: 08/23/2023
+                                    Fecha de Revisión: 08/23/2023
                                 </p>
                             </div>
                         </div>
 <!--                        Rechazo   -->
-                        <div class="header" style="margin-bottom: 10px; width: 100%;height: 70px;">
+                        <div class="container" style="margin-bottom: 10px; width: 100%;height: 70px;margin-top:20px">
                             <div style="float: left;width: 60%;text-align: right;padding-right: 40px;padding-left: 40px">
                                 <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
                             </div>
@@ -358,7 +358,7 @@
                         <div style="width: 100%;height: 85%;">
                             <table style="border: 1px solid;border-collapse: collapse;width: 100%;">
                                 <tr style="background: #bfbfbf;font-family: Arial;font-size: 36px;font-weight: bold;height:100px ;">
-                                    <th style="border: 1px solid;">Descripcion del Rechazo</th>
+                                    <th style="border: 1px solid;">Descripción del Rechazo</th>
                                     <th style="border: 1px solid;">Fecha</th>
                                     <th style="border: 1px solid;">Hora</th>
                                     <th style="border: 1px solid;">Firma</th>
@@ -381,7 +381,7 @@
                             </table>
                        </div>
 
-                        <div style="width: 100%;height: 75px;">
+                        <div style="width: 100%;height: 75px;margin-bottom:20px">
                             <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
                                 <p>DTM-FOR-DIS-01 <br></br>
                                     Versión 03 <br></br>
@@ -445,11 +445,9 @@
         <template id="orden_de_trabajo_template" >         
             <t t-call="web.html_container">               
                 <t t-foreach="docs" t-as="o">
-                    <head>
-                        <meta charset="UTF-8"/>
+                     <head>
+                        <meta charset="utf-8"/>
                     </head>
-
-<!--                    <t t-call="dtm_odt.rechazo_template_page" />-->
                     <t t-call="dtm_odt.orden_de_trabajo_template_page" />
 
                 </t>
