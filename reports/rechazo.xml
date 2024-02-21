@@ -60,7 +60,9 @@
                                 <td style="border: 1px solid;text-align: center;">
                                      <span t-field="rechazo.hora"></span>
                                 </td>
-                                <td style="border: 1px solid;"></td>
+                                <td style="border: 1px solid;">
+                                     <span t-field="rechazo.firma"></span>
+                                </td>
                             </tr>
                         </t>
                     </table>

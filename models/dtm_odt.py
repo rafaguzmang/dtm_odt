@@ -108,38 +108,57 @@ class DtmOdt(models.Model):
         _name = "dtm.materials.line"
         _description = "Tabla de materiales"
 
-        model_id = fields.Many2one("dtm.odt", readonly=True)
-        materials_list = fields.Many2one('dtm.materiales',string="LISTADO DE MATERIALES",store=True)
+        model_id = fields.Many2one("dtm.odt")
+
+        # materials_list = fields.Many2one('dtm.materiales.inventario',string="LISTADO DE MATERIALES")
+        nombre = fields.Char(string="LISTADO DE MATERIALES")
         materials_cuantity = fields.Integer("CANTIDAD")
-        materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory",store=True)
-        materials_required = fields.Integer("REQUERIDO", compute="_compute_materials_required",store=True)
-        nombre_material = fields.Char(compute="_compute_nombre_material",store=True)
-        @api.depends("materials_cuantity")
-        def _compute_materials_inventory(self):
-            cuantity = self.materials_cuantity
-            inventory = int(self.materials_list.cantidad)
-            if inventory >= cuantity:
-                print(inventory,cuantity)
-                self.materials_inventory = cuantity
-            else:
-                self.materials_inventory = inventory
+        # materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory",store=True)
+        # materials_required = fields.Integer("REQUERIDO", compute="_compute_materials_required",store=True)
+        materials_inventory = fields.Integer("INVENTARIO", )
+        materials_required = fields.Integer("REQUERIDO", )
+        # nombre_material = fields.Char(compute="_compute_nombre_material",store=True)
+        # @api.depends("materials_cuantity")
+        # def _compute_materials_inventory(self):
+        #     for result in self:
+        #         print("cuantity",result.materials_cuantity)
+        #         cuantity = result.materials_cuantity
+        #         inventory = int(result.materials_list.cantidad)
+        #         if inventory >= cuantity:
+        #             print(inventory,cuantity)
+        #             result.materials_inventory = cuantity
+        #         else:
+        #             result.materials_inventory = inventory
 
-        @api.depends("materials_cuantity")
-        def _compute_materials_required(self):
-            cuantity = self.materials_cuantity
-            inventory = int(self.materials_list.cantidad)
-            if cuantity > inventory:
-                self.materials_required = cuantity - inventory
-            if cuantity < 0:
-                 raise ValidationError("Cantidad debe ser positivo")
+        # @api.depends("materials_cuantity")
+        # def _compute_materials_required(self):
+        #     for result in self:
+        #         cuantity = result.materials_cuantity
+        #         inventory = int(result.materials_list.cantidad)
+        #         if cuantity > inventory:
+        #             result.materials_required = cuantity - inventory
+        #         if cuantity < 0:
+        #              raise ValidationError("Cantidad debe ser positivo")
 
-        @api.depends("materials_list")
-        def _compute_nombre_material(self):
-              if self.materials_list:
-                nombre = self.materials_list.material_id.nombre +" "+ str(self.materials_list.largo) +" x "+ str(self.materials_list.ancho) +" @ "+ self.materials_list.calibre_id.calibre
-                # print(nombre,self._origin.id)
-                self.nombre_material = nombre
-                # self.env.cr.execute("UPDATE dtm_materials_line SET nombre_material='"+nombre+"' WHERE materials_list="+str(self.materials_list))
+        # @api.depends("materials_list")
+        # def _compute_nombre_material(self):
+        #     for result in self:
+        #       if result.materials_list:
+        #         for name in result.materials_list:
+        #             # print(result.material_id.nombre)
+        #             # print(result.largo)
+        #             # print(result.ancho)
+        #             # print(result.calibre_id.calibre)
+        #             nombre = name.material_id.nombre +" "+ str(name.largo) +" x "+ str(name.ancho) +" @ "+ name.calibre_id.calibre
+        #             # print(nombre,self._origin.id)
+        #             result.nombre_material = nombre
+        #             # self.env.cr.execute("UPDATE dtm_materials_line SET nombre_material='"+nombre+"' WHERE materials_list="+str(self.materials_list))
+    # class Inventario(models.Model):
+    #     _name = "dtm.materiales.inventario"
+    #     _description = "Tabla para almacenar todo el inventario de almacén"
+    #
+    #     nombre = fields.Char(string="Nobre del material")
+    #     cantidad = fields.Integer(string="Cantidad")
 
 
     class Rechazo(models.Model):
@@ -151,6 +170,7 @@ class DtmOdt(models.Model):
         decripcion = fields.Text(string="Descripción del Rechazo")
         fecha = fields.Date(string="Fecha")
         hora = fields.Char(string="Hora")
+        firma = fields.Char(string="Firma")
 
         @api.onchange("fecha")
         def _action_fecha(self):

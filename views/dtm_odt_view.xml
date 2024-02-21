@@ -30,7 +30,7 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header>
-                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>
+<!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
                         <button type="object" name="action_imprimir_formato" string="ODT" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
                     </header>
@@ -108,7 +108,7 @@
                             <page string="MATERIALES" >
                                     <field name="materials_ids" >
                                         <tree editable="bottom">
-                                            <field name="materials_list"/>
+                                            <field name="nombre"/>
                                             <field name="materials_cuantity" options='{"type": "number"}'/>
                                             <field name="materials_inventory"/>
                                             <field name="materials_required" options='{"type": "number"}'/>
@@ -121,6 +121,7 @@
                                         <field name="decripcion"/>
                                         <field name="fecha"/>
                                         <field name="hora"/>
+                                        <field name="firma"/>
                                     </tree>
                                 </field>
                             </page>
