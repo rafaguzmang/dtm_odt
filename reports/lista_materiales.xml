@@ -32,7 +32,7 @@
                                 <t t-foreach="o.materials_ids" t-as="material">
                                     <tr>
                                         <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.materials_list.nombre"></span>
+                                                 <span t-field="material.materials_list.nombre"></span>  <span t-field="material.materials_list.medida"></span>
                                         </td>
                                     </tr>
                                 </t>
