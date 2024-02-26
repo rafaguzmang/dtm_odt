@@ -9,15 +9,13 @@ class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
     _order = "ot_number desc"
-
    
     #---------------------Basicos----------------------
 
     status = fields.Many2many("dtm.ing" ,string="Estado del Producto")
     sequence = fields.Integer()
     ot_number = fields.Char("NÚMERO",default="000",readonly=True)
-    tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True)
-    # name_client = fields.Many2one("res.partner",string="CLIENTE")
+    tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True,readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
@@ -32,6 +30,8 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
+
+    anexos_id = fields.Many2many("dtm.documentos.anexos")
 
 
     #---------------------Resumen de descripción------------
@@ -76,110 +76,75 @@ class DtmOdt(models.Model):
             return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
             # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
 
-
-
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
             return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
 
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #
-    #     get_info = self.env['dtm.materiales'].search([])
-    #
-    #     self.env.cr.execute("DELETE FROM dtm_materials_line ")
-    #     for result in get_info:
-    #         id = str(result.id)
-    #         material = str(result.material_id.nombre)
-    #         calibre = str(result.calibre)
-    #         largo = str(result.largo)
-    #         ancho = str(result.ancho)
-    #         stock = str(result.cantidad)
-    #
-    #         self.env.cr.execute("INSERT INTO dtm_materials_line (id, materials_list, materials_inventory)" +
-    #                             "VALUES ("+id+",'"+ material + " " + calibre + " " + largo + " " + ancho +"', "+stock+")")
-    #     return res
-        
 
     #-----------------------Materiales----------------------
 
-    class TestModelLine(models.Model):
-     
-        _name = "dtm.materials.line"
-        _description = "Tabla de materiales"
+class TestModelLine(models.Model):
+    _name = "dtm.materials.line"
+    _description = "Tabla de materiales"
 
-        model_id = fields.Many2one("dtm.odt")
+    model_id = fields.Many2one("dtm.odt")
 
-        # materials_list = fields.Many2one('dtm.materiales.inventario',string="LISTADO DE MATERIALES")
-        nombre = fields.Char(string="LISTADO DE MATERIALES")
-        materials_cuantity = fields.Integer("CANTIDAD")
-        # materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory",store=True)
-        # materials_required = fields.Integer("REQUERIDO", compute="_compute_materials_required",store=True)
-        materials_inventory = fields.Integer("INVENTARIO", )
-        materials_required = fields.Integer("REQUERIDO", )
-        # nombre_material = fields.Char(compute="_compute_nombre_material",store=True)
-        # @api.depends("materials_cuantity")
-        # def _compute_materials_inventory(self):
-        #     for result in self:
-        #         print("cuantity",result.materials_cuantity)
-        #         cuantity = result.materials_cuantity
-        #         inventory = int(result.materials_list.cantidad)
-        #         if inventory >= cuantity:
-        #             print(inventory,cuantity)
-        #             result.materials_inventory = cuantity
-        #         else:
-        #             result.materials_inventory = inventory
+    materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES")
+    materials_cuantity = fields.Integer("CANTIDAD")
+    materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory", store=True)
+    materials_required = fields.Integer("REQUERIDO")
 
-        # @api.depends("materials_cuantity")
-        # def _compute_materials_required(self):
-        #     for result in self:
-        #         cuantity = result.materials_cuantity
-        #         inventory = int(result.materials_list.cantidad)
-        #         if cuantity > inventory:
-        #             result.materials_required = cuantity - inventory
-        #         if cuantity < 0:
-        #              raise ValidationError("Cantidad debe ser positivo")
+    @api.depends("materials_cuantity")
+    def _compute_materials_inventory(self):
+        for result in self:
+            cantidad = result.materials_cuantity
+            inventario = result.materials_list.cantidad
+            # print(cantidad,inventario)
+            if cantidad <= inventario:
+                result.materials_inventory = cantidad
+            else:
+                result.materials_inventory = inventario
+                result.materials_required = cantidad - inventario
+            requerido = result.materials_required
+            if requerido > 0:
+                get_odt = self.env['dtm.odt'].search([])
 
-        # @api.depends("materials_list")
-        # def _compute_nombre_material(self):
-        #     for result in self:
-        #       if result.materials_list:
-        #         for name in result.materials_list:
-        #             # print(result.material_id.nombre)
-        #             # print(result.largo)
-        #             # print(result.ancho)
-        #             # print(result.calibre_id.calibre)
-        #             nombre = name.material_id.nombre +" "+ str(name.largo) +" x "+ str(name.ancho) +" @ "+ name.calibre_id.calibre
-        #             # print(nombre,self._origin.id)
-        #             result.nombre_material = nombre
-        #             # self.env.cr.execute("UPDATE dtm_materials_line SET nombre_material='"+nombre+"' WHERE materials_list="+str(self.materials_list))
-    # class Inventario(models.Model):
-    #     _name = "dtm.materiales.inventario"
-    #     _description = "Tabla para almacenar todo el inventario de almacén"
-    #
-    #     nombre = fields.Char(string="Nobre del material")
-    #     cantidad = fields.Integer(string="Cantidad")
+                for get in get_odt:
+                    for id in get.materials_ids:
+                        if result._origin.id == id.id:
+                            orden = get.ot_number
+
+                nombre = result.materials_list.nombre
+                descripcion = result.materials_list.caracteristicas
+                if not descripcion:
+                    descripcion = ""
+                self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
 
 
-    class Rechazo(models.Model):
-        _name = "dtm.odt.rechazo"
-        _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
+    @api.onchange("materials_list")
+    def _onchange_material_list(self):
+        print(self._origin.id)
+        print(self.materials_list.nombre)
 
-        model_id = fields.Many2one("dtm.odt")
+class Rechazo(models.Model):
+    _name = "dtm.odt.rechazo"
+    _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
 
-        decripcion = fields.Text(string="Descripción del Rechazo")
-        fecha = fields.Date(string="Fecha")
-        hora = fields.Char(string="Hora")
-        firma = fields.Char(string="Firma")
+    model_id = fields.Many2one("dtm.odt")
 
-        @api.onchange("fecha")
-        def _action_fecha(self):
-            fecha = self.fecha
+    decripcion = fields.Text(string="Descripción del Rechazo")
+    fecha = fields.Date(string="Fecha")
+    hora = fields.Char(string="Hora")
+    firma = fields.Char(string="Firma")
 
-            if fecha:
-                hora = fecha.strftime("%X")
-                print(hora)
-                self.hora = hora
+    @api.onchange("fecha")
+    def _action_fecha(self):
+        fecha = self.fecha
+
+        if fecha:
+            hora = fecha.strftime("%X")
+            print(hora)
+            self.hora = hora
 
 
 

@@ -16,7 +16,7 @@
         <template id="dtm_odt.lista_materiales_template_page">
             <div class="page">
                  <div class="oe_structure" />
-                  <div class="header" style="width: 100%;height: 70px;">
+                  <div class="container" style="width: 100%;height: 70px;">
                     <div style="float: right;width: 20%;">
                         <img src="https://i.postimg.cc/cHvL32gM/DTM-logo.png" alt="DTM logo" style="width: 180px" />
                     </div>
@@ -32,7 +32,7 @@
                                 <t t-foreach="o.materials_ids" t-as="material">
                                     <tr>
                                         <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.nombre"></span>
+                                                 <span t-field="material.materials_list.nombre"></span>
                                         </td>
                                     </tr>
                                 </t>
