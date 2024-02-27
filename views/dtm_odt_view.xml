@@ -123,11 +123,11 @@
         </record>
 
 
-        <menuitem id="dtm_odt_menu_root" name="Ordenes de Trabajo">
-            <!-- <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> -->
-                <menuitem id="dtm_odt_menu_action" action="dtm_odt_action"/>
-            <!-- </menuitem> -->
-        </menuitem>
+<!--        <menuitem id="dtm_odt_menu_root" name="Ordenes de Trabajo">-->
+<!--            &lt;!&ndash; <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> &ndash;&gt;-->
+<!--                <menuitem id="dtm_odt_menu_action" action="dtm_odt_action"/>-->
+<!--            &lt;!&ndash; </menuitem> &ndash;&gt;-->
+<!--        </menuitem>-->
         
     </data>
 </odoo>
