@@ -109,16 +109,25 @@ class TestModelLine(models.Model):
             if requerido > 0:
                 get_odt = self.env['dtm.odt'].search([])
 
+
                 for get in get_odt:
                     for id in get.materials_ids:
                         if result._origin.id == id.id:
                             orden = get.ot_number
 
-                nombre = result.materials_list.nombre
+                nombre = result.materials_list.nombre +" " + result.materials_list.medida
                 descripcion = result.materials_list.caracteristicas
                 if not descripcion:
                     descripcion = ""
-                self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
+
+                if not get_requerido:
+                    self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                else:
+                    self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
+
+                if requerido <= 0:
+                    self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
 
     @api.onchange("materials_list")
