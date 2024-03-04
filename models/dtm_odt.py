@@ -33,7 +33,6 @@ class DtmOdt(models.Model):
 
     anexos_id = fields.Many2many("dtm.documentos.anexos")
 
-
     #---------------------Resumen de descripción------------
 
     description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
@@ -43,6 +42,17 @@ class DtmOdt(models.Model):
     notes = fields.Text()
 
     #-------------------------Acctions------------------------
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+        get_odt = self.env['dtm.materials.line'].search([])
+        for get in get_odt:
+            get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
+            if get_this:
+                self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+
+        return res
+
+
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
         res=[]
         newres = []
@@ -79,8 +89,6 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
             return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-
-
     #-----------------------Materiales----------------------
 
 class TestModelLine(models.Model):
@@ -88,6 +96,9 @@ class TestModelLine(models.Model):
     _description = "Tabla de materiales"
 
     model_id = fields.Many2one("dtm.odt")
+
+    nombre = fields.Char(compute="_compute_material_list",store=True)
+    medida = fields.Char(store=True)
 
     materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES")
     materials_cuantity = fields.Integer("CANTIDAD")
@@ -99,17 +110,16 @@ class TestModelLine(models.Model):
         for result in self:
             cantidad = result.materials_cuantity
             inventario = result.materials_list.cantidad
-            # print(cantidad,inventario)
-            if cantidad <= inventario:
+
+            if cantidad < inventario:
                 result.materials_inventory = cantidad
+                # self.Apartado(result,cantidad)
             else:
                 result.materials_inventory = inventario
                 result.materials_required = cantidad - inventario
             requerido = result.materials_required
             if requerido > 0:
                 get_odt = self.env['dtm.odt'].search([])
-
-
                 for get in get_odt:
                     for id in get.materials_ids:
                         if result._origin.id == id.id:
@@ -125,15 +135,15 @@ class TestModelLine(models.Model):
                     self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
                 else:
                     self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
-
                 if requerido <= 0:
                     self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
-
-    @api.onchange("materials_list")
-    def _onchange_material_list(self):
-        print(self._origin.id)
-        print(self.materials_list.nombre)
+    @api.depends("materials_list")
+    def _compute_material_list(self):
+        print("Funciona")
+        for result in self:
+            result.nombre = result.materials_list.nombre
+            result.medida = result.materials_list.medida
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
