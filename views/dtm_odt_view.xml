@@ -101,13 +101,14 @@
                                 </field>
                             </page>
                             <page string="ANEXOS">
-                                <field name="anexos_id" widget='one2many'>
+                                <field name="anexos_id" >
                                      <tree>
-                                            <field name="nombre" invisible="0"></field>
+<!--                                            <field name="nombre" invisible="0"></field>-->
+                                            <field name="documentos" ></field>
                                      </tree>
                                      <form>
-                                        <group widget='one2many'>
-                                            <field name="documentos" filename="nombre"></field>
+                                        <group >
+                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
                                             <field name="nombre" invisible="1"></field>
                                         </group>
                                      </form>
