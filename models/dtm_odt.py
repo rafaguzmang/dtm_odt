@@ -32,6 +32,8 @@ class DtmOdt(models.Model):
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
 
     anexos_id = fields.Many2many("dtm.documentos.anexos")
+    cortadora_id = fields.Many2many("dtm.documentos.cortadora")
+    tubos_id = fields.Many2many("dtm.documentos.tubos")
 
     #---------------------Resumen de descripción------------
 
@@ -140,7 +142,6 @@ class TestModelLine(models.Model):
 
     @api.depends("materials_list")
     def _compute_material_list(self):
-        print("Funciona")
         for result in self:
             result.nombre = result.materials_list.nombre
             result.medida = result.materials_list.medida

@@ -87,6 +87,8 @@
                                             <field name="materials_cuantity" options='{"type": "number"}'/>
                                             <field name="materials_inventory"/>
                                             <field name="materials_required" options='{"type": "number"}'/>
+<!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
+<!--                                            <button type="object" name="action_corte" icon="fa-scissors" class="btn btn-primary"/>-->
                                         </tree>
                                     </field>
                             </page>
@@ -100,14 +102,40 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="ANEXOS">
-                                <field name="anexos_id" widget='one2many'>
+                            <page string="PLANOS">
+                                <field name="anexos_id" >
+                                     <tree>
+                                            <field name="nombre" invisible="0"></field>
+                                     </tree>
+                                     <form>
+                                        <group >
+                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
+                                            <field name="nombre" invisible="1"></field>
+                                        </group>
+                                     </form>
+                                </field>
+                            </page>
+                             <page string="MITSUBISHI">
+                                <field name="cortadora_id" >
+                                     <tree>
+                                            <field name="nombre" invisible="0"></field>
+                                     </tree>
+                                     <form>
+                                        <group >
+                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
+                                            <field name="nombre" invisible="1"></field>
+                                        </group>
+                                     </form>
+                                </field>
+                            </page>
+                            <page string="LTP 6032">
+                                <field name="tubos_id" >
                                      <tree>
                                             <field name="nombre" invisible="0"></field>
                                      </tree>
                                      <form>
                                         <group widget='one2many'>
-                                            <field name="documentos" filename="nombre"></field>
+                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
                                             <field name="nombre" invisible="1"></field>
                                         </group>
                                      </form>
@@ -121,13 +149,6 @@
                 </form>              
             </field>
         </record>
-
-
-<!--        <menuitem id="dtm_odt_menu_root" name="Ordenes de Trabajo">-->
-<!--            &lt;!&ndash; <menuitem id="dtm_odt_first_level_menu" name="TABLERO"> &ndash;&gt;-->
-<!--                <menuitem id="dtm_odt_menu_action" action="dtm_odt_action"/>-->
-<!--            &lt;!&ndash; </menuitem> &ndash;&gt;-->
-<!--        </menuitem>-->
         
     </data>
 </odoo>
