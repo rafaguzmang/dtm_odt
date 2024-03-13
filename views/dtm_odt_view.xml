@@ -102,7 +102,6 @@
                                     </tree>
                                 </field>
                             </page>
-<<<<<<< HEAD
                             <page string="PLANOS">
                                 <field name="anexos_id" >
                                      <tree>
@@ -116,7 +115,7 @@
                                      </form>
                                 </field>
                             </page>
-                             <page string="MITSUBISHI">
+                            <page string="MITSUBISHI">
                                 <field name="cortadora_id" >
                                      <tree>
                                             <field name="nombre" invisible="0"></field>
@@ -129,29 +128,21 @@
                                      </form>
                                 </field>
                             </page>
-                            <page string="LTP 6032">
+                             <page string="LTP 6032">
                                 <field name="tubos_id" >
-=======
-                            <page string="ANEXOS">
-                                <field name="anexos_id" >
->>>>>>> 94d2de79a5d1a0041ba0b706c6312970371f18b9
                                      <tree>
-<!--                                            <field name="nombre" invisible="0"></field>-->
-                                            <field name="documentos" ></field>
+                                            <field name="nombre" invisible="0"></field>
                                      </tree>
                                      <form>
-<<<<<<< HEAD
-                                        <group widget='one2many'>
-                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
-=======
                                         <group >
                                             <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
->>>>>>> 94d2de79a5d1a0041ba0b706c6312970371f18b9
                                             <field name="nombre" invisible="1"></field>
                                         </group>
                                      </form>
                                 </field>
                             </page>
+
+
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
