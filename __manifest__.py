@@ -7,6 +7,7 @@
         #Views
         'views/dtm_odt_view.xml',
         'views/dtm_ing_view.xml',
+        'views/dtm_npi_view.xml',
 
         #Reports
         'reports/npi.xml',

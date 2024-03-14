@@ -5,31 +5,31 @@ import re
 
 
 
-class DtmOdt(models.Model):
-    _name = "dtm.odt"
-    _description = "Oden de trabajo"
-    _order = "ot_number desc"
+class NPI(models.Model):
+    _name = "dtm.npi"
+    _description = "NPI"
+    # _order = "ot_number desc"
    
     #---------------------Basicos----------------------
 
-    status = fields.Many2many("dtm.ing" ,string="Estado del Producto",readonly=True)
+    status = fields.Char(string="Estado del Producto", readonly=True )
     sequence = fields.Integer()
-    ot_number = fields.Char("NÚMERO",default="000",readonly=True)
-    tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True,readonly=True)
-    name_client = fields.Char(string="CLIENTE",readonly=True)
-    product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
-    date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
-    po_number = fields.Char(string="PO",default="00",readonly=True)
-    date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
-    version_ot = fields.Integer(string="VERSIÓN OT",default=1,readonly=True)
-    color = fields.Char(string="COLOR",default="N/A")
-    cuantity = fields.Integer(string="CANTIDAD",readonly=True)
-    materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
+    ot_number = fields.Char("NÚMERO",default="000",  readonly=True )
+    tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
+    name_client = fields.Many2one("res.partner", string="CLIENTE")
+    product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
+    date_in = fields.Date(string="FECHA DE ENTRADA",default= datetime.today())
+    po_number = fields.Char(string="PO")
+    date_rel = fields.Date(string="FECHA DE ENTREGA",default= datetime.today())
+    version_ot = fields.Integer(string="VERSIÓN OT",default=1)
+    color = fields.Char(string="COLOR")
+    cuantity = fields.Integer(string="CANTIDAD")
+    materials_ids = fields.One2many("dtm.materials.npi","model_id",string="Lista")
 
-    planos = fields.Boolean(string="Planos",default=False)
-    nesteos = fields.Boolean(string="Nesteos",default=False)
+    planos = fields.Boolean(string="Planos")
+    nesteos = fields.Boolean(string="Nesteos")
 
-    rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
+    rechazo_id = fields.One2many("dtm.npi.rechazo", "model_id")
 
     anexos_id = fields.Many2many("dtm.documentos.anexos")
     cortadora_id = fields.Many2many("dtm.documentos.cortadora")
@@ -45,7 +45,7 @@ class DtmOdt(models.Model):
 
     #-------------------------Acctions------------------------
     def get_view(self, view_id=None, view_type='form', **options):
-        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+        res = super(NPI,self).get_view(view_id, view_type,**options)
         get_odt = self.env['dtm.materials.line'].search([])
         for get in get_odt:
             get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
@@ -54,37 +54,24 @@ class DtmOdt(models.Model):
 
         return res
 
-
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
         res=[]
         newres = []
-        self.env.cr.execute("SELECT ot_number from dtm_odt ")
-        result = self.env.cr.fetchall() 
+        self.env.cr.execute("SELECT ot_number from dtm_npi ")
+        result = self.env.cr.fetchall()
 
         for n in result:
             res.append(n[0])
 
-        if self.tipe_order =="ot":   
-            regex = re.compile("[0-9]+$")
-            for n in res:
-                if regex.match(n):
-                    newres.append(int(n))
-            newres.sort(reverse=True)
-            self.ot_number = newres[0]  + 1
-
-        elif  self.tipe_order =="npi": 
-            regex = re.compile(".*-NPI$")
-            for n in res:
-                if regex.match(n):
-                    newres.append(int(n.replace("-NPI","")))
-            newres.sort(reverse=True)
-            self.ot_number = str(newres[0]  + 1)+ "-NPI"
-
+        regex = re.compile("[0-9]+$")
+        for n in res:
+            if regex.match(n):
+                newres.append(int(n))
+        newres.sort(reverse=True)
+        self.ot_number = newres[0] + 1
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
-        if self.tipe_order == "npi":
-            return self.env.ref("dtm_odt.formato_npi").report_action(self)
-        elif self.tipe_order == "ot":
+
             return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
             # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
 
@@ -94,10 +81,10 @@ class DtmOdt(models.Model):
     #-----------------------Materiales----------------------
 
 class TestModelLine(models.Model):
-    _name = "dtm.materials.line"
+    _name = "dtm.materials.npi"
     _description = "Tabla de materiales"
 
-    model_id = fields.Many2one("dtm.odt")
+    model_id = fields.Many2one("dtm.npi")
 
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
@@ -112,7 +99,7 @@ class TestModelLine(models.Model):
         for result in self:
             cantidad = result.materials_cuantity
             inventario = result.materials_list.cantidad
-
+            # print(cantidad,inventario)
             if cantidad < inventario:
                 result.materials_inventory = cantidad
                 # self.Apartado(result,cantidad)
@@ -121,7 +108,7 @@ class TestModelLine(models.Model):
                 result.materials_required = cantidad - inventario
             requerido = result.materials_required
             if requerido > 0:
-                get_odt = self.env['dtm.odt'].search([])
+                get_odt = self.env['dtm.npi'].search([])
                 for get in get_odt:
                     for id in get.materials_ids:
                         if result._origin.id == id.id:
@@ -140,13 +127,12 @@ class TestModelLine(models.Model):
                 if requerido <= 0:
                     self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
-                if cantidad <= 0:
-                    result.materials_cuantity = 0
-                    result.materials_inventory = 0
-                    result.materials_required = 0
-
-                if inventario < 0:
-                    result.materials_inventory = 0
+            if cantidad <= 0:
+                result.materials_cuantity = 0
+                result.materials_inventory = 0
+                result.materials_required = 0
+            if inventario < 0:
+                result.materials_inventory = 0
 
     @api.depends("materials_list")
     def _compute_material_list(self):
@@ -155,24 +141,24 @@ class TestModelLine(models.Model):
             result.medida = result.materials_list.medida
 
 class Rechazo(models.Model):
-    _name = "dtm.odt.rechazo"
-    _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
+    _name = "dtm.npi.rechazo"
+    _description = "Tabla para llenar los motivos por el cual se rechazo el NPI"
 
-    model_id = fields.Many2one("dtm.odt")
+    model_id = fields.Many2one("dtm.npi")
 
     decripcion = fields.Text(string="Descripción del Rechazo")
     fecha = fields.Date(string="Fecha")
     hora = fields.Char(string="Hora")
     firma = fields.Char(string="Firma")
 
-    @api.onchange("fecha")
-    def _action_fecha(self):
-        fecha = self.fecha
-
-        if fecha:
-            hora = fecha.strftime("%X")
-            print(hora)
-            self.hora = hora
+    # @api.onchange("fecha")
+    # def _action_fecha(self):
+    #     fecha = self.fecha
+    #
+    #     if fecha:
+    #         hora = fecha.strftime("%X")
+    #         print(hora)
+    #         self.hora = hora
 
 
 
