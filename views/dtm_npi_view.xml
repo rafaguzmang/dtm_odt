@@ -8,7 +8,6 @@
                 <tree  >
                     <field name="sequence" ></field>
                     <field name="ot_number"/>
-                    <field name="po_number"/>                  
                     <field name="date_rel" widget="date"/>
 <!--                    <field name="name_client"/>-->
                     <field name="product_name"/> 
