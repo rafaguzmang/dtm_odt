@@ -19,7 +19,6 @@ class NPI(models.Model):
     name_client = fields.Many2one("res.partner", string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
     date_in = fields.Date(string="FECHA DE ENTRADA",default= datetime.today())
-    po_number = fields.Char(string="PO")
     date_rel = fields.Date(string="FECHA DE ENTREGA",default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR")
