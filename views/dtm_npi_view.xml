@@ -58,7 +58,6 @@
                              <group>
                                 <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
                                 <field name="cuantity" options='{"type": "number"}'/>
-                                <field name="color" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
                                 <field name="planos" widget="boolean_toggle" />
                             </group>
                         </group>

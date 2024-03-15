@@ -21,7 +21,6 @@ class NPI(models.Model):
     date_in = fields.Date(string="FECHA DE ENTRADA",default= datetime.today())
     date_rel = fields.Date(string="FECHA DE ENTREGA",default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
-    color = fields.Char(string="COLOR")
     cuantity = fields.Integer(string="CANTIDAD")
     materials_ids = fields.One2many("dtm.materials.npi","model_id",string="Lista")
 
