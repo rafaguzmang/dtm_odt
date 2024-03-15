@@ -25,7 +25,6 @@
                     <header>
                         <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_formato" string="NPI" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
                     </header>
                     
                     <sheet>

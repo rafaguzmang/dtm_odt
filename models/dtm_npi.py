@@ -72,11 +72,8 @@ class NPI(models.Model):
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
 
-            return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
+            return self.env.ref("dtm_odt.formato_npi").report_action(self)
             # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
-
-    def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
-            return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
     #-----------------------Materiales----------------------
 
