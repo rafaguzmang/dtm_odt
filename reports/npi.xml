@@ -129,7 +129,7 @@
                                                                  <span t-field="material.materials_cuantity"></span>
                                                             </td>
                                                             <td style="width: 95%;border: 1px solid #000;text-align:center">
-                                                                <span t-field="material.materials_list.nombre"></span>
+                                                                <span t-field="material.materials_list.nombre"></span>  <span t-field="material.materials_list.medida"></span>
                                                             </td>
                                                         </tr>
                                                     </t>
