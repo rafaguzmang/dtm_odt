@@ -2,21 +2,21 @@
 <odoo>
 
     <data>
-<!--        <record id="papperformat_cotizacion" model="report.paperformat">-->
-<!--            <field name="name">US Letter</field>-->
-<!--            <field name="default" eval="True" />-->
-<!--            <field name="format">Letter</field>-->
-<!--            <field name="page_height">0</field>-->
-<!--            <field name="page_width">0</field>-->
-<!--            <field name="orientation">Portrait</field>-->
-<!--            <field name="margin_top">5</field>-->
-<!--            <field name="margin_bottom">0</field>-->
-<!--            <field name="margin_left">0</field>-->
-<!--            <field name="margin_right">0</field>-->
-<!--            <field name="header_line" eval="False" />-->
-<!--            <field name="header_spacing">0</field>-->
-<!--            <field name="dpi">90</field>-->
-<!--        </record>-->
+        <record id="papperformat_ordendetrabajo" model="report.paperformat">
+            <field name="name">ODT</field>
+            <field name="default" eval="True" />
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">5</field>
+            <field name="margin_bottom">20</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">1</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">25</field>
+            <field name="dpi">90</field>
+        </record>
 
         <record id="formato_orden_de_trabajo" model="ir.actions.report">
             <field name="name">ORDEN DE TRABAJO</field>
@@ -24,7 +24,7 @@
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">dtm_odt.orden_de_trabajo_template</field>
             <field name="report_file">dtm_odt.orden_de_trabajo_template</field>
-<!--            <field name="paperformat_id" ref="dtm_odt.papperformat_ordendetrabajo" />-->
+            <field name="paperformat_id" ref="dtm_odt.papperformat_ordendetrabajo" />
             <field name="binding_type">report</field>
         </record>
 
@@ -337,7 +337,7 @@
 
 
 
-                        <div style="width: 100%;height: 75px;margin-bottom:40px">
+                        <div style="width: 100%;height: 75px;margin-bottom:100px">
                             <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
                                 <p>DTM-FOR-DIS-01 <br></br>
                                     Version 03 <br></br>

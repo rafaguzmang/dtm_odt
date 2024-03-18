@@ -14,7 +14,7 @@ class NPI(models.Model):
 
     status = fields.Char(string="Estado del Producto", readonly=True )
     sequence = fields.Integer()
-    ot_number = fields.Char("NÚMERO",default="000",  readonly=True )
+    ot_number = fields.Integer("NÚMERO",default="000",  readonly=True )
     tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
@@ -49,7 +49,6 @@ class NPI(models.Model):
             get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
             if get_this:
                 self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
-
         return res
 
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
@@ -113,12 +112,12 @@ class TestModelLine(models.Model):
                 descripcion = result.materials_list.caracteristicas
                 if not descripcion:
                     descripcion = ""
-                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
+                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(orden)),("nombre","=",nombre)])
 
                 if not get_requerido:
-                    self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                    self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
                 else:
-                    self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
+                    self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
                 if requerido <= 0:
                     self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
