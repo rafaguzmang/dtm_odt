@@ -30,55 +30,65 @@
         <template id="dtm_odt.npi_template_page">
 
             <div class="page">
-                        <div style="text-align: center;width:100%;">
-                <p style="font-family: Arial;font-size: 13px;font-style: italic;margin:0 12px 2px 0;float: right;">MES/DÍA/AÑO</p>
-            </div>
-            <!-- NPI Fecha cliente cantidad de piezas -->
-            <div style="width: 100%;height: 64px;overflow: hidden;margin-bottom: 15px;border: 2px solid #000;">
-                    <table style="border: 1px solid #000;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 60%;float: left;border-right: 0;">
-                        <tr>
-                            <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">NPI:</td>
-                            <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#f00">
-                                <span  t-field="o.ot_number"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">CLIENTE:</td>
-                            <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#00f">
-                                 <span  t-field="o.name_client"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">CANTIDAD DE PIEZAS:</td>
-                            <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#00f">
-                                 <span  t-field="o.cuantity"></span>
-                            </td>
-                        </tr>
+                     <div class="container" style="width: 100%;">
+                        <div style="float: left;width: 60%;text-align: right;">
+                            <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO NPI</h1>
+                        </div>
+                        <div style="float: left;width: 40%;text-align: right;">
+                            <img src="https://i.postimg.cc/cHvL32gM/DTM-logo.png" alt="DTM logo" style="width: 90px;padding-top: 8px " />
+                        </div>
 
-                    </table>
+                    </div>
 
-                    <table style="border: 1px solid #000;border-collapse: collapse;font-family: Arial;font-size: 16px;width:40%;float: left;overflow: hidden;">
-                        <tr >
-                            <td style="background: #bfbfbf;text-align: left;width: 50%;border-collapse: collapse;font-weight: bold">FECHA:</td>
-                            <td style="background: #bfbfbf;width: 50%;border-collapse: collapse;color:#00f"></td>
-                        </tr>
-                        <tr >
-                            <td style="background: #bfbfbf;text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;font-weight: bold;">ENTRADA</td>
-                            <td style="background: #bfbfbf;text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;font-weight: bold;">ENTREGA</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: center;width: 50%;color:#00f;border: 1px solid #000;border-collapse: collapse;font-weight: bold">
-                                 <span  t-field="o.date_in"></span>
-                            </td>
-                            <td style="text-align: center;width: 50%;color:#00f;border: 1px solid #000;border-collapse: collapse;font-weight: bold">
-                                 <span  t-field="o.date_rel"></span>
-                            </td>
-                        </tr>
-                    </table>
+                    <div style="text-align: center;width:100%;">
+                        <p style="font-family: Arial;font-size: 13px;font-style: italic;margin:0 12px 2px 0;float: right;">MES/DÍA/AÑO</p>
+                    </div>
+                    <!-- NPI Fecha cliente cantidad de piezas -->
+                    <div style="width: 100%;height: 64px;overflow: hidden;margin-bottom: 40px;">
+                        <table style="border: 1px solid #000;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 60%;float: left;border-right: 0;">
+                            <tr>
+                                <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">NPI:</td>
+                                <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#f00">
+                                    <span  t-field="o.ot_number"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">CLIENTE:</td>
+                                <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#00f">
+                                     <span  t-field="o.name_client"></span>
+                                </td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #000">
+                                <td style="background: #bfbfbf;font-weight: bold;text-align: right;width: 50%;border: 1px solid #000;border-collapse: collapse;">CANTIDAD DE PIEZAS:</td>
+                                <td style="text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;border-right: 0;color:#00f">
+                                     <span  t-field="o.cuantity"></span>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <table style="border: 1px solid #000;border-collapse: collapse;font-family: Arial;font-size: 16px;width:40%;float: left;overflow: hidden;">
+                            <tr >
+                                <td style="background: #bfbfbf;text-align: left;width: 50%;border-collapse: collapse;font-weight: bold">FECHA:</td>
+                                <td style="background: #bfbfbf;width: 50%;border-collapse: collapse;color:#00f"></td>
+                            </tr>
+                            <tr >
+                                <td style="background: #bfbfbf;text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;font-weight: bold;">ENTRADA</td>
+                                <td style="background: #bfbfbf;text-align: center;width: 50%;border: 1px solid #000;border-collapse: collapse;font-weight: bold;">ENTREGA</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;width: 50%;color:#00f;border: 1px solid #000;border-collapse: collapse;font-weight: bold">
+                                     <span  t-field="o.date_in"></span>
+                                </td>
+                                <td style="text-align: center;width: 50%;color:#00f;border: 1px solid #000;border-collapse: collapse;font-weight: bold">
+                                     <span  t-field="o.date_rel"></span>
+                                </td>
+                            </tr>
+                        </table>
             </div>
 
             <!-- Nombre del producto -->
-            <div class="container" style="width: 100%; border: 2px solid #000;height: 294px;margin-bottom: 20px;">
+            <div class="container" style="width: 100%; height: 294px;margin-bottom: 20px;">
                 <div style="width: 100%;height: 40px;">
                     <div style="width: 100%;float: right;">
                         <table style="border: 1px solid;border-collapse: collapse;font-family: Arial;font-size: 16px;width: 100%;">
@@ -153,11 +163,8 @@
                 </div>
             </div>
 
-
-
-
-            <!-- Firma de recepción -->
-            <div style="width: 100%;height: 98px;border: 2px solid #000;margin-bottom: 20px;">
+                    <!-- Firma de recepción -->
+                    <div style="width: 100%;height: 98px;border: 2px solid #000;margin-bottom: 20px;">
                     <table style="width: 34%;text-align: center;border-collapse: collapse; font-family: Arial;font-size: 16px;float:left">
                          <tr style="background: #bfbfbf;">
                              <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;border-right: 0;">FIRMA DE RECEPCIÓN</th>
@@ -193,80 +200,80 @@
                     </table>
             </div>
 
-             <!-- Firma de recibido -->
-            <div style="width: 100%;height: 105px;font-family: Arial;margin-bottom: 20px;border: 2px solid #000;">
-               <div class="tabla1" style="width: 50%;float: left;height: 100%;">
-                    <table style="border-collapse: collapse;width: 100%;height: 100%;">
-                        <thead>
-                            <tr style="background: #bfbfbf; border: 1px solid #000;">
-                                <th>FIRMA DE RECIBIDO</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="height: 50px;border: 1px solid #000;">
-                                <td></td>
-                            </tr>
-                            <tr style="border: 1px solid #000;height: 25px;">
-                                <td style="text-align: center;">
-                                    PRODUCCIÓN
-                                </td>
-                            </tr>
-                        </tbody>
+                     <!-- Firma de recibido -->
+                    <div style="width: 100%;height: 105px;font-family: Arial;margin-bottom: 20px;border: 2px solid #000;">
+                       <div class="tabla1" style="width: 50%;float: left;height: 100%;">
+                            <table style="border-collapse: collapse;width: 100%;height: 100%;">
+                                <thead>
+                                    <tr style="background: #bfbfbf; border: 1px solid #000;">
+                                        <th>FIRMA DE RECIBIDO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="height: 50px;border: 1px solid #000;">
+                                        <td></td>
+                                    </tr>
+                                    <tr style="border: 1px solid #000;height: 25px;">
+                                        <td style="text-align: center;">
+                                            PRODUCCIÓN
+                                        </td>
+                                    </tr>
+                                </tbody>
 
-                    </table>
-               </div>
-               <div class="tabla2" style="float: left;width: 50%;height: 100%;">
-                    <table style="border-collapse: collapse;width: 100%;height: 100%;">
-                        <thead>
-                            <tr style="background: #bfbfbf;border-top: 1px solid #000;border-right: 1px solid #000;">
-                                <th>DOCUMENTOS ADJUNTOS:</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border: 1px solid #000;border-left: none;">
-                                <td style="padding: 0;margin: 0;">
-                                    <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
-                                        <p style="padding: 0;margin: 0;color:#006100;">
-                                             <t t-if="o.planos == True">
-                                                <span>x</span>
-                                            </t>
-                                        </p>
-                                    </div>
-                                    <div style="float: left;width: 90%;height: 100%;">
-                                        <p style="padding: 0;margin: 0;">Planos</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="border: 1px solid #000;border-left: none;">
-                                <td style="padding: 0;margin: 0;">
-                                    <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
-                                        <p style="padding: 0;margin: 0;color:#006100;">
-                                            <t t-if="o.nesteos == True">
-                                                <span>x</span>
-                                            </t>
-                                        </p>
-                                    </div>
-                                    <div style="float: left;width: 90%;height: 100%;">
-                                        <p style="padding: 0;margin: 0;">Nesteos</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="border: 1px solid #000;border-left: none;">
-                                <td style="padding: 0;margin: 0;">
-                                    <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
-                                        <p style="padding: 0;margin: 0;color:#006100;"></p>
-                                    </div>
-                                    <div style="float: left;width: 90%;height: 100%;">
-                                        <p style="padding: 0;margin: 0;">Orden de Compra Interna</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-               </div>
-                </div>
-            <!-- Validación de producto -->
-            <div class="container" style="width: 100%;font-family: Arial;height: 297px;margin-bottom: 20px;border: 2px solid #000;">
+                            </table>
+                       </div>
+                       <div class="tabla2" style="float: left;width: 50%;height: 100%;">
+                            <table style="border-collapse: collapse;width: 100%;height: 100%;">
+                                <thead>
+                                    <tr style="background: #bfbfbf;border-top: 1px solid #000;border-right: 1px solid #000;">
+                                        <th>DOCUMENTOS ADJUNTOS:</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border: 1px solid #000;border-left: none;">
+                                        <td style="padding: 0;margin: 0;">
+                                            <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
+                                                <p style="padding: 0;margin: 0;color:#006100;">
+        <!--                                             <t t-if="o.planos == True">-->
+        <!--                                                <span>x</span>-->
+        <!--                                            </t>-->
+                                                </p>
+                                            </div>
+                                            <div style="float: left;width: 90%;height: 100%;">
+                                                <p style="padding: 0;margin: 0;">Planos</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="border: 1px solid #000;border-left: none;">
+                                        <td style="padding: 0;margin: 0;">
+                                            <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
+                                                <p style="padding: 0;margin: 0;color:#006100;">
+        <!--                                            <t t-if="o.nesteos == True">-->
+        <!--                                                <span>x</span>-->
+        <!--                                            </t>-->
+                                                </p>
+                                            </div>
+                                            <div style="float: left;width: 90%;height: 100%;">
+                                                <p style="padding: 0;margin: 0;">Nesteos</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="border: 1px solid #000;border-left: none;">
+                                        <td style="padding: 0;margin: 0;">
+                                            <div style="border-right: 1px solid #000;float: left;width: 9%;padding: 0;margin: 0;height: 100%;text-align: center;">
+                                                <p style="padding: 0;margin: 0;color:#006100;"></p>
+                                            </div>
+                                            <div style="float: left;width: 90%;height: 100%;">
+                                                <p style="padding: 0;margin: 0;">Orden de Compra Interna</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                       </div>
+                        </div>
+                    <!-- Validación de producto -->
+                    <div class="container" style="width: 100%;font-family: Arial;height: 297px;margin-bottom: 20px;border: 2px solid #000;">
                 <div class="validacion" style="width: 100%;">
                     <table style="border: 1px solid #000;width: 100%;border-collapse: collapse;border-bottom: none;">
                         <thead>
@@ -388,26 +395,25 @@
 
             </div>
 
-            <div style="width: 100%;height: 75px;">
-        <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
-            <p>DTM-FOR-DIS-01 <br></br>
-                Versión 03 <br></br>
-                Fecha de Revisión: 08/23/2023
-            </p>
-
-        </div>
-    </div>
+                    <div style="width: 100%;height: 75px;">
+                        <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
+                            <p>DTM-FOR-DIS-01 <br></br>
+                                Versión 03 <br></br>
+                                Fecha de Revisión: 08/23/2023
+                            </p>
+                        </div>
+                    </div>
             </div>
 
         </template>
 
         <record id="formato_npi" model="ir.actions.report">
             <field name="name">NPI</field>
-            <field name="model">dtm.odt</field>
+            <field name="model">dtm.npi</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">dtm_odt.npi_template</field>
             <field name="report_file">dtm_odt.npi_template</field>
-            <field name="paperformat_id" ref="dtm_odt.papperformat_npi" />
+<!--            <field name="paperformat_id" ref="dtm_odt.papperformat_npi" />-->
             <field name="binding_type">report</field>
         </record>
 
@@ -417,9 +423,7 @@
                     <head>
                          <meta charset="UTF-8"/>
                     </head>
-
                     <t t-call="dtm_odt.npi_template_page" />
-
                </t>
             </t>
         </template>
