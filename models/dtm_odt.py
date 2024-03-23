@@ -9,7 +9,8 @@ class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
     _order = "ot_number desc"
-   
+
+
     #---------------------Basicos----------------------
 
     status = fields.Many2many("dtm.ing" ,string="Estado del Producto",readonly=True)
@@ -390,15 +391,11 @@ class TestModelLine(models.Model):
 
 
 
-    def write(self,vals):
-        res = super(TestModelLine,self).write(vals)
-        # print("Cantidad material")
-        # print(self.nombre, self.medida)
-        get_own = self.env['dtm.materials.line'].browse(self.id)
+    def consultaAlmacen(self):
 
         nombre = self.nombre
         medida = self.medida
-        if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA][sS]*.*",nombre):
+        if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
             materiales = self.materiales(nombre,medida)
         elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
             materiales = self.angulos(nombre,medida)
@@ -423,84 +420,86 @@ class TestModelLine(models.Model):
 
         if materiales.exists:
             # print(materiales,materiales.cantidad,materiales.apartado,self.materials_cuantity,self.materials_inventory )
-            print("result B",self.materials_cuantity,self.materials_inventory)
+            # print("result B",self.materials_cuantity,self.materials_inventory)
             get_odt = self.env['dtm.materials.line'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
             get_npi = self.env['dtm.materials.npi'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
             get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
+
             sum = 0
             for result in get_odt:
-                sum += result.materials_cuantity
+                if result.id != self._origin.id:
+                    sum += result.materials_cuantity
             for result in get_npi:
-                sum += result.materials_cuantity
-            disponible = materiales.cantidad - sum
-            if disponible < 0:
-                disponible = 0
-            # print(sum,disponible)
-            vals = {
-                "apartado":sum,
-                "disponible": disponible
-            }
-            materiales.write(vals)
-            vals = {
-                "cantidad":disponible
-            }
-            get_almacen.write(vals)
-            # vals = {
-            #     "materials_inventory":disponible
-            # }
-            # get_odt.write(vals)
-            vals = {
-                "materials_inventory":disponible
-            }
-            get_npi.write(vals)
+                if result.id != self._origin.id:
+                    sum += result.materials_cuantity
 
-
-        return res
+            # print(sum)
+            return (materiales.cantidad - sum,materiales,get_almacen,sum)
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
+            try:
+                consulta  = self.consultaAlmacen()
 
-            cantidad = result.materials_cuantity
-            inventario = self.env['dtm.diseno.almacen'].search([("nombre","=",self.nombre),("medida","=",self.medida)]).cantidad
-            print(cantidad,inventario)
-            if cantidad <= inventario:
-                result.materials_inventory = cantidad
-            else:
-                result.materials_inventory = inventario
-                result.materials_required = cantidad - inventario
-            requerido = result.materials_required
-            if requerido > 0:
-                get_odt = self.env['dtm.odt'].search([])
-                for get in get_odt:
-                    for id in get.materials_ids:
-                        if result._origin.id == id.id:
-                            orden = get.ot_number
-
-                nombre = result.materials_list.nombre
-                if result.materials_list.medida:
-                    nombre = result.materials_list.nombre +" " + result.materials_list.medida
-
-                descripcion = ""
-                if descripcion:
-                    descripcion = result.materials_list.caracteristicas
-
-                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
-
-                if not get_requerido:
-                    self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                result.materials_required = 0
+                cantidad = result.materials_cuantity
+                inventario = consulta[0]
+                # print(cantidad,inventario)
+                if cantidad <= inventario:
+                    result.materials_inventory = cantidad
+                    # self.Apartado(result,cantidad)
                 else:
-                    self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
-                if requerido <= 0:
-                    self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
+                    result.materials_inventory = inventario
+                    result.materials_required = cantidad - inventario
+                requerido = result.materials_required
+                if requerido > 0:
+                    get_odt = self.env['dtm.odt'].search([])
+                    for get in get_odt:
+                        for id in get.materials_ids:
+                            if result._origin.id == id.id:
+                                orden = get.ot_number
+
+                    nombre = result.materials_list.nombre
+                    if result.materials_list.medida:
+                        nombre = result.materials_list.nombre +" " + result.materials_list.medida
+
+                    descripcion = ""
+                    if descripcion:
+                        descripcion = result.materials_list.caracteristicas
+
+                    get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
+
+                    if not get_requerido:
+                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                    else:
+                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
+                    if requerido <= 0:
+                        self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
                 if cantidad <= 0:
                     result.materials_cuantity = 0
                     result.materials_inventory = 0
                     result.materials_required = 0
 
-                # if inventario < 0:
-                #     result.materials_inventory = 0
+                if inventario < 0:
+                    result.materials_inventory = 0
+
+                disponible = consulta[1].cantidad - (consulta[3] + cantidad)
+                if disponible < 0:
+                    disponible = 0
+
+                vals = {
+                    "apartado": consulta[3]+cantidad,
+                    "disponible": disponible
+                }
+                consulta[1].write(vals)
+                vals = {
+                    "cantidad": disponible
+                }
+                consulta[2].write(vals)
+            except:
+                print("Error en consulta")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
@@ -526,7 +525,7 @@ class Rechazo(models.Model):
 
         if fecha:
             hora = fecha.strftime("%X")
-            print(hora)
+            # print(hora)
             self.hora = hora
 
 

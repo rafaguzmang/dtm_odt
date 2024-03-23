@@ -6,7 +6,7 @@
             <field name="model">dtm.npi</field>
             <field name="arch" type="xml">
                 <tree  >
-                    <field name="sequence" ></field>
+<!--                    <field name="sequence" ></field>-->
                     <field name="ot_number"/>
                     <field name="date_rel" widget="date"/>
 <!--                    <field name="name_client"/>-->
