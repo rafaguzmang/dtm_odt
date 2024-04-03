@@ -22,7 +22,7 @@ class DtmOdt(models.Model):
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
     po_number = fields.Char(string="PO",default="00",readonly=True)
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
-    version_ot = fields.Integer(string="VERSIÓN OT",default=1,readonly=True)
+    version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD",readonly=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
