@@ -1,6 +1,7 @@
 from odoo import api,models,fields
 from datetime import datetime
 from odoo.exceptions import ValidationError
+from fractions import Fraction
 import re
 
 
@@ -107,6 +108,7 @@ class TestModelLine(models.Model):
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory", store=True)
     materials_required = fields.Integer("REQUERIDO")
+
 
     def materiales(self,nombre,medida):
         nombre = re.sub("^\s+","",nombre)
@@ -356,6 +358,7 @@ class TestModelLine(models.Model):
                     # Busca coincidencias entre el almacen y el aréa de diseno dtm_diseno_almacen
                     get_mid = self.env['dtm.tubos.nombre'].search([("nombre","=",nombre)]).id
                     get_angulo = self.env['dtm.materiales.tubos'].search([("material_id","=",get_mid),("diametro","=",float(diametro)),("largo","=",float(largo)),("calibre","=",float(calibre))])
+                    return get_angulo
 
     def varillas(self,nombre,medida):
             nombre = re.sub("^\s+","",nombre)
@@ -393,8 +396,9 @@ class TestModelLine(models.Model):
 
     def consultaAlmacen(self):
 
-        nombre = self.nombre
+        nombre = str(self.nombre)
         medida = self.medida
+        # print(nombre)
         if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
             materiales = self.materiales(nombre,medida)
         elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
@@ -407,8 +411,6 @@ class TestModelLine(models.Model):
              materiales = self.pintura(nombre,medida)
         elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",nombre):
             materiales = self.rodamientos(nombre)
-        elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",nombre):
-            materiales = self.rodamientos(nombre,medida)
         elif re.match(".*[tT][oO][rR][nN][lL][lL][oO].*",nombre):
             materiales = self.tornillos(nombre,medida)
         elif re.match(".*[tT][uU][bB][oO].*",nombre):
@@ -418,28 +420,29 @@ class TestModelLine(models.Model):
         else:
             materiales = self.otros(nombre)
 
-        if materiales.exists:
-            # print(materiales,materiales.cantidad,materiales.apartado,self.materials_cuantity,self.materials_inventory )
-            # print("result B",self.materials_cuantity,self.materials_inventory)
-            get_odt = self.env['dtm.materials.line'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
-            get_npi = self.env['dtm.materials.npi'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
-            get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
+        cantidad_materiales = 0
+        if materiales:
+           cantidad_materiales = materiales.cantidad
+        get_odt = self.env['dtm.materials.line'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
+        get_npi = self.env['dtm.materials.npi'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
+        get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",self.nombre),("medida","=",self.medida)])
 
-            sum = 0
-            for result in get_odt:
-                if result.id != self._origin.id:
-                    sum += result.materials_cuantity
-            for result in get_npi:
-                if result.id != self._origin.id:
-                    sum += result.materials_cuantity
+        sum = 0
+        for result in get_odt:
+            if result.id != self._origin.id:
+                sum += result.materials_cuantity
+        for result in get_npi:
+            if result.id != self._origin.id:
+                sum += result.materials_cuantity
 
-            # print(sum)
-            return (materiales.cantidad - sum,materiales,get_almacen,sum)
+        print("Result",materiales.cantidad,sum,materiales,get_almacen)
+        return (cantidad_materiales - sum,materiales,get_almacen,sum)
+
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
-            try:
+            # try:
                 consulta  = self.consultaAlmacen()
 
                 result.materials_required = 0
@@ -471,7 +474,7 @@ class TestModelLine(models.Model):
                     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
 
                     if not get_requerido:
-                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,description) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+", '"+descripcion+"')")
+                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+")")
                     else:
                         self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
                     if requerido <= 0:
@@ -485,7 +488,10 @@ class TestModelLine(models.Model):
                 if inventario < 0:
                     result.materials_inventory = 0
 
-                disponible = consulta[1].cantidad - (consulta[3] + cantidad)
+                disponible = 0
+                if consulta[1]:
+                    disponible = consulta[1].cantidad - (consulta[3] + cantidad)
+
                 if disponible < 0:
                     disponible = 0
 
@@ -493,13 +499,16 @@ class TestModelLine(models.Model):
                     "apartado": consulta[3]+cantidad,
                     "disponible": disponible
                 }
-                consulta[1].write(vals)
+                if consulta[1]:
+                    # print("error",consulta[1],disponible,consulta[3]+cantidad)
+                    consulta[1].write(vals)
                 vals = {
                     "cantidad": disponible
                 }
                 consulta[2].write(vals)
-            except:
-                print("Error en consulta")
+            # except:
+            #     print("Error en consulta")
+
 
     @api.depends("materials_list")
     def _compute_material_list(self):
