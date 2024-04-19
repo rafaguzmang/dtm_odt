@@ -5,7 +5,6 @@ from fractions import Fraction
 import re
 
 
-
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
@@ -17,7 +16,7 @@ class DtmOdt(models.Model):
     status = fields.Many2many("dtm.ing" ,string="Estado del Producto",readonly=True)
     sequence = fields.Integer()
     ot_number = fields.Char("NÚMERO",default="000",readonly=True)
-    tipe_order = fields.Selection([("npi","NPI"),("ot","OT")],"TIPO",required=True,readonly=True)
+    tipe_order = fields.Char(string="TIPO",required=True,readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
@@ -53,6 +52,8 @@ class DtmOdt(models.Model):
             get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
             if get_this:
                 self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+
+        self.env.cr.execute("DELETE FROM dtm_materials_line WHERE model_id is NULL")
 
         return res
 
@@ -108,7 +109,6 @@ class TestModelLine(models.Model):
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory", store=True)
     materials_required = fields.Integer("REQUERIDO")
-
 
     def materiales(self,nombre,medida):
         nombre = re.sub("^\s+","",nombre)
@@ -392,8 +392,6 @@ class TestModelLine(models.Model):
         get_angulo = self.env['dtm.materiales.otros'].search([("nombre_id","=",get_mid)])
         return get_angulo
 
-
-
     def consultaAlmacen(self):
 
         nombre = str(self.nombre)
@@ -437,7 +435,6 @@ class TestModelLine(models.Model):
 
         print("Result",materiales.cantidad,sum,materiales,get_almacen)
         return (cantidad_materiales - sum,materiales,get_almacen,sum)
-
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
@@ -509,13 +506,11 @@ class TestModelLine(models.Model):
             # except:
             #     print("Error en consulta")
 
-
     @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
             result.nombre = result.materials_list.nombre
             result.medida = result.materials_list.medida
-
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"

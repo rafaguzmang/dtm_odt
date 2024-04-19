@@ -44,11 +44,13 @@ class NPI(models.Model):
     #-------------------------Acctions------------------------
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(NPI,self).get_view(view_id, view_type,**options)
-        get_odt = self.env['dtm.materials.line'].search([])
+        get_odt = self.env['dtm.materials.npi'].search([])
         for get in get_odt:
             get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
             if get_this:
-                self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+                self.env.cr.execute("UPDATE dtm_materials_npi SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+
+        self.env.cr.execute("DELETE FROM dtm_materials_npi WHERE model_id is NULL")
         return res
 
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
