@@ -58,6 +58,7 @@ class DtmOdt(models.Model):
     #                 'tipe_order':"OT",
     #                 'name_client':get_data.cliente_prov,
     #                 'product_name':get_po[0].item,
+#                     'product_name': get_po[0].cantidad,
     #                 'po_number':get_data.orden_compra,
     #             }
     #             print(vals)
