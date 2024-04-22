@@ -8,15 +8,15 @@ import re
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
-    _order = "ot_number desc"
+    # _order = "ot_number desc"
 
 
     #---------------------Basicos----------------------
 
-    status = fields.Many2many("dtm.ing" ,string="Estado del Producto",readonly=True)
-    sequence = fields.Integer()
+    status = fields.Char(readonly=True)
+    # sequence = fields.Integer()
     ot_number = fields.Char("NÚMERO",default="000",readonly=True)
-    tipe_order = fields.Char(string="TIPO",required=True,readonly=True)
+    tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
@@ -45,49 +45,46 @@ class DtmOdt(models.Model):
     notes = fields.Text()
 
     #-------------------------Acctions------------------------
-    def get_view(self, view_id=None, view_type='form', **options):
-        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-        get_odt = self.env['dtm.materials.line'].search([])
-        for get in get_odt:
-            get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
-            if get_this:
-                self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+    # def get_view(self, view_id=None, view_type='form', **options):
+    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+    #
+    #     get_self = self.env['dtm.odt'].search([])
+    #     print(len(get_self))
+    #     for num in range(1,len(get_self)+1):
+    #         print(num)
+    #         get_po = self.env['dtm.compras.items'].search([('orden_trabajo','=',num)])
+    #         if get_po:
+    #             # print(get_po[0].id,get_po[0].model_id.id,get_po[0].orden_trabajo)
+    #             get_data = self.env['dtm.ordenes.compra'].search([("id","=",get_po[0].model_id.id)])
+    #             # print(get_data.orden_compra,get_data.cliente_prov)
+    #             vals = {
+    #                 'ot_number':get_po[0].orden_trabajo,
+    #                 'tipe_order':"OT",
+    #                 'name_client':get_data.cliente_prov,
+    #                 'product_name':get_po[0].item,
+    #                 'po_number':get_data.orden_compra,
+    #             }
+    #             print(vals)
+    #             self.env['dtm.odt'].search([('ot_number','=',get_po[0].orden_trabajo)]).write(vals)
+    #
+    #     # get_odt = self.env['dtm.materials.line'].search([])
+    #     # for get in get_odt:
+    #     #     get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
+    #     #     if get_this:
+    #     #         self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
+    #     #
+    #     # self.env.cr.execute("DELETE FROM dtm_materials_line WHERE model_id is NULL")
+    #
+    #     return res
 
-        self.env.cr.execute("DELETE FROM dtm_materials_line WHERE model_id is NULL")
-
-        return res
 
 
-    def action_autoNum(self): # Genera número consecutivo de NPI y OT
-        res=[]
-        newres = []
-        self.env.cr.execute("SELECT ot_number from dtm_odt ")
-        result = self.env.cr.fetchall() 
-
-        for n in result:
-            res.append(n[0])
-
-        if self.tipe_order =="ot":   
-            regex = re.compile("[0-9]+$")
-            for n in res:
-                if regex.match(n):
-                    newres.append(int(n))
-            newres.sort(reverse=True)
-            self.ot_number = newres[0]  + 1
-
-        elif  self.tipe_order =="npi": 
-            regex = re.compile(".*-NPI$")
-            for n in res:
-                if regex.match(n):
-                    newres.append(int(n.replace("-NPI","")))
-            newres.sort(reverse=True)
-            self.ot_number = str(newres[0]  + 1)+ "-NPI"
 
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
-        if self.tipe_order == "npi":
+        if self.tipe_order == "NPI":
             return self.env.ref("dtm_odt.formato_npi").report_action(self)
-        elif self.tipe_order == "ot":
+        elif self.tipe_order == "OT":
             return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
             # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
 
@@ -433,7 +430,7 @@ class TestModelLine(models.Model):
             if result.id != self._origin.id:
                 sum += result.materials_cuantity
 
-        print("Result",materiales.cantidad,sum,materiales,get_almacen)
+        # print("Result",materiales.cantidad,sum,materiales,get_almacen)
         return (cantidad_materiales - sum,materiales,get_almacen,sum)
 
     @api.depends("materials_cuantity")
@@ -537,6 +534,6 @@ class Rechazo(models.Model):
 
 
 
-        
+
 
 

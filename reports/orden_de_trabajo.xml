@@ -375,7 +375,9 @@
                                         <td style="border: 1px solid;text-align: center;">
                                              <span t-field="rechazo.hora"></span>
                                         </td>
-                                        <td style="border: 1px solid;"></td>
+                                        <td style="border: 1px solid;text-align: center;">
+                                            <span t-field="rechazo.firma"></span>
+                                        </td>
                                     </tr>
                                 </t>
                             </table>
@@ -393,54 +395,7 @@
 
         </template>
 
-        <template id="dtm_odt.rechazo_template_page">
-            <div class="page">
-                <div class="oe_structure" />
-                <div class="container" style="margin-bottom: 10px; width: 100%;height: 70px;">
-                    <div style="float: left;width: 60%;text-align: right;padding-right: 40px;padding-left: 40px">
-                        <h1 style="font-family:Arial;font-size:25px;margin-top: 0;font-weight: bold;">ORDEN DE TRABAJO</h1>
-                    </div>
-                    <div style="float: left;width: 20%;">
-                        <img src="https://i.postimg.cc/cHvL32gM/DTM-logo.png" alt="DTM logo" style="width: 180px" />
-                    </div>
-                </div>
 
-                <div style="width: 100%;height: 100%;">
-                    <table style="border: 1px solid;border-collapse: collapse;width: 100%;">
-                        <tr style="background: #bfbfbf;font-family: Arial;font-size: 36px;font-weight: bold;height:100px ;">
-                            <th style="border: 1px solid;">Descripcion del Rechazo</th>
-                            <th style="border: 1px solid;">Fecha</th>
-                            <th style="border: 1px solid;">Hora</th>
-                            <th style="border: 1px solid;">Firma</th>
-                        </tr>
-
-                        <t t-foreach="o.rechazo_id" t-as="rechazo">
-                            <tr style="font-family: Arial;font-size: 16px;height:120px ;">
-                                <td style="border: 1px solid;text-align: center;">
-                                     <span t-field="rechazo.decripcion"></span>
-                                </td>
-                                <td style="border: 1px solid;text-align: center;">
-                                     <span t-field="rechazo.fecha"></span>
-                                </td>
-                                <td style="border: 1px solid;text-align: center;">
-                                     <span t-field="rechazo.hora"></span>
-                                </td>
-                                <td style="border: 1px solid;"></td>
-                            </tr>
-                        </t>
-                    </table>
-               </div>
-
-                <div style="width: 100%;height: 75px;">
-                    <div style="float: right;text-align: right;font-family: Arial;font-size: 9px;">
-                        <p>DTM-FOR-DIS-01 <br></br>
-                            Versión 03 <br></br>
-                            Fecha de Revisión: 08/23/2023
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </template>
 
         <template id="orden_de_trabajo_template" >         
             <t t-call="web.html_container">               

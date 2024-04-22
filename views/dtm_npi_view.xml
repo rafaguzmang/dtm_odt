@@ -8,142 +8,142 @@
                 <tree  >
 <!--                    <field name="sequence" ></field>-->
                     <field name="ot_number"/>
-                    <field name="date_rel" widget="date"/>
+<!--                    <field name="date_rel" widget="date"/>-->
 <!--                    <field name="name_client"/>-->
                     <field name="product_name"/> 
-                    <field name="status" />
+<!--                    <field name="status" />-->
                 </tree>
             </field>
         </record>
 
-        <record id="dtm_npi_form" model="ir.ui.view">
-            <field name="name">dtm.npi.form</field>
-            <field name="model">dtm.npi</field>
-            <field name="arch" type="xml">
-                <form string="formulario">
-                    <header>
-                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_formato" string="NPI" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
-                    </header>
-                    
-                    <sheet>
-                        
-                            <h1 > NPI </h1>
-                      
-                        
-                            <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
-                       
-                        <group >
+<!--        <record id="dtm_npi_form" model="ir.ui.view">-->
+<!--            <field name="name">dtm.npi.form</field>-->
+<!--            <field name="model">dtm.npi</field>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <form string="formulario">-->
+<!--                    <header>-->
+<!--&lt;!&ndash;                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <button type="object" name="action_imprimir_formato" string="NPI" attrs="{'invisible': [('tipe_order', '=', '')]}"  class="btn btn-primary"/>&ndash;&gt;-->
+<!--                    </header>-->
+<!--                    -->
+<!--                    <sheet>-->
+<!--                        -->
+<!--                            <h1 > NPI </h1>-->
+<!--                      -->
+<!--                        -->
+<!--                            <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>-->
+<!--                       -->
+<!--                        <group >-->
 
-                                <field name="status"/>
+<!--&lt;!&ndash;                                <field name="status"/>&ndash;&gt;-->
 
-                        </group>
-                        <group >
-                            <group>
-                                <field name="tipe_order"/>
-                                <field name="name_client" />
-                            </group>
-                            <group>
-                                <field name="product_name" />
-                                <field name="ot_number"/>
-                            </group>
-                        </group>
-                      
-                        <group>                                                   
-                            <group>
-                                <field name="date_in" />
-                                <field name="date_rel"/>
-                                 <field name="nesteos" widget="boolean_toggle" />
-                            </group>
-                             <group>
-                                <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
-                                <field name="cuantity" options='{"type": "number"}'/>
-                                <field name="planos" widget="boolean_toggle" />
-                            </group>
-                        </group>
+<!--                        </group>-->
+<!--                        <group >-->
+<!--                            <group>-->
+<!--                                <field name="tipe_order"/>-->
+<!--                                <field name="name_client" />-->
+<!--                            </group>-->
+<!--                            <group>-->
+<!--                                <field name="product_name" />-->
+<!--                                <field name="ot_number"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+<!--                      -->
+<!--&lt;!&ndash;                        <group>                                                   &ndash;&gt;-->
+<!--&lt;!&ndash;                            <group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="date_in" />&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="date_rel"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                 <field name="nesteos" widget="boolean_toggle" />&ndash;&gt;-->
+<!--&lt;!&ndash;                            </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                             <group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="cuantity" options='{"type": "number"}'/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="planos" widget="boolean_toggle" />&ndash;&gt;-->
+<!--&lt;!&ndash;                            </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </group>&ndash;&gt;-->
 
-                        <notebook>
-                            <page  string="RESUMEN">
-                                <group>
-                                    <field name="description"/>
-                                </group>
-                            </page>
+<!--&lt;!&ndash;                        <notebook>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page  string="RESUMEN">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="description"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
 
-                              MATERIALES OR
-                            <page string="MATERIALES" >
-                                    <field name="materials_ids" >
-                                        <tree editable="bottom">
-                                            <field name="materials_list"/>
-                                            <field name="materials_cuantity" options='{"type": "number"}'/>
-                                            <field name="materials_inventory"/>
-                                            <field name="materials_required" options='{"type": "number"}'/>
-<!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
-<!--                                            <button type="object" name="action_corte" icon="fa-scissors" class="btn btn-primary"/>-->
-                                        </tree>
-                                    </field>
-                            </page>
-                            <page string="RECHAZO">
-                                <field name="rechazo_id">
-                                    <tree editable="bottom">
-                                        <field name="decripcion"/>
-                                        <field name="fecha"/>
-                                        <field name="hora"/>
-                                        <field name="firma"/>
-                                    </tree>
-                                </field>
-                            </page>
-                            <page string="PLANOS">
-                                <field name="anexos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
-                            </page>
-                             <page string="MITSUBISHI">
-                                <field name="cortadora_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
-                            </page>
-                            <page string="LTP 6032">
-                                <field name="tubos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
-                            </page>
-                            <page string="NOTAS">
-                                <field name="notes"/>
-                            </page>
-                        </notebook>
-                    </sheet>
-                </form>              
-            </field>
-        </record>
+<!--&lt;!&ndash;                              MATERIALES OR&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page string="MATERIALES" >&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="materials_ids" >&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <tree editable="bottom">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="materials_list"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="materials_cuantity" options='{"type": "number"}'/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="materials_inventory"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="materials_required" options='{"type": "number"}'/>&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                                            <button type="object" name="action_corte" icon="fa-scissors" class="btn btn-primary"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page string="RECHAZO">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="rechazo_id">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <tree editable="bottom">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <field name="decripcion"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <field name="fecha"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <field name="hora"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <field name="firma"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page string="PLANOS">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="anexos_id" >&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="0"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <group >&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="1"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                             <page string="MITSUBISHI">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="cortadora_id" >&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="0"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <group >&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="1"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page string="LTP 6032">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="tubos_id" >&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="0"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </tree>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     <form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <group >&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <field name="nombre" invisible="1"></field>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </group>&ndash;&gt;-->
+<!--&lt;!&ndash;                                     </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </field>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <page string="NOTAS">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <field name="notes"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </page>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </notebook>&ndash;&gt;-->
+<!--                    </sheet>-->
+<!--                </form>              -->
+<!--            </field>-->
+<!--        </record>-->
 
          <record id="dtm_npi_action" model="ir.actions.act_window">
             <field name="name">NPI</field>
             <field name="res_model">dtm.npi</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree</field>
         </record>
 
 <!--        <menuitem id="dtm_npi_menu_action" action="dtm_odt.dtm_npi_action"/>-->

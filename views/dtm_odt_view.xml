@@ -4,22 +4,21 @@
         <record id="dtm_odt_action" model="ir.actions.act_window">
             <field name="name">ORDEN DE TRABAJO</field>
             <field name="res_model">dtm.odt</field>
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">tree,form</field>
         </record>
         
         <record id="dtm_odt_tree" model="ir.ui.view">
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
-                <tree string="List View" js_class="lazy_column_list"
-                    decoration-danger="status== 'Pausado'" >
-                    <field name="sequence" widget="handle"></field>
+                <tree  >
+<!--                    <field name="sequence" widget="handle"></field>-->
                     <field name="ot_number"/>
-                    <field name="po_number"/>                  
+                    <field name="po_number"/>
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
-                    <field name="product_name"/> 
-                    <field name="status" widget="many2many_tags" options="{'color_field': 'color'}"/>                    
+                    <field name="product_name"/>
+                    <field name="status" />
                 </tree>
             </field>
         </record>
@@ -30,34 +29,34 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header><!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
-                        <button type="object" name="action_imprimir_formato" string="ODT" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_formato" string="ODT" attrs="{'invisible': [('tipe_order', '=', '')]}"  class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}"  class="btn btn-primary"/>
                     </header>
-                    
+
                     <sheet>
-                        
+
                             <h1 > ORDEN DE TRABAJO </h1>
-                      
-                        
+
+
                             <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
-                       
+
                         <group >
 
-                                <field name="status" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                <field name="status" />
 
                         </group>
                         <group >
                             <group>
-                                <field name="tipe_order"/>                                 
-                                <field name="name_client" attrs="{'required': [('tipe_order', '!=', '')]}"/>                                
+                                <field name="tipe_order"/>
+                                <field name="name_client" attrs="{'required': [('tipe_order', '!=', '')]}"/>
                             </group>
-                            <group>      
-                                <field name="product_name" attrs="{'required': [('tipe_order', '!=', '')]}"/>                          
-                                <field name="ot_number"/>       
-                            </group>        
+                            <group>
+                                <field name="product_name" attrs="{'required': [('tipe_order', '!=', '')]}"/>
+                                <field name="ot_number"/>
+                            </group>
                         </group>
-                      
-                        <group>                                                   
+
+                        <group>
                             <group>
                                 <field name="po_number" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
                                 <field name="date_in" />
@@ -143,12 +142,12 @@
                             </page>
 
 
-                            <page string="NOTAS">
-                                <field name="notes"/>
-                            </page>
+<!--                            <page string="NOTAS">-->
+<!--                                <field name="notes"/>-->
+<!--                            </page>-->
                         </notebook>
                     </sheet>
-                </form>              
+                </form>
             </field>
         </record>
 <!--                 <menuitem id="dtm_odt_menu_action" action="dtm_odt.dtm_odt_action"/>-->

@@ -2,6 +2,21 @@
 <odoo>
 
     <data>
+        <record id="papperformat_lista_materiales" model="report.paperformat">
+            <field name="name">ODT</field>
+            <field name="default" eval="True" />
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">5</field>
+            <field name="margin_bottom">20</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">1</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">25</field>
+            <field name="dpi">90</field>
+        </record>
 
         <record id="formato_lista_materiales" model="ir.actions.report">
             <field name="name">Lista de materiales</field>
@@ -9,7 +24,7 @@
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">dtm_odt.lista_materiales_template</field>
             <field name="report_file">dtm_odt.lista_materiales_template</field>
-<!--            <field name="paperformat_id" ref="dtm_odt.papperformat_ordendetrabajo" />-->
+            <field name="paperformat_id" ref="dtm_odt.papperformat_lista_materiales" />
             <field name="binding_type">report</field>
         </record>
 
@@ -23,43 +38,55 @@
                 </div>
 
                 <div class="container" style="overflow: hidden;width: 100%;"><!--contenido-->
-                        <div style="float: left;width: 55%;margin-right: 5px;"><!--Listado de materiales-->
+                        <div style="float: left;width: 100%;margin-right: 5px;"><!--Listado de materiales-->
                             <table style="width: 100%;border: 1.5px solid black;border-collapse: collapse;font-family: Arial, Helvetica, sans-serif;">
                                 <tr style="background: #bfbfbf;text-align: center;">
-                                    <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">LISTADO DE MATERIALES</th>
+                                    <th style="width:55%;font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">LISTADO DE MATERIALES</th>
+                                    <th style="width:10%;font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">CANTIDAD</th>
+                                    <th style="width:10%;font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">INVENTARIO</th>
+                                    <th style="width:10%;font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">REQUERIDO</th>
 
                                 </tr>
                                 <t t-foreach="o.materials_ids" t-as="material">
-                                    <tr>
+                                    <tr style="height :10px">
                                         <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.materials_list.nombre"></span>  <span t-field="material.materials_list.medida"></span>
+                                            <span t-field="material.materials_list.nombre"></span>  <span t-field="material.materials_list.medida"></span>
+                                        </td>
+                                        <td style="text-align: center;padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
+                                            <span t-field="material.materials_cuantity"></span>
+                                        </td>
+                                        <td style="text-align: center;padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
+                                             <span t-field="material.materials_inventory"></span>
+                                        </td>
+                                        <td style="text-align: center;padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
+                                             <span t-field="material.materials_required"></span>
                                         </td>
                                     </tr>
                                 </t>
                             </table>
                         </div>
-                        <div style="float: left;width: 40%; "><!--Listado de materiales-->
-                            <table style="width: 100%;border: 1.5px solid black;border-collapse: collapse;font-family: Arial, Helvetica, sans-serif;">
-                                <tr  style="background: #bfbfbf;text-align: center;">
-                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">CANTIDAD</th>
-                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">INVENTARIO</th>
-                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">REQUERIDO</th>
-                                </tr>
-                                <t t-foreach="o.materials_ids" t-as="material">
-                                    <tr style="text-align: center;">
-                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.materials_cuantity"></span>
-                                      </td>
-                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.materials_inventory"></span>
-                                      </td>
-                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">
-                                                 <span t-field="material.materials_required"></span>
-                                      </td>
-                                    </tr>
-                                </t>
-                            </table>
-                        </div>
+<!--                        <div style="float: left;width: 40%; ">&lt;!&ndash;Listado de materiales&ndash;&gt;-->
+<!--                            <table style="width: 100%;border: 1.5px solid black;border-collapse: collapse;font-family: Arial, Helvetica, sans-serif;">-->
+<!--                                <tr  style="background: #bfbfbf;text-align: center;">-->
+<!--                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">CANTIDAD</th>-->
+<!--                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">INVENTARIO</th>-->
+<!--                                  <th style="font-weight: bold;font-size: 16px;border: 1px solid black;border-collapse: collapse;">REQUERIDO</th>-->
+<!--                                </tr>-->
+<!--                                <t t-foreach="o.materials_ids" t-as="material">-->
+<!--                                    <tr style="text-align: center;height :10px">-->
+<!--                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">-->
+<!--                                                 <span t-field="material.materials_cuantity"></span>-->
+<!--                                      </td>-->
+<!--                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">-->
+<!--                                                 <span t-field="material.materials_inventory"></span>-->
+<!--                                      </td>-->
+<!--                                      <td style="padding-left: 10px;font-size: 14px;border: 1px solid black;border-collapse: collapse;">-->
+<!--                                                 <span t-field="material.materials_required"></span>-->
+<!--                                      </td>-->
+<!--                                    </tr>-->
+<!--                                </t>-->
+<!--                            </table>-->
+<!--                        </div>-->
 
                 </div>
             </div>

@@ -33,7 +33,7 @@ class NPI(models.Model):
     cortadora_id = fields.Many2many("dtm.documentos.cortadora")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 
-    #---------------------Resumen de descripción------------
+    # ---------------------Resumen de descripción------------
 
     description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
 
@@ -41,7 +41,7 @@ class NPI(models.Model):
 
     notes = fields.Text()
 
-    #-------------------------Acctions------------------------
+    # -------------------------Acctions------------------------
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(NPI,self).get_view(view_id, view_type,**options)
         get_odt = self.env['dtm.materials.npi'].search([])
@@ -490,14 +490,14 @@ class Rechazo(models.Model):
     hora = fields.Char(string="Hora")
     firma = fields.Char(string="Firma")
 
-    # @api.onchange("fecha")
-    # def _action_fecha(self):
-    #     fecha = self.fecha
-    #
-    #     if fecha:
-    #         hora = fecha.strftime("%X")
-    #         print(hora)
-    #         self.hora = hora
+    @api.onchange("fecha")
+    def _action_fecha(self):
+        fecha = self.fecha
+
+        if fecha:
+            hora = fecha.strftime("%X")
+            print(hora)
+            self.hora = hora
 
 
 
