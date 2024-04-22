@@ -4,23 +4,20 @@ from odoo.exceptions import ValidationError
 from fractions import Fraction
 import re
 
-
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
     # _order = "ot_number desc"
 
-
     #---------------------Basicos----------------------
 
     status = fields.Char(readonly=True)
-    # sequence = fields.Integer()
-    ot_number = fields.Char("NÚMERO",default="000",readonly=True)
+    ot_number = fields.Char(string="NÚMERO",readonly=True)
     tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
-    po_number = fields.Char(string="PO",default="00",readonly=True)
+    po_number = fields.Char(string="PO",readonly=True)
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")
@@ -31,18 +28,17 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
-
     anexos_id = fields.Many2many("dtm.documentos.anexos")
     cortadora_id = fields.Many2many("dtm.documentos.cortadora")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 
     #---------------------Resumen de descripción------------
 
-    description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
+    description = fields.Text(string="DESCRIPCIÓN")
 
     #------------------------Notas---------------------------
 
-    notes = fields.Text()
+    notes = fields.Text(string="notes")
 
     #-------------------------Acctions------------------------
     # def get_view(self, view_id=None, view_type='form', **options):
@@ -78,9 +74,6 @@ class DtmOdt(models.Model):
     #     return res
 
 
-
-
-
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         if self.tipe_order == "NPI":
             return self.env.ref("dtm_odt.formato_npi").report_action(self)
@@ -102,10 +95,13 @@ class TestModelLine(models.Model):
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
 
-    materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES")
+    materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", compute="_compute_materials_inventory", store=True)
     materials_required = fields.Integer("REQUERIDO")
+
+    def action_materials_list(self):
+        pass
 
     def materiales(self,nombre,medida):
         nombre = re.sub("^\s+","",nombre)

@@ -14,7 +14,7 @@
                 <tree  >
 <!--                    <field name="sequence" widget="handle"></field>-->
                     <field name="ot_number"/>
-                    <field name="po_number"/>
+<!--                    <field name="po_number"/>-->
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
                     <field name="product_name"/>
@@ -29,8 +29,8 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header><!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
-                        <button type="object" name="action_imprimir_formato" string="ODT" attrs="{'invisible': [('tipe_order', '=', '')]}"  class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" attrs="{'invisible': [('tipe_order', '=', '')]}"  class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_formato" string="ODT"  class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales"  class="btn btn-primary"/>
                     </header>
 
                     <sheet>
@@ -47,26 +47,26 @@
                         </group>
                         <group >
                             <group>
-                                <field name="tipe_order"/>
-                                <field name="name_client" attrs="{'required': [('tipe_order', '!=', '')]}"/>
+<!--                                <field name="tipe_order"/>-->
+                                <field name="name_client" />
                             </group>
                             <group>
-                                <field name="product_name" attrs="{'required': [('tipe_order', '!=', '')]}"/>
+                                <field name="product_name" />
                                 <field name="ot_number"/>
                             </group>
                         </group>
 
                         <group>
                             <group>
-                                <field name="po_number" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+<!--                                <field name="po_number" />-->
                                 <field name="date_in" />
                                 <field name="date_rel"/>
                                  <field name="nesteos" widget="boolean_toggle" />
                             </group>
                              <group>
-                                <field name="version_ot" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="version_ot" />
                                 <field name="cuantity" options='{"type": "number"}'/>
-                                <field name="color" attrs="{'invisible': [('tipe_order', '=', 'npi')]}"/>
+                                <field name="color" />
                                 <field name="planos" widget="boolean_toggle" />
                             </group>
                         </group>
@@ -82,12 +82,11 @@
                             <page string="MATERIALES" >
                                     <field name="materials_ids" >
                                         <tree editable="bottom">
-                                            <field name="materials_list"/>
-                                            <field name="materials_cuantity" options='{"type": "number"}'/>
+                                            <field name="materials_list"/>  <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
+                                            <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                             <field name="materials_inventory"/>
-                                            <field name="materials_required" options='{"type": "number"}'/>
-<!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
-<!--                                            <button type="object" name="action_corte" icon="fa-scissors" class="btn btn-primary"/>-->
+                                            <field name="materials_required" options='{"type": "number"}'/><!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
+
                                         </tree>
                                     </field>
                             </page>
@@ -142,9 +141,9 @@
                             </page>
 
 
-<!--                            <page string="NOTAS">-->
-<!--                                <field name="notes"/>-->
-<!--                            </page>-->
+                            <page string="NOTAS">
+                                <field name="notes"/>
+                            </page>
                         </notebook>
                     </sheet>
                 </form>
