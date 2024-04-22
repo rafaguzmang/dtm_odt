@@ -93,17 +93,17 @@
                                 </field>
                             </page>
                             <page string="PLANOS">
-                                <field name="anexos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
+                               <field name="anexos_id" widget="many2many_binary" />
+<!--                                     <tree>-->
+<!--                                            <field name="nombre" invisible="0"></field>-->
+<!--                                     </tree>-->
+<!--                                     <form>-->
+<!--                                        <group >-->
+<!--                                            <field name="documentos" filename="nombre" ></field>-->
+<!--                                            <field name="nombre" invisible="1"></field>-->
+<!--                                        </group>-->
+<!--                                     </form>-->
+<!--                                </field>-->
                             </page>
                              <page string="MITSUBISHI">
                                 <field name="cortadora_id" >

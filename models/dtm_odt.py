@@ -28,7 +28,7 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
-    anexos_id = fields.Many2many("dtm.documentos.anexos")
+    anexos_id = fields.Many2many("ir.attachment")
     cortadora_id = fields.Many2many("dtm.documentos.cortadora")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 

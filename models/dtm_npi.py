@@ -29,7 +29,7 @@ class NPI(models.Model):
 
     rechazo_id = fields.One2many("dtm.npi.rechazo", "model_id")
 
-    anexos_id = fields.Many2many("dtm.documentos.anexos")
+    anexos_id = fields.Many2many("ir.attachment")
     cortadora_id = fields.Many2many("dtm.documentos.cortadora")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 
