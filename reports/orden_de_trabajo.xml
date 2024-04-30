@@ -219,7 +219,9 @@
                                          <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">ELABORÓ</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                              <span t-field="o.firma"></span>
+                                         </td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">DISEÑÓ</td>
@@ -375,7 +377,7 @@
                                         <td style="border: 1px solid;text-align: center;">
                                              <span t-field="rechazo.hora"></span>
                                         </td>
-                                        <td style="border: 1px solid;text-align: center;">
+                                        <td style="border: 1px solid;text-align: center;font-size: 8px;">
                                             <span t-field="rechazo.firma"></span>
                                         </td>
                                     </tr>

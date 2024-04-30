@@ -23,6 +23,7 @@ class DtmOdt(models.Model):
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD",readonly=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
+    firma = fields.Char(string="Firma", readonly = True)
 
     planos = fields.Boolean(string="Planos",default=False)
     nesteos = fields.Boolean(string="Nesteos",default=False)
@@ -74,16 +75,157 @@ class DtmOdt(models.Model):
     #
     #     return res
 
+    def action_firma(self):
+        self.firma = self.env.user.partner_id.name
+
+        get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        vals = {
+                "ot_number":self.ot_number,
+                "tipe_order":"OT",
+                "name_client":self.name_client,
+                "product_name":self.product_name,
+                "date_in":self.date_in,
+                "date_rel":self.date_rel,
+                "version_ot":self.version_ot,
+                "cuantity":self.cuantity,
+                "po_number":self.po_number,
+                "description":self.description,
+                "planos":self.planos,
+                "nesteos":self.nesteos,
+                "notes":self.notes,
+                "color":self.color
+        }
+
+        if get_ot:
+            get_ot.write(vals)
+        else:
+            get_ot.create(vals)
+
+        lines = []
+        for material in self.materials_ids:
+            datos = {
+                "nombre":material.nombre,
+                "medida":material.medida,
+                "materials_cuantity":material.materials_cuantity,
+                "materials_inventory":material.materials_inventory,
+                "materials_required":material.materials_required
+            }
+            if self.env['dtm.proceso.materials'].search([("nombre","=",material.nombre),("medida","=",material.medida)] ):
+                line = (1,get_ot.id,datos)
+            else:
+                line = (0,get_ot.id,datos)
+            lines.append(line)
+        get_ot.materials_ids = lines
+
+        lines = []
+        for materi in self.rechazo_id:
+            datos = {
+                "decripcion":materi.decripcion,
+                "fecha":materi.fecha,
+                "hora":materi.hora,
+                "firma":materi.firma
+            }
+            if self.env['dtm.proceso.rechazo'].search([("decripcion","=",materi.decripcion),("fecha","=",materi.fecha),
+                                                         ("hora","=",materi.hora),("firma","=",materi.firma)]):
+                line = (1,get_ot.id,datos)
+            else:
+                line = (0,get_ot.id,datos)
+            lines.append(line)
+        get_ot.rechazo_id = lines
+
+        get_items = self.env['dtm.proceso.anexos'].search([("model_id","=",get_ot.id)])
+        if not get_items:
+            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                attachment = self.env['ir.attachment'].browse(archivo.id)
+                datos = {
+                    'documentos':attachment.datas,
+                    'nombre': attachment.name,
+                    'model_id': get_ot.id
+                }
+                get_items.create(datos)
+        elif len(self.anexos_id) == len(get_items):
+            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                attachment = self.env['ir.attachment'].browse(archivo.id)
+                datos = {
+                    'documentos':attachment.datas,
+                    'nombre': attachment.name,
+                    'model_id': get_ot.id
+                }
+                get_items.write(datos)
+
+        elif len(self.anexos_id) != len(get_items):
+            get_items.unlink()
+            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                attachment = self.env['ir.attachment'].browse(archivo.id)
+                datos = {
+                    'documentos':attachment.datas,
+                    'nombre': attachment.name,
+                    'model_id': get_ot.id
+                }
+                get_items.create(datos)
+
+        get_cortadora = self.env['dtm.proceso.cortadora'].search([("model_id","=",get_ot.id)])
+        if not get_items:
+            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_cortadora.create(datos)
+        elif len(self.cortadora_id) == len(get_cortadora):
+            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_cortadora.write(datos)
+
+        elif len(self.cortadora_id) != len(get_cortadora):
+            get_items.unlink()
+            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_cortadora.create(datos)
+
+        get_tubos = self.env['dtm.proceso.tubos'].search([("model_id","=",get_ot.id)])
+        if not get_items:
+            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_tubos.create(datos)
+        elif len(self.tubos_id) == len(get_tubos):
+            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_tubos.write(datos)
+
+        elif len(self.tubos_id) != len(get_tubos):
+            get_items.unlink()
+            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                datos = {
+                    'documentos':archivo.documentos,
+                    'nombre': archivo.nombre,
+                    'model_id': get_ot.id
+                }
+                get_tubos.create(datos)
+
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
-        if self.tipe_order == "NPI":
-            return self.env.ref("dtm_odt.formato_npi").report_action(self)
-        elif self.tipe_order == "OT":
-            return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
-            # return self.env.ref("dtm_odt.formato_rechazo").report_action(self)
+        return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
 
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
-            return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
+        return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
     #-----------------------Materiales----------------------
 

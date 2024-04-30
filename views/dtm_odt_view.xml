@@ -29,8 +29,9 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header><!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
-                        <button type="object" name="action_imprimir_formato" string="ODT"  class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales"  class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
+                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary"/>
                     </header>
 
                     <sheet>
@@ -58,7 +59,7 @@
 
                         <group>
                             <group>
-<!--                                <field name="po_number" />-->
+                                <field name="firma" />
                                 <field name="date_in" />
                                 <field name="date_rel"/>
                                  <field name="nesteos" widget="boolean_toggle" />
@@ -102,16 +103,7 @@
                             </page>
                             <page string="PLANOS">
                                 <field name="anexos_id" widget="many2many_binary" />
-<!--                                     <tree>-->
-<!--                                            <field name="nombre" invisible="0"></field>-->
-<!--                                     </tree>-->
-<!--                                     <form>-->
-<!--                                        <group >-->
-<!--                                            <field name="documentos" filename="nombre" ></field>-->
-<!--                                            <field name="nombre" invisible="1"></field>-->
-<!--                                        </group>-->
-<!--                                     </form>-->
-<!--                                </field>-->
+
                             </page>
                             <page string="MITSUBISHI">
                                 <field name="cortadora_id" >
@@ -139,8 +131,6 @@
                                      </form>
                                 </field>
                             </page>
-
-
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>

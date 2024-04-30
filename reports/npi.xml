@@ -2,15 +2,6 @@
 <odoo>
 
     <data>
-
-        <!-- <report
-            id = "formato_NPI"
-            string = "NPI"
-            model = "dtm.odt"
-            report_type= "qweb-pdf"
-            name = "dtm_odt.npi_template"            
-        /> -->
-
         <record id="papperformat_npi" model="report.paperformat">
             <field name="name">NPI</field>
             <field name="default" eval="True" />
