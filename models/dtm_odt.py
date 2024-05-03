@@ -599,6 +599,7 @@ class TestModelLine(models.Model):
                     nombre = result.materials_list.nombre
                     if result.materials_list.medida:
                         nombre = result.materials_list.nombre +" " + result.materials_list.medida
+                        item_id = result.materials_list.id
 
                     descripcion = ""
                     if descripcion:
@@ -607,7 +608,7 @@ class TestModelLine(models.Model):
                     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
 
                     if not get_requerido:
-                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+")")
+                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
                     else:
                         self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
                     if requerido <= 0:
