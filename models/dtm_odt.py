@@ -7,7 +7,7 @@ import re
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
-    # _order = "ot_number desc"
+    _order = "id desc"
 
     #---------------------Basicos----------------------
 

@@ -8,8 +8,8 @@ import re
 class NPI(models.Model):
     _name = "dtm.npi"
     _description = "NPI"
-    # _order = "ot_number desc"
-   
+    _order = "id desc"
+
     #---------------------Basicos----------------------
 
     status = fields.Char(string="Estado del Producto", readonly=True )
