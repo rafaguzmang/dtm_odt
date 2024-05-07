@@ -46,14 +46,14 @@ class DtmOdt(models.Model):
     #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
     #
     #     get_self = self.env['dtm.odt'].search([])
-    #     print(len(get_self))
+    #
     #     for num in range(1,len(get_self)+1):
-    #         print(num)
+    #
     #         get_po = self.env['dtm.compras.items'].search([('orden_trabajo','=',num)])
     #         if get_po:
-    #             # print(get_po[0].id,get_po[0].model_id.id,get_po[0].orden_trabajo)
+    #
     #             get_data = self.env['dtm.ordenes.compra'].search([("id","=",get_po[0].model_id.id)])
-    #             # print(get_data.orden_compra,get_data.cliente_prov)
+    #
     #             vals = {
     #                 'ot_number':get_po[0].orden_trabajo,
     #                 'tipe_order':"OT",
@@ -62,7 +62,7 @@ class DtmOdt(models.Model):
 #                     'product_name': get_po[0].cantidad,
     #                 'po_number':get_data.orden_compra,
     #             }
-    #             print(vals)
+    #
     #             self.env['dtm.odt'].search([('ot_number','=',get_po[0].orden_trabajo)]).write(vals)
     #
     #     # get_odt = self.env['dtm.materials.line'].search([])
@@ -267,7 +267,7 @@ class TestModelLine(models.Model):
                 regx = re.match("\d+/\d+", ancho)
                 if regx:
                     ancho = float(ancho[0:ancho.index("/")]) / float(ancho[ancho.index("/") + 1:len(ancho)])
-                # print(nombre,calibre,largo,ancho)
+
                 get_nombre = self.env['dtm.nombre.material'].search([("nombre","=",nombre)]).id
                 get_material = self.env['dtm.materiales'].search([("material_id","=",get_nombre),("calibre","=",calibre),("largo","=",largo),("ancho","=",ancho)])
 
@@ -278,14 +278,14 @@ class TestModelLine(models.Model):
         nombre = nombre[nombre.index(" "):]
         nombre = re.sub("^\s+", "", nombre)
         nombre = re.sub("\s+$", "", nombre)
-        # print("result 1",nombre,medida)
+
         if  medida.find(" x ") >= 0 or medida.find(" X "):
             if medida.find(" @ ") >= 0:
-                # print(nombre)
+
                 # nombre = nombre[len("Lámina "):len(nombre)-1]
                 calibre = medida[medida.index("@")+2:medida.index(",")]
                 medida = re.sub("X","x",medida)
-                # print(medida)
+
                 if medida.find("x"):
                     alto = medida[:medida.index("x")-1]
                     ancho = medida[medida.index("x")+2:medida.index("@")]
@@ -314,14 +314,14 @@ class TestModelLine(models.Model):
         nombre = nombre[nombre.index(" "):]
         nombre = re.sub("^\s+", "", nombre)
         nombre = re.sub("\s+$", "", nombre)
-        # print("result 1",nombre,medida)
+
         if  medida.find(" x ") >= 0 or medida.find(" X "):
             if medida.find(" espesor ") >= 0:
-                # print(nombre)
+
                 # nombre = nombre[len("Lámina "):len(nombre)-1]
                 calibre = medida[medida.index("espesor")+len("espesor"):medida.index(",")]
                 medida = re.sub("X","x",medida)
-                # print(calibre)
+
                 if medida.find("x"):
                     alto = medida[:medida.index("x")-1]
                     ancho = medida[medida.index("x")+2:medida.index("espesor")]
@@ -351,15 +351,15 @@ class TestModelLine(models.Model):
         nombre = nombre[nombre.index(" "):]
         nombre = re.sub("^\s+", "", nombre)
         nombre = re.sub("\s+$", "", nombre)
-        # print("result 1",nombre,medida)
+
         if  medida.find(" x ") >= 0 or medida.find(" X "):
             if medida.find("@") >= 0:
-                # print(nombre)
+
                 # nombre = nombre[len("Lámina "):len(nombre)-1]
-                # print(medida)
+
                 calibre = medida[medida.index("@")+len("@"):medida.index(",")]
                 medida = re.sub("X","x",medida)
-                # print(calibre)
+
                 if medida.find("x"):
                     alto = medida[:medida.index("x")-1]
                     ancho = medida[medida.index("x")+2:medida.index(" @ ")]
@@ -410,14 +410,14 @@ class TestModelLine(models.Model):
             nombre = nombre[nombre.index(" "):]
             nombre = re.sub("^\s+", "", nombre)
             nombre = re.sub("\s+$", "", nombre)
-            # print("result 1",nombre,medida)
+
             if  medida.find(" x ") >= 0 or medida.find(" X "):
                 if medida.find(" @ ") >= 0:
-                    # print(nombre)
+
                     # nombre = nombre[len("Lámina "):len(nombre)-1]
                     calibre = medida[medida.index("@")+2:]
                     medida = re.sub("X","x",medida)
-                    # print(medida)
+
                     if medida.find("x"):
                         largo = medida[:medida.index("x")-1]
                         ancho = medida[medida.index("x")+2:medida.index("@")]
@@ -444,7 +444,7 @@ class TestModelLine(models.Model):
             medida = re.sub("\s+$","",medida)
             if  medida.find(" x ") >= 0 or medida.find(" X "):
                     medida = re.sub("X","x",medida)
-                    # print(calibre)
+
                     if medida.find("x"):
                         diametro = medida[:medida.index("x")-1]
                         largo = medida[medida.index("x")+1:]
@@ -467,14 +467,14 @@ class TestModelLine(models.Model):
             nombre = nombre[nombre.index(" "):]
             nombre = re.sub("^\s+", "", nombre)
             nombre = re.sub("\s+$", "", nombre)
-            # print("result 1",nombre,medida)
+
             if medida.find(" x ") >= 0 or medida.find(" X "):
                 if medida.find("@") >= 0:
-                    # print(nombre)
+
                     # nombre = nombre[len("Lámina "):len(nombre)-1]
                     calibre = medida[medida.index("@")+len("@"):]
                     medida = re.sub("X","x",medida)
-                    # print(calibre)
+
                     if medida.find("x"):
                         diametro = medida[:medida.index("x")-1]
                         largo = medida[medida.index("x")+2:medida.index("@")]
@@ -490,7 +490,7 @@ class TestModelLine(models.Model):
                     if regx:
                         diametro = float(diametro[0:diametro.index("/")]) / float(diametro[diametro.index("/") + 1:len(diametro)])
 
-                    # print(nombre,diametro,largo)
+
                     # Busca coincidencias entre el almacen y el aréa de diseno dtm_diseno_almacen
                     get_mid = self.env['dtm.tubos.nombre'].search([("nombre","=",nombre)]).id
                     get_angulo = self.env['dtm.materiales.tubos'].search([("material_id","=",get_mid),("diametro","=",float(diametro)),("largo","=",float(largo)),("calibre","=",float(calibre))])
@@ -505,7 +505,7 @@ class TestModelLine(models.Model):
             medida = re.sub("\s+$","",medida)
             if  medida.find(" x ") >= 0 or medida.find(" X "):
                     medida = re.sub("X","x",medida)
-                    # print(calibre)
+
                     if medida.find("x"):
                         diametro = medida[:medida.index("x")-1]
                         largo = medida[medida.index("x")+1:]
@@ -532,7 +532,7 @@ class TestModelLine(models.Model):
 
         nombre = str(self.nombre)
         medida = self.medida
-        # print(nombre)
+
         if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
             materiales = self.materiales(nombre,medida)
         elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
@@ -569,7 +569,7 @@ class TestModelLine(models.Model):
             if result.id != self._origin.id:
                 sum += result.materials_cuantity
 
-        # print("Result",materiales.cantidad,sum,materiales,get_almacen)
+
         return (cantidad_materiales - sum,materiales,get_almacen,sum)
 
     @api.depends("materials_cuantity")
@@ -581,16 +581,18 @@ class TestModelLine(models.Model):
                 result.materials_required = 0
                 cantidad = result.materials_cuantity
                 inventario = consulta[0]
-                # print(cantidad,inventario)
+                if inventario <=0:
+                    inventario = 0
+                print(cantidad,inventario)
+
                 if cantidad <= inventario:
                     result.materials_inventory = cantidad
-                    # self.Apartado(result,cantidad)
                 else:
                     result.materials_inventory = inventario
                     result.materials_required = cantidad - inventario
                 requerido = result.materials_required
-                if requerido > 0:
-                    get_odt = self.env['dtm.odt'].search([])
+                if requerido > 0:# Manda la solicitud de compra del material requerido
+                    get_odt = self.env['dtm.odt'].search([])#Obtiene el número de la orden de trabajo
                     for get in get_odt:
                         for id in get.materials_ids:
                             if result._origin.id == id.id:
@@ -634,14 +636,14 @@ class TestModelLine(models.Model):
                     "disponible": disponible
                 }
                 if consulta[1]:
-                    # print("error",consulta[1],disponible,consulta[3]+cantidad)
+
                     consulta[1].write(vals)
                 vals = {
                     "cantidad": disponible
                 }
                 consulta[2].write(vals)
             # except:
-            #     print("Error en consulta")
+            #
 
     @api.depends("materials_list")
     def _compute_material_list(self):
@@ -666,7 +668,7 @@ class Rechazo(models.Model):
 
         if fecha:
             hora = fecha.strftime("%X")
-            # print(hora)
+
             self.hora = hora
 
 
