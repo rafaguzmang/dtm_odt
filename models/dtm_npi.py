@@ -289,10 +289,11 @@ class TestModelLineNPI(models.Model):
                 result.materials_required = 0
                 cantidad = result.materials_cuantity
                 inventario = consulta[0]
-                print("npi",cantidad,inventario)
+                if inventario <=0:
+                    inventario = 0
+
                 if cantidad <= inventario:
                     result.materials_inventory = cantidad
-                    # self.Apartado(result,cantidad)
                 else:
                     result.materials_inventory = inventario
                     result.materials_required = cantidad - inventario

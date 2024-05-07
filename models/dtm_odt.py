@@ -41,40 +41,6 @@ class DtmOdt(models.Model):
 
     notes = fields.Text(string="notes")
 
-    #-------------------------Acctions------------------------
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #
-    #     get_self = self.env['dtm.odt'].search([])
-    #
-    #     for num in range(1,len(get_self)+1):
-    #
-    #         get_po = self.env['dtm.compras.items'].search([('orden_trabajo','=',num)])
-    #         if get_po:
-    #
-    #             get_data = self.env['dtm.ordenes.compra'].search([("id","=",get_po[0].model_id.id)])
-    #
-    #             vals = {
-    #                 'ot_number':get_po[0].orden_trabajo,
-    #                 'tipe_order':"OT",
-    #                 'name_client':get_data.cliente_prov,
-    #                 'product_name':get_po[0].item,
-#                     'product_name': get_po[0].cantidad,
-    #                 'po_number':get_data.orden_compra,
-    #             }
-    #
-    #             self.env['dtm.odt'].search([('ot_number','=',get_po[0].orden_trabajo)]).write(vals)
-    #
-    #     # get_odt = self.env['dtm.materials.line'].search([])
-    #     # for get in get_odt:
-    #     #     get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
-    #     #     if get_this:
-    #     #         self.env.cr.execute("UPDATE dtm_materials_line SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
-    #     #
-    #     # self.env.cr.execute("DELETE FROM dtm_materials_line WHERE model_id is NULL")
-    #
-    #     return res
-
     def action_firma(self):
         self.firma = self.env.user.partner_id.name
 
@@ -575,7 +541,7 @@ class TestModelLine(models.Model):
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
-            # try:
+            try:
                 consulta  = self.consultaAlmacen()
 
                 result.materials_required = 0
@@ -583,13 +549,13 @@ class TestModelLine(models.Model):
                 inventario = consulta[0]
                 if inventario <=0:
                     inventario = 0
-                print(cantidad,inventario)
 
                 if cantidad <= inventario:
                     result.materials_inventory = cantidad
                 else:
                     result.materials_inventory = inventario
                     result.materials_required = cantidad - inventario
+
                 requerido = result.materials_required
                 if requerido > 0:# Manda la solicitud de compra del material requerido
                     get_odt = self.env['dtm.odt'].search([])#Obtiene el número de la orden de trabajo
@@ -642,8 +608,8 @@ class TestModelLine(models.Model):
                     "cantidad": disponible
                 }
                 consulta[2].write(vals)
-            # except:
-            #
+            except:
+                print("Error en consulta")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
