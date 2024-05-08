@@ -7,12 +7,12 @@ import re
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
-    _order = "id desc"
+    _order = "ot_number desc"
 
     #---------------------Basicos----------------------
 
     status = fields.Char(readonly=True)
-    ot_number = fields.Char(string="NÚMERO",readonly=True)
+    ot_number = fields.Integer(string="NÚMERO",readonly=True)
     tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
