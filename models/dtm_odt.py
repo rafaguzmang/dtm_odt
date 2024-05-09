@@ -45,6 +45,9 @@ class DtmOdt(models.Model):
         self.firma = self.env.user.partner_id.name
 
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        status = ""
+        if self.cortadora_id:
+            status = "corte"
         vals = {
                 "ot_number":self.ot_number,
                 "tipe_order":"OT",
@@ -59,7 +62,8 @@ class DtmOdt(models.Model):
                 "planos":self.planos,
                 "nesteos":self.nesteos,
                 "notes":self.notes,
-                "color":self.color
+                "color":self.color,
+                "status":status,
         }
 
         if get_ot:
@@ -186,6 +190,36 @@ class DtmOdt(models.Model):
                 }
                 get_tubos.create(datos)
 
+        if self.nesteos: #Agrega los datos a la máquina de corte
+
+            vals = {
+                "orden_trabajo":self.ot_number,
+                "fecha_entrada": datetime.today(),
+                "nombre_orden":self.product_name
+            }
+
+
+            get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+
+            if get_inf:
+                get_inf.write(vals)
+
+            else:
+                get_inf.create(vals)
+
+
+            lines = []
+            line = (5,0,{})
+            lines.append(line)
+            for doc_odt in self.cortadora_id:
+                datos = {
+                    'documentos':doc_odt.documentos,
+                    'nombre': doc_odt.nombre,
+                }
+
+                line = (0,get_inf.id,datos)
+                lines.append(line)
+            get_inf.cortadora_id = lines
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)

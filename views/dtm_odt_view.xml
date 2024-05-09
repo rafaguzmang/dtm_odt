@@ -66,7 +66,7 @@
                                  <field name="nesteos" widget="boolean_toggle" />
                             </group>
                              <group>
-                                <field name="version_ot" />
+                                <field name="version_ot"  options='{"type": "number"}'/>
                                 <field name="cuantity" options='{"type": "number"}'/>
                                 <field name="color" />
                                 <field name="planos" widget="boolean_toggle" />

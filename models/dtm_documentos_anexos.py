@@ -13,6 +13,9 @@ class Cortadora(models.Model):
 
     documentos = fields.Binary()
     nombre = fields.Char()
+    cortado = fields.Boolean(default=False)
+
+
 
 class Tubos(models.Model):
     _name = "dtm.documentos.tubos"
