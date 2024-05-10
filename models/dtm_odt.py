@@ -29,8 +29,8 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
-    anexos_id = fields.Many2many("ir.attachment")
-    cortadora_id = fields.Many2many("dtm.documentos.cortadora")
+    anexos_id = fields.Many2many("ir.attachment" ,"anexos_id")
+    cortadora_id = fields.Many2many("ir.attachment", "cortadora_id")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 
     #---------------------Resumen de descripción------------
@@ -137,9 +137,10 @@ class DtmOdt(models.Model):
         get_cortadora = self.env['dtm.proceso.cortadora'].search([("model_id","=",get_ot.id)])
         if not get_items:
             for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
+                attachment = self.env['ir.attachment'].browse(archivo.id)
                 datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
+                    'documentos':attachment.datas,
+                    'nombre': attachment.name,
                     'model_id': get_ot.id
                 }
                 get_cortadora.create(datos)
@@ -190,36 +191,35 @@ class DtmOdt(models.Model):
                 }
                 get_tubos.create(datos)
 
-        if self.nesteos: #Agrega los datos a la máquina de corte
+        if self.cortadora_id: #Agrega los datos a la máquina de corte
 
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
-                "nombre_orden":self.product_name
+                "nombre_orden":self.product_name,
+                "tipo_orden": "OT"
             }
 
-
             get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+            get_inf_real = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number)])
+            if not get_inf_real:
+                lines = []
+                if get_inf:
+                    get_inf.write(vals)
+                    line = (5,0,{})
+                    lines.append(line)
+                else:
+                    get_inf.create(vals)
 
-            if get_inf:
-                get_inf.write(vals)
-
-            else:
-                get_inf.create(vals)
-
-
-            lines = []
-            line = (5,0,{})
-            lines.append(line)
-            for doc_odt in self.cortadora_id:
-                datos = {
-                    'documentos':doc_odt.documentos,
-                    'nombre': doc_odt.nombre,
-                }
-
-                line = (0,get_inf.id,datos)
-                lines.append(line)
-            get_inf.cortadora_id = lines
+                for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de materiales_laser
+                    attachment = self.env['ir.attachment'].browse(archivo.id)
+                    datos = {
+                        'documentos':attachment.datas,
+                        'nombre': attachment.name
+                    }
+                    line = (0,get_inf.id,datos)
+                    lines.append(line)
+                get_inf.cortadora_id = lines
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)

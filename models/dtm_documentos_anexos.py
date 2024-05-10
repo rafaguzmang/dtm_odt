@@ -7,13 +7,7 @@ class Documentos(models.Model):
     nombre = fields.Char()
 
 
-class Cortadora(models.Model):
-    _name = "dtm.documentos.cortadora"
-    _description = "Guarda los nesteos del Radán"
 
-    documentos = fields.Binary()
-    nombre = fields.Char()
-    cortado = fields.Boolean(default=False)
 
 
 
