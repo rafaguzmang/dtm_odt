@@ -208,8 +208,32 @@ class DtmOdt(models.Model):
                     get_inf.write(vals)
                     line = (5,0,{})
                     lines.append(line)
+                    items = []
+                    item = (5,0,{})
+                    items.append(item)
+                    for lamina in self.materials_ids:
+                        if re.match("Lámina",lamina.nombre):
+
+                            get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+                            print(lamina.materials_list.id,lamina.nombre,lamina.medida,get_almacen.localizacion)
+                            content = {
+                                "identificador": lamina.materials_list.id,
+                                "nombre": lamina.nombre,
+                                "medida": lamina.medida,
+                                "cantidad": lamina.materials_inventory,
+                                "localizacion": get_almacen.localizacion
+                            }
+                            item = (0,get_inf.id,content)
+                            items.append(item)
+                    get_inf.materiales_id = items
+
                 else:
                     get_inf.create(vals)
+                    get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+
+
+
+
 
                 for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de materiales_laser
                     attachment = self.env['ir.attachment'].browse(archivo.id)
