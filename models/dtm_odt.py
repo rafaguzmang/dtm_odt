@@ -593,7 +593,6 @@ class TestModelLine(models.Model):
             if result.id != self._origin.id:
                 sum += result.materials_cuantity
 
-
         return (cantidad_materiales - sum,materiales,get_almacen,sum)
 
     @api.depends("materials_cuantity")
@@ -605,7 +604,7 @@ class TestModelLine(models.Model):
                 result.materials_required = 0
                 cantidad = result.materials_cuantity
                 inventario = consulta[0]
-                if inventario <=0:
+                if inventario < 0:
                     inventario = 0
 
                 if cantidad <= inventario:
