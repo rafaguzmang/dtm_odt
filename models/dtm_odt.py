@@ -569,7 +569,6 @@ class TestModelLine(models.Model):
             if result.id != self._origin.id:
                 sum += result.materials_cuantity
 
-
         return (cantidad_materiales - sum,materiales,get_almacen,sum)
 
     @api.depends("materials_cuantity")
