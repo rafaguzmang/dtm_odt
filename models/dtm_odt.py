@@ -161,7 +161,9 @@ class DtmOdt(models.Model):
                             "identificador": lamina.materials_list.id,
                             "nombre": lamina.nombre,
                             "medida": lamina.medida,
-                            "cantidad": lamina.materials_inventory,
+                            "cantidad": lamina.materials_cuantity,
+                            "inventario": lamina.materials_inventory,
+                            "requerido": lamina.materials_required,
                             "localizacion": get_almacen.localizacion
                         }
                         get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
