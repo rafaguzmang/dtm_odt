@@ -29,7 +29,8 @@
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
                 <form string="formulario">
-                    <header><!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
+                    <header>
+                        <!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary"/>
@@ -42,14 +43,13 @@
 
                             <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
 
-                        <group >
+                        <group>
 
                                 <field name="status" />
 
                         </group>
-                        <group >
+                        <group>
                             <group>
-<!--                                <field name="tipe_order"/>-->
                                 <field name="name_client" />
                             </group>
                             <group>
@@ -63,7 +63,7 @@
                                 <field name="firma" />
                                 <field name="date_in" />
                                 <field name="date_rel"/>
-                                 <field name="nesteos" widget="boolean_toggle" />
+                                <field name="nesteos" widget="boolean_toggle" />
                             </group>
                              <group>
                                 <field name="version_ot"  options='{"type": "number"}'/>
@@ -108,29 +108,10 @@
                             </page>
                             <page string="MITSUBISHI">
                                 <field name="cortadora_id" widget="many2many_binary" />
-<!--                                     <tree>-->
-<!--                                            <field name="nombre" invisible="0"></field>-->
-<!--                                     </tree>-->
-<!--                                     <form>-->
-<!--                                        <group >-->
-<!--                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>-->
-<!--                                            <field name="nombre" invisible="1"></field>-->
-<!--                                        </group>-->
-<!--                                     </form>-->
-<!--                                </field>-->
                             </page>
-                             <page string="LTP 6032">
-                                <field name="tubos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
+                            <page string="LTP 6032">
+                                <field name="tubos_id" widget="many2many_binary" />
+
                             </page>
                             <page string="NOTAS">
                                 <field name="notes"/>
@@ -140,7 +121,5 @@
                 </form>
             </field>
         </record>
-<!--                 <menuitem id="dtm_odt_menu_action" action="dtm_odt.dtm_odt_action"/>-->
-
     </data>
 </odoo>
