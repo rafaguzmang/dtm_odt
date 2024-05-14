@@ -31,7 +31,7 @@ class DtmOdt(models.Model):
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
     anexos_id = fields.Many2many("ir.attachment" ,"anexos_id")
     cortadora_id = fields.Many2many("ir.attachment", "cortadora_id")
-    tubos_id = fields.Many2many("dtm.documentos.tubos")
+    tubos_id = fields.Many2many("ir.attachment", "tubos_id")
 
     #---------------------Resumen de descripción------------
 
@@ -70,180 +70,124 @@ class DtmOdt(models.Model):
             get_ot.write(vals)
         else:
             get_ot.create(vals)
+            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
 
+        get_ot.materials_ids = self.materials_ids
+        get_ot.rechazo_id = self.rechazo_id
+
+        # Planos al modulo proceso
+        get_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
-        for material in self.materials_ids:
-            datos = {
-                "nombre":material.nombre,
-                "medida":material.medida,
-                "materials_cuantity":material.materials_cuantity,
-                "materials_inventory":material.materials_inventory,
-                "materials_required":material.materials_required
-            }
-            if self.env['dtm.proceso.materials'].search([("nombre","=",material.nombre),("medida","=",material.medida)] ):
-                line = (1,get_ot.id,datos)
-            else:
-                line = (0,get_ot.id,datos)
-            lines.append(line)
-        get_ot.materials_ids = lines
-
-        lines = []
-        for materi in self.rechazo_id:
-            datos = {
-                "decripcion":materi.decripcion,
-                "fecha":materi.fecha,
-                "hora":materi.hora,
-                "firma":materi.firma
-            }
-            if self.env['dtm.proceso.rechazo'].search([("decripcion","=",materi.decripcion),("fecha","=",materi.fecha),
-                                                         ("hora","=",materi.hora),("firma","=",materi.firma)]):
-                line = (1,get_ot.id,datos)
-            else:
-                line = (0,get_ot.id,datos)
-            lines.append(line)
-        get_ot.rechazo_id = lines
-
-        get_items = self.env['dtm.proceso.anexos'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.create(datos)
-        elif len(self.anexos_id) == len(get_items):
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.write(datos)
-
-        elif len(self.anexos_id) != len(get_items):
-            get_items.unlink()
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.create(datos)
-
-        get_cortadora = self.env['dtm.proceso.cortadora'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.create(datos)
-        elif len(self.cortadora_id) == len(get_cortadora):
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.write(datos)
-
-        elif len(self.cortadora_id) != len(get_cortadora):
-            get_items.unlink()
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.create(datos)
-
-        get_tubos = self.env['dtm.proceso.tubos'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.create(datos)
-        elif len(self.tubos_id) == len(get_tubos):
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.write(datos)
-
-        elif len(self.tubos_id) != len(get_tubos):
-            get_items.unlink()
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.create(datos)
-
-        if self.cortadora_id: #Agrega los datos a la máquina de corte
-
+        for anexo in self.anexos_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
-                "orden_trabajo":self.ot_number,
-                "fecha_entrada": datetime.today(),
-                "nombre_orden":self.product_name,
-                "tipo_orden": "OT"
+                "documentos":attachment.datas,
+                "nombre":attachment.name
             }
+            get_anexos = self.env['dtm.proceso.anexos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
+            else:
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.anexos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'anexos_id': [(6, 0, lines)]})
 
-            get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
-            get_inf_real = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number)])
-            if not get_inf_real:
-                lines = []
-                if get_inf:
-                    get_inf.write(vals)
-                    line = (5,0,{})
-                    lines.append(line)
-                    items = []
-                    item = (5,0,{})
-                    items.append(item)
-                    for lamina in self.materials_ids:
-                        if re.match("Lámina",lamina.nombre):
+        # Cortadora laser al modulo proceso
+        get_ot.write({'cortadora_id': [(5, 0, {})]})
+        lines = []
+        for anexo in self.cortadora_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
+            }
+            get_anexos = self.env['dtm.proceso.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
+            else:
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'cortadora_id': [(6, 0, lines)]})
 
-                            get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
-                            print(lamina.materials_list.id,lamina.nombre,lamina.medida,get_almacen.localizacion)
-                            content = {
-                                "identificador": lamina.materials_list.id,
-                                "nombre": lamina.nombre,
-                                "medida": lamina.medida,
-                                "cantidad": lamina.materials_inventory,
-                                "localizacion": get_almacen.localizacion
-                            }
-                            item = (0,get_inf.id,content)
-                            items.append(item)
-                    get_inf.materiales_id = items
+        # Cortadora de tubos al modulo proceso
+        get_ot.write({'tubos_id': [(5, 0, {})]})
 
-                else:
-                    get_inf.create(vals)
-                    get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+        lines = []
+        for anexo in self.tubos_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
+            }
+            get_anexos = self.env['dtm.proceso.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
+            else:
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'tubos_id': [(6, 0, lines)]})
 
 
 
-
-
-                for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de materiales_laser
-                    attachment = self.env['ir.attachment'].browse(archivo.id)
-                    datos = {
-                        'documentos':attachment.datas,
-                        'nombre': attachment.name
-                    }
-                    line = (0,get_inf.id,datos)
-                    lines.append(line)
-                get_inf.cortadora_id = lines
+        # if self.cortadora_id: #Agrega los datos a la máquina de corte
+        #
+        #     vals = {
+        #         "orden_trabajo":self.ot_number,
+        #         "fecha_entrada": datetime.today(),
+        #         "nombre_orden":self.product_name,
+        #         "tipo_orden": "OT"
+        #     }
+        #
+        #     get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+        #     get_inf_real = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number)])
+        #     if not get_inf_real:
+        #         lines = []
+        #         if get_inf:
+        #             get_inf.write(vals)
+        #             line = (5,0,{})
+        #             lines.append(line)
+        #             items = []
+        #             item = (5,0,{})
+        #             items.append(item)
+        #             for lamina in self.materials_ids:
+        #                 if re.match("Lámina",lamina.nombre):
+        #
+        #                     get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+        #                     print(lamina.materials_list.id,lamina.nombre,lamina.medida,get_almacen.localizacion)
+        #                     content = {
+        #                         "identificador": lamina.materials_list.id,
+        #                         "nombre": lamina.nombre,
+        #                         "medida": lamina.medida,
+        #                         "cantidad": lamina.materials_inventory,
+        #                         "localizacion": get_almacen.localizacion
+        #                     }
+        #                     item = (0,get_inf.id,content)
+        #                     items.append(item)
+        #             get_inf.materiales_id = items
+        #
+        #         else:
+        #             get_inf.create(vals)
+        #             get_inf = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+        #
+        #
+        #
+        #
+        #
+        #         for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de materiales_laser
+        #             attachment = self.env['ir.attachment'].browse(archivo.id)
+        #             datos = {
+        #                 'documentos':attachment.datas,
+        #                 'nombre': attachment.name
+        #             }
+        #             line = (0,get_inf.id,datos)
+        #             lines.append(line)
+        #         get_inf.cortadora_id = lines
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)

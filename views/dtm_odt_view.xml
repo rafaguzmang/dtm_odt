@@ -110,17 +110,8 @@
                                 <field name="cortadora_id" widget="many2many_binary" />
                             </page>
                             <page string="LTP 6032">
-                                <field name="tubos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
+                                <field name="tubos_id" widget="many2many_binary" />
+
                             </page>
                             <page string="NOTAS">
                                 <field name="notes"/>
