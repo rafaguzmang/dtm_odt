@@ -574,7 +574,7 @@ class TestModelLine(models.Model):
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
-            try:
+
                 consulta  = self.consultaAlmacen()
 
                 result.materials_required = 0
@@ -607,11 +607,11 @@ class TestModelLine(models.Model):
                         descripcion = result.materials_list.caracteristicas
 
                     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
-
+                    # print(get_requerido)
                     if not get_requerido:
-                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
+                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
                     else:
-                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
+                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
                     if requerido <= 0:
                         self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
@@ -641,8 +641,7 @@ class TestModelLine(models.Model):
                     "cantidad": disponible
                 }
                 consulta[2].write(vals)
-            except:
-                print("Error en consulta")
+
 
     @api.depends("materials_list")
     def _compute_material_list(self):

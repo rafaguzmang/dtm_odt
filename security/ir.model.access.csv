@@ -3,7 +3,6 @@ access_dtm_odt,access.dtm.odt,model_dtm_odt,base.group_user,1,1,1,1
 access_dtm_ing,access.dtm.ing,model_dtm_ing,base.group_user,1,1,1,1
 access_dtm_materials_line,access.dtm.materials.line,model_dtm_materials_line,base.group_user,1,1,1,1
 access_dtm_materials_npi,access.dtm.materials.npi,model_dtm_materials_npi,base.group_user,1,1,1,1
-access_dtm_documentos_anexos,access.dtm.documentos.anexos,model_dtm_documentos_anexos,base.group_user,1,1,1,1
 access_dtm_odt_rechazo,access.dtm.odt.rechazo,model_dtm_odt_rechazo,base.group_user,1,1,1,1
 access_dtm_npi_rechazo,access.dtm.npi.rechazo,model_dtm_npi_rechazo,base.group_user,1,1,1,1
 
