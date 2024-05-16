@@ -84,13 +84,13 @@ class DtmOdt(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.anexos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.anexos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
 
@@ -103,13 +103,13 @@ class DtmOdt(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -123,13 +123,13 @@ class DtmOdt(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
@@ -197,13 +197,13 @@ class DtmOdt(models.Model):
                         "documentos":attachment.datas,
                         "nombre":attachment.name
                     }
-                    get_anexos = self.env['dtm.documentos.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                    get_anexos = self.env['dtm.documentos.cortadora'].search([("nombre","=",attachment.name)])
                     if get_anexos:
                         get_anexos.write(vals)
                         lines.append(get_anexos.id)
                     else:
                         get_anexos.create(vals)
-                        get_anexos = self.env['dtm.documentos.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+                        get_anexos = self.env['dtm.documentos.cortadora'].search([("nombre","=",attachment.name)])
                         lines.append(get_anexos.id)
 
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
@@ -244,7 +244,8 @@ class DtmOdt(models.Model):
                         }
                         get_cortadora_tubos = self.env['dtm.cortadora.tubos'].search([
                             ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
-                            ("medida","=",material.medida),("cantidad","=",material.materials_inventory),
+                            ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
                             ("localizacion","=","Área de tubos")])
 
                         if get_cortadora_tubos:
@@ -254,7 +255,8 @@ class DtmOdt(models.Model):
                             get_cortadora_tubos.create(content)
                             get_cortadora_tubos = self.env['dtm.cortadora.tubos'].search([
                             ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
-                            ("medida","=",material.medida),("cantidad","=",material.materials_inventory),
+                            ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
                             ("localizacion","=","Área de tubos")])
                             lines.append(get_cortadora_tubos.id)
 
