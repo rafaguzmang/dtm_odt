@@ -152,8 +152,8 @@ class DtmOdt(models.Model):
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
 
-
                 lines = []
+                get_corte.write({'materiales_id': [(5, 0, {})]})
                 for lamina in self.materials_ids:
                     if re.match("Lámina",lamina.nombre):
                         get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
@@ -166,9 +166,11 @@ class DtmOdt(models.Model):
                             "requerido": lamina.materials_required,
                             "localizacion": get_almacen.localizacion
                         }
+
                         get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
                             ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_inventory),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
                             ("localizacion","=",get_almacen.localizacion)])
 
                         if get_cortadora_laminas:
@@ -178,10 +180,10 @@ class DtmOdt(models.Model):
                             get_cortadora_laminas.create(content)
                             get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
                             ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_inventory),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
                             ("localizacion","=",get_almacen.localizacion)])
                             lines.append(get_cortadora_laminas.id)
-
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
                  #Pasa datos al modulo de la cortadora laser
@@ -203,6 +205,7 @@ class DtmOdt(models.Model):
                         get_anexos.create(vals)
                         get_anexos = self.env['dtm.documentos.cortadora'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
                         lines.append(get_anexos.id)
+
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
         if self.tubos_id: #Agrega los datos a la cortadora de tubos
