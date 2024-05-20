@@ -241,7 +241,9 @@
                                          <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISIÓN / AUTORIZACIÓN</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                              <span t-field="o.firma_ventas"></span>
+                                         </td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">VENTAS / DIRECCIÓN GENERAL</td>
@@ -261,7 +263,9 @@
                                          <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">REVISIÓN DE LA O/T</th>
                                      </tr>
                                      <tr style="text-align: center;height: 90px;">
-                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                         <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                             <span t-field="o.firma_calidad"></span>
+                                         </td>
                                      </tr>
                                      <tr style="text-align: center;height: 30px;">
                                          <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">CALIDAD</td>
@@ -284,7 +288,9 @@
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECEPCIÓN</th>
                                     </tr>
                                     <tr style="text-align: center;height: 90px;">
-                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                            <span t-field="o.firma_compras"></span>
+                                        </td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">COMPRAS</td>
@@ -303,7 +309,9 @@
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">VERIFICACIÓN</th>
                                     </tr>
                                     <tr style="text-align: center;height: 90px;">
-                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                            <span t-field="o.firma_almacen"></span>
+                                        </td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">ALMACÉN</td>
@@ -322,7 +330,9 @@
                                         <th style="font-weight: bold;border: 1px solid;border-collapse: collapse;">RECIBIDO</th>
                                     </tr>
                                     <tr style="text-align: center;height: 90px;">
-                                        <td style="border: 1px solid;border-collapse: collapse;text-align: left;"></td>
+                                        <td style="border: 1px solid;border-collapse: collapse;text-align: center;">
+                                            <span t-field="o.firma_produccion"></span>
+                                        </td>
                                     </tr>
                                     <tr style="text-align: center;height: 30px;">
                                         <td style="border: 1px solid;border-collapse: collapse;text-align: left;text-align: center;">PRODUCCIÓN</td>
