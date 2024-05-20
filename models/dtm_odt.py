@@ -3,6 +3,8 @@ from datetime import datetime
 from odoo.exceptions import ValidationError
 from fractions import Fraction
 import re
+import pytz
+
 
 class DtmOdt(models.Model):
     _name = "dtm.odt"
@@ -24,6 +26,11 @@ class DtmOdt(models.Model):
     cuantity = fields.Integer(string="CANTIDAD",readonly=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
     firma = fields.Char(string="Firma", readonly = True)
+    firma_compras = fields.Char()
+    firma_produccion = fields.Char()
+    firma_almacen = fields.Char()
+    firma_ventas = fields.Char()
+    firma_calidad = fields.Char()
 
     planos = fields.Boolean(string="Planos",default=False)
     nesteos = fields.Boolean(string="Nesteos",default=False)
@@ -44,7 +51,12 @@ class DtmOdt(models.Model):
     def action_firma(self):
         self.firma = self.env.user.partner_id.name
 
+        print(self.write_date)
+        print(self.write_date)
+        print(self.write_date)
+
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         status = ""
         if self.cortadora_id:
             status = "corte"
@@ -59,24 +71,35 @@ class DtmOdt(models.Model):
                 "cuantity":self.cuantity,
                 "po_number":self.po_number,
                 "description":self.description,
-                "planos":self.planos,
-                "nesteos":self.nesteos,
                 "notes":self.notes,
                 "color":self.color,
                 "status":status,
         }
 
+        if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
+            get_compras_ot.write(vals)
+        else:
+            get_compras_ot.create(vals)
+            get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+
+        # Pasa la información al modelo OT de modulo de procesos
+        vals["nesteos"] = self.nesteos
+        vals["planos"] = self.planos
         if get_ot:
             get_ot.write(vals)
         else:
             get_ot.create(vals)
             get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
 
+
         get_ot.materials_ids = self.materials_ids
         get_ot.rechazo_id = self.rechazo_id
 
+        get_compras_ot.materials_ids = self.materials_ids
+
         # Planos al modulo proceso
         get_ot.write({'anexos_id': [(5, 0, {})]})
+        get_compras_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
         for anexo in self.anexos_id:
             attachment = self.env['ir.attachment'].browse(anexo.id)
@@ -93,10 +116,11 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
+        get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
 
         # Cortadora laser al modulo proceso
-        get_ot.write({'cortadora_id': [(5, 0, {})]})
         lines = []
+        get_ot.write({'cortadora_id': [(5, 0, {})]})
         for anexo in self.cortadora_id:
             attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
@@ -245,7 +269,7 @@ class DtmOdt(models.Model):
                         get_cortadora_tubos = self.env['dtm.cortadora.tubos'].search([
                             ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
                             ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
                             ("localizacion","=","Área de tubos")])
 
                         if get_cortadora_tubos:
@@ -720,16 +744,13 @@ class Rechazo(models.Model):
     decripcion = fields.Text(string="Descripción del Rechazo")
     fecha = fields.Date(string="Fecha")
     hora = fields.Char(string="Hora")
-    firma = fields.Char(string="Firma")
+    firma = fields.Char(string="Firma", default="Diseño")
 
     @api.onchange("fecha")
     def _action_fecha(self):
-        fecha = self.fecha
+        self.fecha = datetime.now()
 
-        if fecha:
-            hora = fecha.strftime("%X")
-
-            self.hora = hora
+        self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
 
 
 
