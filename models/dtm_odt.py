@@ -37,7 +37,8 @@ class DtmOdt(models.Model):
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
     anexos_id = fields.Many2many("ir.attachment" ,"anexos_id")
-    cortadora_id = fields.Many2many("ir.attachment", "cortadora_id")
+    cortadora_id = fields.Many2many("ir.attachment", "cortadora_id",string="Segundas piezas")
+    primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
     tubos_id = fields.Many2many("ir.attachment", "tubos_id")
 
     #---------------------Resumen de descripción------------
@@ -49,14 +50,12 @@ class DtmOdt(models.Model):
     notes = fields.Text(string="notes")
 
     def action_firma(self):
+
         self.firma = self.env.user.partner_id.name
-
-        print(self.write_date)
-        print(self.write_date)
-        print(self.write_date)
-
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
+        get_ventas.write({"firma_diseno":self.firma})
         status = ""
         if self.cortadora_id:
             status = "corte"
@@ -78,8 +77,10 @@ class DtmOdt(models.Model):
 
         if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
             get_compras_ot.write(vals)
+            get_compras_ot.write({"disenador": self.firma})
         else:
             get_compras_ot.create(vals)
+            get_compras_ot.write({"disenador": self.firma})
             get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
 
         # Pasa la información al modelo OT de modulo de procesos
@@ -118,7 +119,28 @@ class DtmOdt(models.Model):
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
 
-        # Cortadora laser al modulo proceso
+        # Cortadora laser al modulo proceso de la primera pieza
+        lines = []
+        get_ot.write({'primera_pieza_id': [(5, 0, {})]})
+        for anexo in self.primera_pieza_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
+            }
+            get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
+            else:
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
+
+        # Cortadora de tubos al modulo proceso
+        get_ot.write({'tubos_id': [(5, 0, {})]})
+
         lines = []
         get_ot.write({'cortadora_id': [(5, 0, {})]})
         for anexo in self.cortadora_id:
@@ -159,8 +181,7 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
 
-        if self.cortadora_id: #Agrega los datos a la máquina de corte
-
+        if self.primera_pieza_id: #Agrega los datos a la máquina de corte
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
@@ -170,13 +191,13 @@ class DtmOdt(models.Model):
             get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
             get_corte_realizado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number)])
             if not get_corte_realizado:
-
                 if get_corte:
                     get_corte.write(vals)
                 else:
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
 
+<<<<<<< HEAD
                 lines = []
                 get_corte.write({'materiales_id': [(5, 0, {})]})
                 for lamina in self.materials_ids:
@@ -215,14 +236,18 @@ class DtmOdt(models.Model):
 
                  #Pasa datos al modulo de la cortadora laser
 
+=======
+>>>>>>> 1aa01b6a3903c361d3225fdf383e663632ea15af
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
 
                 lines = []
-                for anexo in self.cortadora_id:
+                for anexo in self.primera_pieza_id:
+                    print(anexo.name)
                     attachment = self.env['ir.attachment'].browse(anexo.id)
                     vals = {
                         "documentos":attachment.datas,
-                        "nombre":attachment.name
+                        "nombre":attachment.name,
+                        "primera_pieza": True
                     }
                     get_anexos = self.env['dtm.documentos.cortadora'].search([("nombre","=",attachment.name)])
                     if get_anexos:
@@ -232,11 +257,11 @@ class DtmOdt(models.Model):
                         get_anexos.create(vals)
                         get_anexos = self.env['dtm.documentos.cortadora'].search([("nombre","=",attachment.name)])
                         lines.append(get_anexos.id)
-
+                print(lines,get_corte)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
-        if self.tubos_id: #Agrega los datos a la cortadora de tubos
 
+<<<<<<< HEAD
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
@@ -290,27 +315,87 @@ class DtmOdt(models.Model):
                             print("aquí 2",get_cortadora_tubos.id)
 
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
+=======
+>>>>>>> 1aa01b6a3903c361d3225fdf383e663632ea15af
 
                  #Pasa datos al modulo de la cortadora laser
 
-                get_corte.write({'tubos_id': [(5, 0, {})]})
 
-                lines = []
-                for anexo in self.tubos_id:
-                    attachment = self.env['ir.attachment'].browse(anexo.id)
-                    vals = {
-                        "documentos":attachment.datas,
-                        "nombre":attachment.name
-                    }
-                    get_anexos = self.env['dtm.documentos.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
-                    if get_anexos:
-                        get_anexos.write(vals)
-                        lines.append(get_anexos.id)
-                    else:
-                        get_anexos.create(vals)
-                        get_anexos = self.env['dtm.documentos.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
-                        lines.append(get_anexos.id)
-                get_corte.write({'tubos_id': [(6, 0, lines)]})
+
+        # if self.tubos_id: #Agrega los datos a la cortadora de tubos
+        #
+        #     vals = {
+        #         "orden_trabajo":self.ot_number,
+        #         "fecha_entrada": datetime.today(),
+        #         "nombre_orden":self.product_name,
+        #         "tipo_orden": "OT"
+        #     }
+        #     get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number)])
+        #     get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number)])
+        #     if not get_corte_realizado:
+        #
+        #         if get_corte:
+        #             get_corte.write(vals)
+        #         else:
+        #             get_corte.create(vals)
+        #             get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number)])
+        #
+        #
+        #         lines = []
+        #         for material in self.materials_ids:
+        #             if re.match("Perfil",material.nombre) or re.match("Tubo",material.nombre)\
+        #                     or re.match("Ángulo",material.nombre) or re.match("Solera",material.nombre)\
+        #                     or re.match("Varilla",material.nombre) or re.match("Canal",material.nombre):
+        #                 get_almacen = self.env['dtm.diseno.almacen'].search([("id","=",material.materials_list.id)])
+        #                 content = {
+        #                     "identificador": material.materials_list.id,
+        #                     "nombre": material.nombre,
+        #                     "medida": material.medida,
+        #                     "cantidad": material.materials_cuantity,
+        #                     "inventario": material.materials_inventory,
+        #                     "requerido": material.materials_required,
+        #                     "localizacion": "Área de tubos"
+        #                 }
+        #                 get_cortadora_tubos = self.env['dtm.cortadora.tubos'].search([
+        #                     ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+        #                     ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+        #                     ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
+        #                     ("localizacion","=","Área de tubos")])
+        #
+        #                 if get_cortadora_tubos:
+        #                     get_cortadora_tubos.write(content)
+        #                     lines.append(get_cortadora_tubos.id)
+        #                 else:
+        #                     get_cortadora_tubos.create(content)
+        #                     get_cortadora_tubos = self.env['dtm.cortadora.tubos'].search([
+        #                     ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+        #                     ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+        #                     ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
+        #                     ("localizacion","=","Área de tubos")])
+        #                     lines.append(get_cortadora_tubos.id)
+        #
+        #         get_corte.write({"materiales_id":[(6, 0,lines)]})
+        #
+        #          #Pasa datos al modulo de la cortadora laser
+        #
+        #         get_corte.write({'tubos_id': [(5, 0, {})]})
+        #
+        #         lines = []
+        #         for anexo in self.tubos_id:
+        #             attachment = self.env['ir.attachment'].browse(anexo.id)
+        #             vals = {
+        #                 "documentos":attachment.datas,
+        #                 "nombre":attachment.name
+        #             }
+        #             get_anexos = self.env['dtm.documentos.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+        #             if get_anexos:
+        #                 get_anexos.write(vals)
+        #                 lines.append(get_anexos.id)
+        #             else:
+        #                 get_anexos.create(vals)
+        #                 get_anexos = self.env['dtm.documentos.tubos'].search([("documentos","=",attachment.datas),("nombre","=",attachment.name)])
+        #                 lines.append(get_anexos.id)
+        #         get_corte.write({'tubos_id': [(6, 0, lines)]})
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)

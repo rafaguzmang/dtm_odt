@@ -33,7 +33,7 @@
                         <!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary"/>
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" />
                     </header>
 
                     <sheet>
@@ -108,6 +108,7 @@
 
                             </page>
                             <page string="MITSUBISHI">
+                                <field name="primera_pieza_id" widget="many2many_binary" />
                                 <field name="cortadora_id" widget="many2many_binary" />
                             </page>
                             <page string="LTP 6032">
