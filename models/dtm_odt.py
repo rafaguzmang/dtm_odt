@@ -169,7 +169,6 @@ class DtmOdt(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-
             get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
             if get_anexos:
                 get_anexos.write(vals)
@@ -196,6 +195,8 @@ class DtmOdt(models.Model):
                 else:
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+
+                get_corte.write({'cortadora_id': [(5, 0, {})]})
 
                 lines = []
                 get_corte.write({'materiales_id': [(5, 0, {})]})
@@ -722,7 +723,7 @@ class TestModelLine(models.Model):
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
-
+            try:
                 consulta  = self.consultaAlmacen()
 
                 result.materials_required = 0
@@ -755,11 +756,11 @@ class TestModelLine(models.Model):
                         descripcion = result.materials_list.caracteristicas
 
                     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
-                    # print(get_requerido)
+
                     if not get_requerido:
-                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
+                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+orden+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
                     else:
-                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
+                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+orden+"' and nombre='"+nombre+"'")
                     if requerido <= 0:
                         self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
 
@@ -789,7 +790,8 @@ class TestModelLine(models.Model):
                     "cantidad": disponible
                 }
                 consulta[2].write(vals)
-
+            except:
+                print("Error en consulta")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
