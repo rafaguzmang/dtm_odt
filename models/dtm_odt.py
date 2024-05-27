@@ -88,9 +88,18 @@ class DtmOdt(models.Model):
         vals["planos"] = self.planos
         if get_ot:
             get_ot.write(vals)
+            get_ot.write(
+                {
+                    "firma_diseno":self.firma
+                })
+
         else:
             get_ot.create(vals)
             get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+            get_ot.write(
+                {
+                    "firma_diseno":self.firma
+                })
 
 
         get_ot.materials_ids = self.materials_ids
