@@ -96,7 +96,7 @@
                             <page string="RECHAZO">
                                 <field name="rechazo_id">
                                     <tree editable="bottom">
-                                        <field name="decripcion"/>
+                                        <field name="descripcion"/>
                                         <field name="fecha"/>
                                         <field name="hora"/>
                                         <field name="firma"/>
