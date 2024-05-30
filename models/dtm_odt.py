@@ -51,6 +51,9 @@ class DtmOdt(models.Model):
 
     def action_firma(self):
 
+        # self.env.cr.execute("SELECT pg_get_serial_sequence('dtm_ing', 'id')")
+        # self.env.cr.execute("ALTER SEQUENCE dtm_ing_id_seq RESTART WITH 10")
+
         self.firma = self.env.user.partner_id.name
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
