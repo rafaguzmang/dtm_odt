@@ -117,6 +117,7 @@ class DtmOdt(models.Model):
             })
 
         get_ot.materials_ids = self.materials_ids
+        print(self.rechazo_id)
         get_ot.rechazo_id = self.rechazo_id
         get_compras_ot.materials_ids = self.materials_ids
         # Planos al modulo proceso
@@ -690,7 +691,6 @@ class Rechazo(models.Model):
     _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
 
     model_id = fields.Many2one("dtm.odt")
-    model_id2 = fields.Many2one("dtm.proceso")
 
     descripcion = fields.Text(string="Descripción del Rechazo")
     fecha = fields.Date(string="Fecha")
