@@ -60,9 +60,7 @@ class DtmOdt(models.Model):
         get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         get_ventas.write({"firma_diseno":self.firma})
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
-        status = ""
-        if self.cortadora_id:
-            status = "corte"
+
         vals = {
                 "ot_number":self.ot_number,
                 "tipe_order":"OT",
@@ -75,8 +73,7 @@ class DtmOdt(models.Model):
                 "po_number":self.po_number,
                 "description":self.description,
                 "notes":self.notes,
-                "color":self.color,
-                "status":status,
+                "color":self.color
         }
 
         if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
@@ -97,11 +94,15 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma
                 })
         else:
+            status = ""
+            if self.cortadora_id:
+                status = "corte"
             get_ot.create(vals)
             get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
             get_ot.write(
                 {
-                    "firma_diseno":self.firma
+                    "firma_diseno":self.firma,
+                    "status":status
                 })
 
         if get_almacen:
@@ -120,7 +121,6 @@ class DtmOdt(models.Model):
             })
 
         get_ot.materials_ids = self.materials_ids
-        print(self.rechazo_id)
         get_ot.rechazo_id = self.rechazo_id
         get_compras_ot.materials_ids = self.materials_ids
         # Planos al modulo proceso
