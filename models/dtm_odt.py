@@ -5,7 +5,6 @@ from fractions import Fraction
 import re
 import pytz
 
-
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _description = "Oden de trabajo"
@@ -94,7 +93,7 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma
                 })
         else:
-            status = ""
+            status = "aprobacion"
             if self.cortadora_id:
                 status = "corte"
             get_ot.create(vals)
@@ -257,8 +256,6 @@ class DtmOdt(models.Model):
                             ("localizacion","=",localizacion)])
                             lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
-
-
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
