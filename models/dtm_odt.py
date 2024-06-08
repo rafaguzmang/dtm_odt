@@ -219,7 +219,64 @@ class DtmOdt(models.Model):
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
 
+
+
+                lines = []
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
+                for file in self.primera_pieza_id:
+                    attachment = self.env['ir.attachment'].browse(file.id)
+                    vals = {
+                        "documentos":attachment.datas,
+                        "nombre":attachment.name,
+                        "primera_pieza":True
+                    }
+
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                    if get_files:
+                        get_files.write(vals)
+                        lines.append(get_files.id)
+                    else:
+                        get_files.create(vals)
+                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                        lines.append(get_files.id)
+                print(lines)
+                get_corte.write({'cortadora_id': [(6, 0, lines)]})
+
+                lines = []
+                get_corte.write({"materiales_id":[(5, 0, {})]})
+                for lamina in self.materials_ids:
+                    if re.match("Lámina",lamina.nombre):
+                        get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+                        localizacion = ""
+                        if get_almacen.localizacion:
+                            localizacion = get_almacen.localizacion
+                        content = {
+                            "identificador": lamina.materials_list.id,
+                            "nombre": lamina.nombre,
+                            "medida": lamina.medida,
+                            "cantidad": lamina.materials_cuantity,
+                            "inventario": lamina.materials_inventory,
+                            "requerido": lamina.materials_required,
+                            "localizacion": localizacion
+                        }
+                        get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            ("localizacion","=",localizacion)])
+
+                        if get_cortadora_laminas:
+                            get_cortadora_laminas.write(content)
+                            lines.append(get_cortadora_laminas.id)
+                        else:
+                            get_cortadora_laminas.create(content)
+                            get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            ("localizacion","=",localizacion)])
+                            lines.append(get_cortadora_laminas.id)
+                get_corte.write({"materiales_id":[(6, 0,lines)]})
 
                 lines = []
                 get_corte.write({'materiales_id': [(5, 0, {})]})
