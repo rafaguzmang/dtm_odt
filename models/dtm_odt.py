@@ -219,8 +219,6 @@ class DtmOdt(models.Model):
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
 
-
-
                 lines = []
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
                 for file in self.primera_pieza_id:
@@ -230,7 +228,6 @@ class DtmOdt(models.Model):
                         "nombre":attachment.name,
                         "primera_pieza":True
                     }
-
                     get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
                     if get_files:
                         get_files.write(vals)
@@ -239,7 +236,6 @@ class DtmOdt(models.Model):
                         get_files.create(vals)
                         get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
                         lines.append(get_files.id)
-                print(lines)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
                 lines = []
