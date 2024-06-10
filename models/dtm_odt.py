@@ -48,8 +48,12 @@ class DtmOdt(models.Model):
 
     notes = fields.Text(string="notes")
 
-    def action_firma(self):
+    def action_firma_parcial(self):
 
+        self.action_firma(parcial=True)
+
+    def action_firma(self,parcial=False):
+        print(parcial)
         # self.env.cr.execute("SELECT pg_get_serial_sequence('dtm_ing', 'id')")
         # self.env.cr.execute("ALTER SEQUENCE dtm_ing_id_seq RESTART WITH 10")
 
@@ -73,6 +77,7 @@ class DtmOdt(models.Model):
                 "description":self.description,
                 "notes":self.notes,
                 "color":self.color
+
         }
 
         if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
@@ -86,6 +91,7 @@ class DtmOdt(models.Model):
         # Pasa la información al modelo OT de modulo de procesos
         vals["nesteos"] = self.nesteos
         vals["planos"] = self.planos
+        vals["firma_parcial"] = parcial
         if get_ot:
             get_ot.write(vals)
             get_ot.write(
@@ -93,11 +99,12 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma
                 })
         else:
-            status = "aprobacion"
-            if self.cortadora_id:
-                status = "corte"
-            get_ot.create(vals)
             get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+            if not get_ot.status:
+                status = "aprobacion"
+                if self.cortadora_id:
+                    status = "corte"
+            get_ot.create(vals)
             get_ot.write(
                 {
                     "firma_diseno":self.firma,
