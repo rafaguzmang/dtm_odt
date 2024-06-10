@@ -49,21 +49,17 @@ class DtmOdt(models.Model):
     notes = fields.Text(string="notes")
 
     def action_firma_parcial(self):
-
         self.action_firma(parcial=True)
 
     def action_firma(self,parcial=False):
-        print(parcial)
         # self.env.cr.execute("SELECT pg_get_serial_sequence('dtm_ing', 'id')")
         # self.env.cr.execute("ALTER SEQUENCE dtm_ing_id_seq RESTART WITH 10")
-
         self.firma = self.env.user.partner_id.name
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         get_ventas.write({"firma_diseno":self.firma})
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
-
         vals = {
                 "ot_number":self.ot_number,
                 "tipe_order":"OT",
@@ -77,9 +73,7 @@ class DtmOdt(models.Model):
                 "description":self.description,
                 "notes":self.notes,
                 "color":self.color
-
         }
-
         if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
             get_compras_ot.write(vals)
             get_compras_ot.write({"disenador": self.firma})
@@ -87,8 +81,15 @@ class DtmOdt(models.Model):
             get_compras_ot.create(vals)
             get_compras_ot.write({"disenador": self.firma})
             get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-
         # Pasa la información al modelo OT de modulo de procesos
+
+        self.planos = False
+        self.nesteos = False
+        if self.anexos_id:
+            self.planos = True
+        if self.cortadora_id or self.primera_pieza_id:
+            self.nesteos = True
+
         vals["nesteos"] = self.nesteos
         vals["planos"] = self.planos
         vals["firma_parcial"] = parcial
@@ -110,7 +111,6 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma,
                     "status":status
                 })
-
         if get_almacen:
              get_almacen.write({
                 "date_in":self.date_in,
@@ -125,7 +125,6 @@ class DtmOdt(models.Model):
                 "date_rel":self.date_rel,
                 "materials_ids":self.materials_ids,
             })
-
         get_ot.materials_ids = self.materials_ids
         get_ot.rechazo_id = self.rechazo_id
         get_compras_ot.materials_ids = self.materials_ids
@@ -322,6 +321,7 @@ class DtmOdt(models.Model):
 
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
+
 
     #-----------------------Materiales----------------------
 
