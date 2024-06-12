@@ -25,6 +25,7 @@
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary"/>
+                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" />
                     </header>
 
                     <sheet>
@@ -36,7 +37,7 @@
 
                         <group >
 
-<!--                                <field name="status"/>-->
+                                <field name="status"/>
 
                         </group>
                         <group >
@@ -55,13 +56,11 @@
                                  <field name="firma" />
                                 <field name="date_in" />
                                 <field name="date_rel"/>
-                                 <field name="nesteos" widget="boolean_toggle" />
                             </group>
                              <group>
                                 <field name="version_ot" />
                                 <field name="cuantity" options='{"type": "number"}'/>
                                  <field name="color" />
-                                <field name="planos" widget="boolean_toggle" />
                             </group>
                         </group>
 
@@ -72,23 +71,21 @@
                                 </group>
                             </page>
 
-                              MATERIALES OR
+                            <!--MATERIALES OR-->
                             <page string="MATERIALES" >
                                     <field name="materials_ids" >
                                         <tree editable="bottom">
-                                            <field name="materials_list"/>
+                                            <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
                                             <field name="materials_cuantity" options='{"type": "number"}'/>
                                             <field name="materials_inventory"/>
                                             <field name="materials_required" options='{"type": "number"}'/>
-<!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
-<!--                                            <button type="object" name="action_corte" icon="fa-scissors" class="btn btn-primary"/>-->
                                         </tree>
                                     </field>
                             </page>
                             <page string="RECHAZO">
                                 <field name="rechazo_id">
                                     <tree editable="bottom">
-                                        <field name="decripcion"/>
+                                        <field name="descripcion"/>
                                         <field name="fecha"/>
                                         <field name="hora"/>
                                         <field name="firma"/>
@@ -99,17 +96,7 @@
                                <field name="anexos_id" widget="many2many_binary" />
                             </page>
                              <page string="MITSUBISHI">
-<!--                                <field name="cortadora_id" >-->
-<!--                                     <tree>-->
-<!--                                            <field name="nombre" invisible="0"></field>-->
-<!--                                     </tree>-->
-<!--                                     <form>-->
-<!--                                        <group >-->
-<!--                                            <field name="documentos" filename="nombre" widget="pdf_viewer"></field>-->
-<!--                                            <field name="nombre" invisible="1"></field>-->
-<!--                                        </group>-->
-<!--                                     </form>-->
-<!--                                </field>-->
+                                <field name="primera_pieza_id" widget="many2many_binary" />
                             </page>
                             <page string="LTP 6032">
                                 <field name="tubos_id" >

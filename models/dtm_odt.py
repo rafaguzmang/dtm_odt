@@ -74,14 +74,6 @@ class DtmOdt(models.Model):
                 "notes":self.notes,
                 "color":self.color
         }
-        # if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
-        #     get_compras_ot.write(vals)
-        #     get_compras_ot.write({"disenador": self.firma})
-        # else:
-        #     get_compras_ot.create(vals)
-        #     get_compras_ot.write({"disenador": self.firma})
-        #     get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-        # Pasa la información al modelo OT de modulo de procesos
 
         self.planos = False
         self.nesteos = False
@@ -216,14 +208,14 @@ class DtmOdt(models.Model):
                 "nombre_orden":self.product_name,
                 "tipo_orden": "OT"
             }
-            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
-            get_corte_realizado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number)])
+            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            get_corte_realizado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
             if not get_corte_realizado:
                 if get_corte:
                     get_corte.write(vals)
                 else:
                     get_corte.create(vals)
-                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number)])
+                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
 
                 lines = []
                 get_corte.write({'cortadora_id': [(5, 0, {})]})

@@ -2,8 +2,7 @@ from odoo import api,models,fields
 from datetime import datetime
 from odoo.exceptions import ValidationError
 import re
-
-
+import pytz
 
 class NPI(models.Model):
     _name = "dtm.npi"
@@ -12,9 +11,14 @@ class NPI(models.Model):
 
     #---------------------Basicos----------------------
 
+    def action_autoNum(self): # Genera número consecutivo de NPI y OT
+
+        get_odt = self.env['dtm.npi'].search([],order='ot_number desc', limit=1)
+        ot_number = get_odt.ot_number + 1
+        return ot_number
+
     status = fields.Char(string="Estado del Producto", readonly=True )
-    sequence = fields.Integer()
-    ot_number = fields.Integer("NÚMERO",default="000",  readonly=True )
+    ot_number = fields.Integer("NÚMERO",default=action_autoNum,  readonly=True )
     tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
@@ -25,14 +29,18 @@ class NPI(models.Model):
     cuantity = fields.Integer(string="CANTIDAD")
     materials_ids = fields.One2many("dtm.materials.npi","model_id",string="Lista")
     firma = fields.Char(string="Firma", readonly = True)
+    firma_compras = fields.Char()
+    firma_produccion = fields.Char()
+    firma_almacen = fields.Char()
+    firma_ventas = fields.Char()
+    firma_calidad = fields.Char()
 
     planos = fields.Boolean(string="Planos")
     nesteos = fields.Boolean(string="Nesteos")
 
     rechazo_id = fields.One2many("dtm.npi.rechazo", "model_id")
-
     anexos_id = fields.Many2many("ir.attachment")
-    # cortadora_id = fields.Many2many("dtm.documentos.cortadora")
+    primera_pieza_id = fields.Many2many("ir.attachment", "npi_id",string="Primeras piezas")
     tubos_id = fields.Many2many("dtm.documentos.tubos")
 
     # ---------------------Resumen de descripción------------
@@ -43,11 +51,16 @@ class NPI(models.Model):
 
     notes = fields.Text()
 
-    def action_firma(self):
-        self.firma = self.env.user.partner_id.name
+    def action_firma_parcial(self):
+        self.action_firma(parcial=True)
 
+    def action_firma(self,parcial=False):
+        self.firma = self.env.user.partner_id.name
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
-        print(get_ot)
+        get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
+        get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
+        get_ventas.write({"firma_diseno":self.firma})
+        get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
         vals = {
                 "ot_number":self.ot_number,
                 "tipe_order":"NPI",
@@ -58,158 +71,174 @@ class NPI(models.Model):
                 "version_ot":self.version_ot,
                 "cuantity":self.cuantity,
                 "description":self.description,
-                "planos":self.planos,
-                "nesteos":self.nesteos,
                 "notes":self.notes,
                 "color":self.color,
-                "firma":self.firma
         }
-        method = 1
+
+        self.planos = False
+        self.nesteos = False
+        if self.anexos_id:
+            self.planos = True
+        if self.primera_pieza_id:
+            self.nesteos = True
+
+        vals["nesteos"] = self.nesteos
+        vals["planos"] = self.planos
+        vals["firma_parcial"] = parcial
         if get_ot:
-            print("Upload")
             get_ot.write(vals)
+            get_ot.write(
+                {
+                    "firma_diseno":self.firma
+                })
         else:
+            if not get_ot.status:
+                status = "aprobacion"
+                if self.primera_pieza_id:
+                    status = "corte"
             get_ot.create(vals)
-            method = 0
-
+            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
+            get_ot.write(
+                {
+                    "firma_diseno":self.firma,
+                    "status":status
+                })
+        if get_almacen:
+             get_almacen.write({
+                "date_in":self.date_in,
+                "date_rel":self.date_rel,
+                "materials_npi_ids":self.materials_ids
+            })
+        else:
+             get_almacen.create({
+                "ot_number":self.ot_number,
+                "tipe_order":self.tipe_order,
+                "date_in":self.date_in,
+                "date_rel":self.date_rel,
+                "materials_npi_ids  ":self.materials_ids,
+            })
+        get_ot.materials_npi_ids = self.materials_ids
+        get_ot.rechazo_npi_id = self.rechazo_id
+        # get_compras_ot.materials_ids = self.materials_ids
+        # Planos al modulo proceso
+        get_ot.write({'anexos_id': [(5, 0, {})]})
+        # get_compras_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
-        for material in self.materials_ids:
-            datos = {
-                "nombre":material.nombre,
-                "medida":material.medida,
-                "materials_cuantity":material.materials_cuantity,
-                "materials_inventory":material.materials_inventory,
-                "materials_required":material.materials_required
+        for anexo in self.anexos_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
             }
-            if self.env['dtm.proceso.materials'].search([("nombre","=",material.nombre),("medida","=",material.medida)] ):
-                line = (1,get_ot.id,datos)
+            get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
             else:
-                line = (0,get_ot.id,datos)
-            lines.append(line)
-        get_ot.materials_ids = lines
-
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'anexos_id': [(6, 0, lines)]})
+        get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
+        # Cortadora laser al modulo proceso de la primera pieza
+        get_ot.write({'primera_pieza_id': [(5, 0, {})]})
         lines = []
-        for materi in self.rechazo_id:
-            datos = {
-                "decripcion":materi.decripcion,
-                "fecha":materi.fecha,
-                "hora":materi.hora,
-                "firma":materi.firma
+        for anexo in self.primera_pieza_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
             }
-            if self.env['dtm.proceso.rechazo'].search([("decripcion","=",materi.decripcion),("fecha","=",materi.fecha),
-                                                         ("hora","=",materi.hora),("firma","=",materi.firma)]):
-                line = (1,get_ot.id,datos)
+            get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
             else:
-                line = (0,get_ot.id,datos)
-            lines.append(line)
-        get_ot.rechazo_id = lines
+                get_anexos.create(vals)
+                get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+                lines.append(get_anexos.id)
+        get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
+        # -----------Aquí va modulo cortadora de tubos-----------
 
-        get_items = self.env['dtm.proceso.anexos'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.create(datos)
-        elif len(self.anexos_id) == len(get_items):
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.write(datos)
 
-        elif len(self.anexos_id) != len(get_items):
-            get_items.unlink()
-            for archivo in self.anexos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                attachment = self.env['ir.attachment'].browse(archivo.id)
-                datos = {
-                    'documentos':attachment.datas,
-                    'nombre': attachment.name,
-                    'model_id': get_ot.id
-                }
-                get_items.create(datos)
 
-        get_cortadora = self.env['dtm.proceso.cortadora'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.create(datos)
-        elif len(self.cortadora_id) == len(get_cortadora):
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.write(datos)
 
-        elif len(self.cortadora_id) != len(get_cortadora):
-            get_items.unlink()
-            for archivo in self.cortadora_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_cortadora.create(datos)
+        # ----------------------------------------------------------
 
-        get_tubos = self.env['dtm.proceso.tubos'].search([("model_id","=",get_ot.id)])
-        if not get_items:
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.create(datos)
-        elif len(self.tubos_id) == len(get_tubos):
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.write(datos)
 
-        elif len(self.tubos_id) != len(get_tubos):
-            get_items.unlink()
-            for archivo in self.tubos_id: # Inserta los archivos anexos jalandolos de ir_attachment y pasandolos al modelo de dtm.compras.facturado.archivos
-                datos = {
-                    'documentos':archivo.documentos,
-                    'nombre': archivo.nombre,
-                    'model_id': get_ot.id
-                }
-                get_tubos.create(datos)
+        if self.primera_pieza_id: #Agrega los datos a la máquina de corte
+            vals = {
+                "orden_trabajo":self.ot_number,
+                "fecha_entrada": datetime.today(),
+                "nombre_orden":self.product_name,
+                "tipo_orden": "NPI"
+            }
+            # ---------Busca los materiales en el modulo de la cortadora laser
+            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
+            get_corte_realizado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
+            if not get_corte_realizado:
+                if get_corte:
+                    get_corte.write(vals)
+                else:
+                    get_corte.create(vals)
+                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
 
-    # -------------------------Acctions------------------------
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(NPI,self).get_view(view_id, view_type,**options)
-    #     get_odt = self.env['dtm.materials.npi'].search([])
-    #     for get in get_odt:
-    #         get_this = self.env['dtm.diseno.almacen'].search([("nombre","=",get.nombre),("medida","=",get.medida)])
-    #         if get_this:
-    #             self.env.cr.execute("UPDATE dtm_materials_npi SET materials_list="+str(get_this.id)+" WHERE id="+str(get.id))
-    #
-    #     self.env.cr.execute("DELETE FROM dtm_materials_npi WHERE model_id is NULL")
-    #     return res
+                lines = []
+                get_corte.write({'cortadora_id': [(5, 0, {})]})
+                for file in self.primera_pieza_id:
+                    attachment = self.env['ir.attachment'].browse(file.id)
+                    vals = {
+                        "documentos":attachment.datas,
+                        "nombre":attachment.name,
+                        "primera_pieza":True
+                    }
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                    if get_files:
+                        get_files.write(vals)
+                        lines.append(get_files.id)
+                    else:
+                        get_files.create(vals)
+                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                        lines.append(get_files.id)
+                get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
-    def action_autoNum(self): # Genera número consecutivo de NPI y OT
+                lines = []
+                get_corte.write({"materiales_id":[(5, 0, {})]})
+                for lamina in self.materials_ids:
+                    if re.match("Lámina",lamina.nombre):
+                        get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+                        localizacion = ""
+                        if get_almacen.localizacion:
+                            localizacion = get_almacen.localizacion
+                        content = {
+                            "identificador": lamina.materials_list.id,
+                            "nombre": lamina.nombre,
+                            "medida": lamina.medida,
+                            "cantidad": lamina.materials_cuantity,
+                            "inventario": lamina.materials_inventory,
+                            "requerido": lamina.materials_required,
+                            "localizacion": localizacion
+                        }
+                        get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            ("localizacion","=",localizacion)])
 
-        get_npi = self.env['dtm.npi'].search_count([])
+                        if get_cortadora_laminas:
+                            get_cortadora_laminas.write(content)
+                            lines.append(get_cortadora_laminas.id)
+                        else:
+                            get_cortadora_laminas.create(content)
+                            get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            ("localizacion","=",localizacion)])
+                            lines.append(get_cortadora_laminas.id)
+                get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-        # print(get_npi)
-        if self.ot_number < get_npi:
-            self.ot_number = get_npi
+
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
 
@@ -279,6 +308,8 @@ class TestModelLineNPI(models.Model):
                     sum += result.materials_cuantity
             return (materiales.cantidad - sum,materiales,get_almacen,sum)
 
+    def action_materials_list(self):
+        pass
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
@@ -640,19 +671,16 @@ class Rechazo(models.Model):
 
     model_id = fields.Many2one("dtm.npi")
 
-    decripcion = fields.Text(string="Descripción del Rechazo")
+    descripcion = fields.Text(string="Descripción del Rechazo")
     fecha = fields.Date(string="Fecha")
     hora = fields.Char(string="Hora")
-    firma = fields.Char(string="Firma")
+    firma = fields.Char(string="Firma", default="Diseño")
 
     @api.onchange("fecha")
     def _action_fecha(self):
-        fecha = self.fecha
+        self.fecha = datetime.now()
 
-        if fecha:
-            hora = fecha.strftime("%X")
-            print(hora)
-            self.hora = hora
+        self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
 
 
 
