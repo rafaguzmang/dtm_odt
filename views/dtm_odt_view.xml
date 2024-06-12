@@ -30,7 +30,6 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header>
-                        <!--                        <button type="object" name="action_autoNum" string="Generar No Orden" class="btn btn-primary"/>-->
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" />
@@ -82,7 +81,7 @@
                                 </group>
                             </page>
 
-                             <!-- MATERIALES OR -->
+                            <!-- MATERIALES OR -->
                             <page string="MATERIALES" >
                                     <field name="materials_ids" >
                                         <tree editable="bottom">

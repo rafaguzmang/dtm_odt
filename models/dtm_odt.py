@@ -56,9 +56,9 @@ class DtmOdt(models.Model):
         # self.env.cr.execute("ALTER SEQUENCE dtm_ing_id_seq RESTART WITH 10")
         self.firma = self.env.user.partner_id.name
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-        get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-        get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
-        get_ventas.write({"firma_diseno":self.firma})
+        # get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        # get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
+        # get_ventas.write({"firma_diseno":self.firma})
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {
                 "ot_number":self.ot_number,
@@ -74,13 +74,13 @@ class DtmOdt(models.Model):
                 "notes":self.notes,
                 "color":self.color
         }
-        if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
-            get_compras_ot.write(vals)
-            get_compras_ot.write({"disenador": self.firma})
-        else:
-            get_compras_ot.create(vals)
-            get_compras_ot.write({"disenador": self.firma})
-            get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        # if get_compras_ot: # Pasa la información al modelo OT de modulo de compras
+        #     get_compras_ot.write(vals)
+        #     get_compras_ot.write({"disenador": self.firma})
+        # else:
+        #     get_compras_ot.create(vals)
+        #     get_compras_ot.write({"disenador": self.firma})
+        #     get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         # Pasa la información al modelo OT de modulo de procesos
 
         self.planos = False
@@ -100,12 +100,13 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma
                 })
         else:
-            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+            print("Status",get_ot.status)
             if not get_ot.status:
                 status = "aprobacion"
-                if self.cortadora_id:
+                if self.cortadora_id or self.primera_pieza_id:
                     status = "corte"
             get_ot.create(vals)
+            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
             get_ot.write(
                 {
                     "firma_diseno":self.firma,
@@ -127,10 +128,10 @@ class DtmOdt(models.Model):
             })
         get_ot.materials_ids = self.materials_ids
         get_ot.rechazo_id = self.rechazo_id
-        get_compras_ot.materials_ids = self.materials_ids
+        # get_compras_ot.materials_ids = self.materials_ids
         # Planos al modulo proceso
         get_ot.write({'anexos_id': [(5, 0, {})]})
-        get_compras_ot.write({'anexos_id': [(5, 0, {})]})
+        # get_compras_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
         for anexo in self.anexos_id:
             attachment = self.env['ir.attachment'].browse(anexo.id)
@@ -147,7 +148,7 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
-        get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
+        # get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
         # Cortadora laser al modulo proceso de la primera pieza
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
