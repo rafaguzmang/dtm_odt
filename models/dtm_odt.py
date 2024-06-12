@@ -100,7 +100,6 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma
                 })
         else:
-            print("Status",get_ot.status)
             if not get_ot.status:
                 status = "aprobacion"
                 if self.cortadora_id or self.primera_pieza_id:
