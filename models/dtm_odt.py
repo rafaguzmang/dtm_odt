@@ -52,13 +52,8 @@ class DtmOdt(models.Model):
         self.action_firma(parcial=True)
 
     def action_firma(self,parcial=False):
-        # self.env.cr.execute("SELECT pg_get_serial_sequence('dtm_ing', 'id')")
-        # self.env.cr.execute("ALTER SEQUENCE dtm_ing_id_seq RESTART WITH 10")
         self.firma = self.env.user.partner_id.name
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-        # get_compras_ot = self.env['dtm.compras.odt'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
-        # get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
-        # get_ventas.write({"firma_diseno":self.firma})
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {
                 "ot_number":self.ot_number,
@@ -119,10 +114,7 @@ class DtmOdt(models.Model):
             })
         get_ot.materials_ids = self.materials_ids
         get_ot.rechazo_id = self.rechazo_id
-        # get_compras_ot.materials_ids = self.materials_ids
-        # Planos al modulo proceso
         get_ot.write({'anexos_id': [(5, 0, {})]})
-        # get_compras_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
         for anexo in self.anexos_id:
             attachment = self.env['ir.attachment'].browse(anexo.id)
@@ -139,8 +131,6 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
-        # get_compras_ot.write({'anexos_id': [(6, 0, lines)]})
-        # Cortadora laser al modulo proceso de la primera pieza
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
         for anexo in self.primera_pieza_id:
@@ -159,9 +149,7 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
 
-        # Cortadora de tubos al modulo proceso
-        get_ot.write({'tubos_id': [(5, 0, {})]})
-
+        # Cortadora laser al modulo proceso
         lines = []
         get_ot.write({'cortadora_id': [(5, 0, {})]})
         for anexo in self.cortadora_id:
@@ -182,13 +170,12 @@ class DtmOdt(models.Model):
 
         # Cortadora de tubos al modulo proceso
         get_ot.write({'tubos_id': [(5, 0, {})]})
-
         lines = []
         for anexo in self.tubos_id:
             attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
                 "documentos":attachment.datas,
-                "nombre":attachment.name
+                "nombre":attachment.name,
             }
             get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
             if get_anexos:
@@ -200,7 +187,10 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
+        self.cortadora_laser()
+        self.cortadora_tubos()
 
+    def cortadora_laser(self):
         if self.primera_pieza_id: #Agrega los datos a la máquina de corte
             vals = {
                 "orden_trabajo":self.ot_number,
@@ -272,41 +262,88 @@ class DtmOdt(models.Model):
                             lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
+    def cortadora_tubos(self):
+        if self.tubos_id: #Agrega los datos a la máquina de corte
+            vals = {
+                "orden_trabajo":self.ot_number,
+                "fecha_entrada": datetime.today(),
+                "nombre_orden":self.product_name,
+                "tipo_orden": "OT"
+            }
+            get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            if not get_corte_realizado:
+                if get_corte:
+                    get_corte.write(vals)
+                else:
+                    get_corte.create(vals)
+                    get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+
                 lines = []
-                get_corte.write({'materiales_id': [(5, 0, {})]})
-                for lamina in self.materials_ids:
-                    if re.match("Lámina",lamina.nombre):
-                        get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+                get_corte.write({'cortadora_id': [(5, 0, {})]})
+                for file in self.tubos_id:
+                    attachment = self.env['ir.attachment'].browse(file.id)
+                    vals = {
+                        "documentos":attachment.datas,
+                        "nombre":attachment.name,
+                    }
+                    get_files = self.env['dtm.documentos.tubos'].search([("nombre","=",file.name)])
+                    if get_files:
+                        get_files.write(vals)
+                        lines.append(get_files.id)
+                    else:
+                        get_files.create(vals)
+                        get_files = self.env['dtm.documentos.tubos'].search([("nombre","=",file.name)])
+                        lines.append(get_files.id)
+                get_corte.write({'cortadora_id': [(6, 0, lines)]})
+
+                lines = []
+                get_corte.write({"tubos_id":[(5, 0, {})]})
+                for material in self.materials_ids: # Busca que coincidan el nombre del material para la busqueda de codigo en su respectivo modelo
+                    get_almacen = get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=","0")])
+                    if re.match("Solera",material.nombre):
+                        get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",material.materials_list.id)])
+                    elif re.match("Ángulo",material.nombre):
+                        get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
+                    elif re.match("Perfil",material.nombre):
+                        get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",material.materials_list.id)])
+                    elif re.match("Canal",material.nombre):
+                        get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",material.materials_list.id)])
+                    elif re.match("Tubo",material.nombre):
+                        get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",material.materials_list.id)])
+                    # elif re.match("IPR",material.nombre):
+                    #     get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
+
+                    if get_almacen:
                         localizacion = ""
                         if get_almacen.localizacion:
                             localizacion = get_almacen.localizacion
                         content = {
-                            "identificador": lamina.materials_list.id,
-                            "nombre": lamina.nombre,
-                            "medida": lamina.medida,
-                            "cantidad": lamina.materials_cuantity,
-                            "inventario": lamina.materials_inventory,
-                            "requerido": lamina.materials_required,
+                            "identificador": material.materials_list.id,
+                            "nombre": material.nombre,
+                            "medida": material.medida,
+                            "cantidad": material.materials_cuantity,
+                            "inventario": material.materials_inventory,
+                            "requerido": material.materials_required,
                             "localizacion": localizacion
                         }
-                        get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                        get_cortadora_laminas = self.env['dtm.cortadora.tubos'].search([
+                            ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+                            ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                            ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
                             ("localizacion","=",localizacion)])
-
                         if get_cortadora_laminas:
                             get_cortadora_laminas.write(content)
                             lines.append(get_cortadora_laminas.id)
                         else:
                             get_cortadora_laminas.create(content)
-                            get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                            get_cortadora_laminas = self.env['dtm.cortadora.tubos'].search([
+                            ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+                            ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                            ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
                             ("localizacion","=",localizacion)])
                             lines.append(get_cortadora_laminas.id)
-                get_corte.write({"materiales_id":[(6, 0,lines)]})
+                    get_corte.write({"tubos_id":[(6, 0,lines)]})
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
