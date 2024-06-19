@@ -188,7 +188,7 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
         self.cortadora_laser()
-        self.cortadora_tubos()
+        # self.cortadora_tubos()
 
     def cortadora_laser(self):
         if self.primera_pieza_id: #Agrega los datos a la máquina de corte
@@ -300,7 +300,7 @@ class DtmOdt(models.Model):
                 lines = []
                 get_corte.write({"tubos_id":[(5, 0, {})]})
                 for material in self.materials_ids: # Busca que coincidan el nombre del material para la busqueda de codigo en su respectivo modelo
-                    get_almacen = get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=","0")])
+                    get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=","0")])
                     if re.match("Solera",material.nombre):
                         get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",material.materials_list.id)])
                     elif re.match("Ángulo",material.nombre):
