@@ -379,7 +379,7 @@
                                 <t t-foreach="o.rechazo_id" t-as="rechazo">
                                     <tr style="font-family: Arial;font-size: 16px;height:120px ;">
                                         <td style="border: 1px solid;text-align: center;">
-                                             <span t-field="rechazo.decripcion"></span>
+                                             <span t-field="rechazo.descripcion"></span>
                                         </td>
                                         <td style="border: 1px solid;text-align: center;">
                                              <span t-field="rechazo.fecha"></span>
