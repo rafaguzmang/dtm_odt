@@ -185,7 +185,6 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
-
         self.cortadora_laser()
         self.cortadora_tubos()
         # self.compras_odt()
@@ -350,6 +349,7 @@ class DtmOdt(models.Model):
                         lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
+<<<<<<< HEAD
     # def compras_odt(self):
     #     get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
     #     if get_compras:
@@ -374,6 +374,35 @@ class DtmOdt(models.Model):
     #      #        for compra in get_compras:
     #      #
     #      #        print(get_compras)
+=======
+    def compras_odt(self):
+        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+        for compra in get_compras:
+            contiene = False
+            for material in self.materials_ids:
+                if material.materials_list.id == compra.codigo:
+                    contiene = True
+            if not contiene:
+                compra.unlink()
+
+        for material in self.materials_ids:
+            if material.materials_required > 0:
+                vals = {
+                    "orden_trabajo":self.ot_number,
+                    "codigo":material.materials_list.id,
+                    "nombre":material.nombre +material.medida,
+                    "cantidad":material.materials_required,
+                    "disenador":self.firma
+                }
+                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
+                if get_compras:
+                    get_compras.write(vals)
+                else:
+                    get_compras.create(vals)
+
+
+
+>>>>>>> 9aa412a408cb09a5f43460602519d4d8a9f61c20
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
