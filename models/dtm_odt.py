@@ -167,7 +167,6 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
                 lines.append(get_anexos.id)
         get_ot.write({'cortadora_id': [(6, 0, lines)]})
-
         # Cortadora de tubos al modulo proceso
         get_ot.write({'tubos_id': [(5, 0, {})]})
         lines = []
@@ -188,7 +187,8 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
         self.cortadora_laser()
-        # self.cortadora_tubos()
+        self.cortadora_tubos()
+        self.compras_odt()
 
     def cortadora_laser(self):
         if self.primera_pieza_id: #Agrega los datos a la máquina de corte
@@ -211,7 +211,7 @@ class DtmOdt(models.Model):
                 for archivos in get_corte:
                     for archivo in archivos.cortadora_id:
                         if archivo.estado == "Material cortado":
-                            archivo.write({"cortado" :True})
+                            archivo.write({"cortado":True})
                             lines.append(archivo.id)
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
                 for file in self.primera_pieza_id:
@@ -266,88 +266,113 @@ class DtmOdt(models.Model):
                             lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    # def cortadora_tubos(self):
-    #     if self.tubos_id: #Agrega los datos a la máquina de corte
-    #         vals = {
-    #             "orden_trabajo":self.ot_number,
-    #             "fecha_entrada": datetime.today(),
-    #             "nombre_orden":self.product_name,
-    #             "tipo_orden": "OT"
-    #         }
-    #         get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
-    #         # get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
-    #         # if not get_corte_realizado:
-    #         if get_corte:
-    #             get_corte.write(vals)
-    #         else:
-    #             get_corte.create(vals)
-    #             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
-    #
-    #         lines = []
-    #         get_corte.write({'cortadora_id': [(5, 0, {})]})
-    #         for file in self.tubos_id:
-    #             attachment = self.env['ir.attachment'].browse(file.id)
-    #             vals = {
-    #                 "documentos":attachment.datas,
-    #                 "nombre":attachment.name,
-    #             }
-    #             get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
-    #             if get_files:
-    #                 get_files.write(vals)
-    #                 lines.append(get_files.id)
-    #             else:
-    #                 get_files.create(vals)
-    #                 get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
-    #                 lines.append(get_files.id)
-    #         get_corte.write({'cortadora_id': [(6, 0, lines)]})
-    #
-    #         lines = []
-    #         get_corte.write({"materiales_id":[(5, 0, {})]})
-    #         for material in self.materials_ids: # Busca que coincidan el nombre del material para la busqueda de codigo en su respectivo modelo
-    #             get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=","0")])
-    #             if re.match("Solera",material.nombre):
-    #                 get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",material.materials_list.id)])
-    #             elif re.match("Ángulo",material.nombre):
-    #                 get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
-    #             elif re.match("Perfil",material.nombre):
-    #                 get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",material.materials_list.id)])
-    #             elif re.match("Canal",material.nombre):
-    #                 get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",material.materials_list.id)])
-    #             elif re.match("Tubo",material.nombre):
-    #                 get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",material.materials_list.id)])
-    #             # elif re.match("IPR",material.nombre):
-    #             #     get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
-    #
-    #             if get_almacen:
-    #                 localizacion = ""
-    #                 if get_almacen.localizacion:
-    #                     localizacion = get_almacen.localizacion
-    #                 content = {
-    #                     "identificador": material.materials_list.id,
-    #                     "nombre": material.nombre,
-    #                     "medida": material.medida,
-    #                     "cantidad": material.materials_cuantity,
-    #                     "inventario": material.materials_inventory,
-    #                     "requerido": material.materials_required,
-    #                     "localizacion": localizacion
-    #                 }
-    #                 get_cortadora_laminas = self.env['dtm.tubos.materiales'].search([
-    #                     ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
-    #                     ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
-    #                     ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
-    #                     ("localizacion","=",localizacion)])
-    #                 if get_cortadora_laminas:
-    #                     get_cortadora_laminas.write(content)
-    #                     lines.append(get_cortadora_laminas.id)
-    #                 else:
-    #                     get_cortadora_laminas.create(content)
-    #                     get_cortadora_laminas = self.env['dtm.tubos.materiales'].search([
-    #                     ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
-    #                     ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
-    #                     ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
-    #                     ("localizacion","=",localizacion)])
-    #                     lines.append(get_cortadora_laminas.id)
-    #             get_corte.write({"materiales_id":[(6, 0,lines)]})
+    def cortadora_tubos(self):
+        if self.tubos_id: #Agrega los datos a la máquina de corte
+            vals = {
+                "orden_trabajo":self.ot_number,
+                "fecha_entrada": datetime.today(),
+                "nombre_orden":self.product_name,
+                "tipo_orden": "OT"
+            }
+            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            # get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            # if not get_corte_realizado:
+            if get_corte:
+                get_corte.write(vals)
+            else:
+                get_corte.create(vals)
+                get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+
+            lines = []
+            get_corte.write({'cortadora_id': [(5, 0, {})]})
+            for file in self.tubos_id:
+                attachment = self.env['ir.attachment'].browse(file.id)
+                vals = {
+                    "documentos":attachment.datas,
+                    "nombre":attachment.name,
+                }
+                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
+                if get_files:
+                    get_files.write(vals)
+                    lines.append(get_files.id)
+                else:
+                    get_files.create(vals)
+                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
+                    lines.append(get_files.id)
+            get_corte.write({'cortadora_id': [(6, 0, lines)]})
+
+            lines = []
+            get_corte.write({"materiales_id":[(5, 0, {})]})
+            for material in self.materials_ids: # Busca que coincidan el nombre del material para la busqueda de codigo en su respectivo modelo
+                get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=","0")])
+                if re.match("Solera",material.nombre):
+                    get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",material.materials_list.id)])
+                elif re.match("Ángulo",material.nombre):
+                    get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
+                elif re.match("Perfil",material.nombre):
+                    get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",material.materials_list.id)])
+                elif re.match("Canal",material.nombre):
+                    get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",material.materials_list.id)])
+                elif re.match("Tubo",material.nombre):
+                    get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",material.materials_list.id)])
+                # elif re.match("IPR",material.nombre):
+                #     get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",material.materials_list.id)])
+
+                if get_almacen:
+                    localizacion = ""
+                    if get_almacen.localizacion:
+                        localizacion = get_almacen.localizacion
+                    content = {
+                        "identificador": material.materials_list.id,
+                        "nombre": material.nombre,
+                        "medida": material.medida,
+                        "cantidad": material.materials_cuantity,
+                        "inventario": material.materials_inventory,
+                        "requerido": material.materials_required,
+                        "localizacion": localizacion
+                    }
+                    get_cortadora_laminas = self.env['dtm.tubos.materiales'].search([
+                        ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+                        ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                        ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
+                        ("localizacion","=",localizacion)])
+                    if get_cortadora_laminas:
+                        get_cortadora_laminas.write(content)
+                        lines.append(get_cortadora_laminas.id)
+                    else:
+                        get_cortadora_laminas.create(content)
+                        get_cortadora_laminas = self.env['dtm.tubos.materiales'].search([
+                        ("identificador","=",material.materials_list.id),("nombre","=",material.nombre),
+                        ("medida","=",material.medida),("cantidad","=",material.materials_cuantity),
+                        ("inventario","=",material.materials_inventory),("requerido","=",material.materials_required),
+                        ("localizacion","=",localizacion)])
+                        lines.append(get_cortadora_laminas.id)
+                get_corte.write({"materiales_id":[(6, 0,lines)]})
+
+    def compras_odt(self):
+        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+        if get_compras:
+            for compra in get_compras:
+                for material in self.materials_ids:
+                    
+                    if(compra.codigo==material.materials_list.id and material.materials_required>0):
+                        print(compra.codigo,material.materials_list.id)
+                        break
+
+
+         # for material in self.materials_ids:
+         #    if material.materials_required > 0:
+         #        val = {
+         #            "orden_trabajo":self.ot_number,
+         #            "codigo":material.materials_list.id,
+         #            "nombre":material.nombre +material.medida,
+         #            "cantidad":material.materials_required,
+         #            "disenador":self.firma
+         #        }
+         #        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+         #        for compra in get_compras:
+         #
+         #        print(get_compras)
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
@@ -711,65 +736,64 @@ class TestModelLine(models.Model):
                 inventario = consulta[0]
                 if inventario < 0:
                     inventario = 0
-
                 if cantidad <= inventario:
                     result.materials_inventory = cantidad
                 else:
                     result.materials_inventory = inventario
                     result.materials_required = cantidad - inventario
-
                 requerido = result.materials_required
-                if requerido > 0:# Manda la solicitud de compra del material requerido
-                    get_odt = self.env['dtm.odt'].search([])#Obtiene el número de la orden de trabajo
-                    for get in get_odt:
-                        for id in get.materials_ids:
-                            if result._origin.id == id.id:
-                                orden = get.ot_number
 
-                    nombre = result.materials_list.nombre
-                    if result.materials_list.medida:
-                        nombre = result.materials_list.nombre +" " + result.materials_list.medida
-                        item_id = result.materials_list.id
-
-                    descripcion = ""
-                    if descripcion:
-                        descripcion = result.materials_list.caracteristicas
-
-                    get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
-
-                    if not get_requerido:
-                        self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
-                    else:
-                        self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
-                    if requerido <= 0:
-                        self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
-
-                if cantidad <= 0:
-                    result.materials_cuantity = 0
-                    result.materials_inventory = 0
-                    result.materials_required = 0
-
-                if inventario < 0:
-                    result.materials_inventory = 0
-
-                disponible = 0
-                if consulta[1]:
-                    disponible = consulta[1].cantidad - (consulta[3] + cantidad)
-
-                if disponible < 0:
-                    disponible = 0
-
-                vals = {
-                    "apartado": consulta[3]+cantidad,
-                    "disponible": disponible
-                }
-                if consulta[1]:
-
-                    consulta[1].write(vals)
-                vals = {
-                    "cantidad": disponible
-                }
-                consulta[2].write(vals)
+                # if requerido > 0:# Manda la solicitud de compra del material requerido
+                #     get_odt = self.env['dtm.odt'].search([])#Obtiene el número de la orden de trabajo
+                #     for get in get_odt:
+                #         for id in get.materials_ids:
+                #             if result._origin.id == id.id:
+                #                 orden = get.ot_number
+                #
+                #     nombre = result.materials_list.nombre
+                #     if result.materials_list.medida:
+                #         nombre = result.materials_list.nombre +" " + result.materials_list.medida
+                #         item_id = result.materials_list.id
+                #
+                #     descripcion = ""
+                #     if descripcion:
+                #         descripcion = result.materials_list.caracteristicas
+                #
+                #     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
+                #
+                #     if not get_requerido:
+                #         self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
+                #     else:
+                #         self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
+                #     if requerido <= 0:
+                #         self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
+                #
+                # if cantidad <= 0:
+                #     result.materials_cuantity = 0
+                #     result.materials_inventory = 0
+                #     result.materials_required = 0
+                #
+                # if inventario < 0:
+                #     result.materials_inventory = 0
+                #
+                # disponible = 0
+                # if consulta[1]:
+                #     disponible = consulta[1].cantidad - (consulta[3] + cantidad)
+                #
+                # if disponible < 0:
+                #     disponible = 0
+                #
+                # vals = {
+                #     "apartado": consulta[3]+cantidad,
+                #     "disponible": disponible
+                # }
+                # if consulta[1]:
+                #
+                #     consulta[1].write(vals)
+                # vals = {
+                #     "cantidad": disponible
+                # }
+                # consulta[2].write(vals)
             # except:
             #     print("Error en consulta")
 
