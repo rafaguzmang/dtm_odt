@@ -188,7 +188,7 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
         self.cortadora_laser()
-        # self.cortadora_tubos()
+        self.cortadora_tubos()
 
     def cortadora_laser(self):
         if self.primera_pieza_id: #Agrega los datos a la máquina de corte
@@ -266,7 +266,6 @@ class DtmOdt(models.Model):
                             lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-<<<<<<< HEAD
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
             vals = {
@@ -275,14 +274,14 @@ class DtmOdt(models.Model):
                 "nombre_orden":self.product_name,
                 "tipo_orden": "OT"
             }
-            get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
             get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
             if not get_corte_realizado:
                 if get_corte:
                     get_corte.write(vals)
                 else:
                     get_corte.create(vals)
-                    get_corte = self.env['dtm.tubos.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+                    get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
 
                 lines = []
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
@@ -292,13 +291,13 @@ class DtmOdt(models.Model):
                         "documentos":attachment.datas,
                         "nombre":attachment.name,
                     }
-                    get_files = self.env['dtm.documentos.tubos'].search([("nombre","=",file.name)])
+                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
                     if get_files:
                         get_files.write(vals)
                         lines.append(get_files.id)
                     else:
                         get_files.create(vals)
-                        get_files = self.env['dtm.documentos.tubos'].search([("nombre","=",file.name)])
+                        get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
                         lines.append(get_files.id)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -349,7 +348,7 @@ class DtmOdt(models.Model):
                             ("localizacion","=",localizacion)])
                             lines.append(get_cortadora_laminas.id)
                     get_corte.write({"tubos_id":[(6, 0,lines)]})
-=======
+
     # def cortadora_tubos(self):
     #     if self.tubos_id: #Agrega los datos a la máquina de corte
     #         vals = {
@@ -432,7 +431,6 @@ class DtmOdt(models.Model):
     #                     ("localizacion","=",localizacion)])
     #                     lines.append(get_cortadora_laminas.id)
     #             get_corte.write({"materiales_id":[(6, 0,lines)]})
->>>>>>> refs/remotes/origin/main
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
