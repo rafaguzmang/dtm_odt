@@ -73,7 +73,7 @@
 
                             <!--MATERIALES OR-->
                             <page string="MATERIALES" >
-                                    <field name="materials_ids" >
+                                    <field name="materials_npi_ids" >
                                         <tree editable="bottom">
                                             <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
                                             <field name="materials_cuantity" options='{"type": "number"}'/>
@@ -99,17 +99,7 @@
                                 <field name="primera_pieza_id" widget="many2many_binary" />
                             </page>
                             <page string="LTP 6032">
-                                <field name="tubos_id" >
-                                     <tree>
-                                            <field name="nombre" invisible="0"></field>
-                                     </tree>
-                                     <form>
-                                        <group >
-                                            <field name="documentos" filename="nombre"  widget="pdf_viewer"></field>
-                                            <field name="nombre" invisible="1"></field>
-                                        </group>
-                                     </form>
-                                </field>
+                                <field name="tubos_id" widget="many2many_binary"/>
                             </page>
                             <page string="NOTAS">
                                 <field name="notes"/>

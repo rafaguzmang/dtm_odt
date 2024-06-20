@@ -350,6 +350,7 @@ class DtmOdt(models.Model):
 
     def compras_odt(self):
         get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+        print(get_compras)
         for compra in get_compras:
             contiene = False
             for material in self.materials_ids:
@@ -357,6 +358,8 @@ class DtmOdt(models.Model):
                     contiene = True
             if not contiene:
                 compra.unlink()
+
+
 
         for material in self.materials_ids:
             if material.materials_required > 0:
