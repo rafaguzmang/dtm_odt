@@ -125,13 +125,13 @@ class NPI(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                 lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         lines = []
@@ -142,13 +142,13 @@ class NPI(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                 lines.append(get_anexos.id)
         get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
 
@@ -161,13 +161,13 @@ class NPI(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name
             }
-            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                 lines.append(get_anexos.id)
         get_ot.write({'cortadora_id': [(6, 0, lines)]})
         # Cortadora de tubos al modulo proceso
@@ -179,13 +179,13 @@ class NPI(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name,
             }
-            get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
+            get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name)])
+                get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         self.cortadora_laser()
@@ -223,13 +223,13 @@ class NPI(models.Model):
                         "nombre":attachment.name,
                         "primera_pieza":True
                     }
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
                     if get_files:
                         get_files.write(vals)
                         lines.append(get_files.id)
                     else:
                         get_files.create(vals)
-                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)])
+                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
                         lines.append(get_files.id)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -293,13 +293,13 @@ class NPI(models.Model):
                     "documentos":attachment.datas,
                     "nombre":attachment.name,
                 }
-                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
+                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
                 if get_files:
                     get_files.write(vals)
                     lines.append(get_files.id)
                 else:
                     get_files.create(vals)
-                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name)])
+                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
                     lines.append(get_files.id)
             get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
