@@ -70,6 +70,7 @@ class DtmOdt(models.Model):
                 "color":self.color
         }
 
+        # Pone en veradero los campos boolean para planos y nesteos
         self.planos = False
         self.nesteos = False
         if self.anexos_id:
@@ -133,40 +134,62 @@ class DtmOdt(models.Model):
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
-        for anexo in self.primera_pieza_id:
-            attachment = self.env['ir.attachment'].browse(anexo.id)
-            vals = {
-                "documentos":attachment.datas,
-                "nombre":attachment.name
-            }
-            get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
-            if get_anexos:
-                get_anexos.write(vals)
-                lines.append(get_anexos.id)
-            else:
-                get_anexos.create(vals)
+
+        if self.primera_pieza_id:
+            for anexo in self.primera_pieza_id:
+                attachment = self.env['ir.attachment'].browse(anexo.id)
+                vals = {
+                    "documentos":attachment.datas,
+                    "nombre":attachment.name
+                }
                 get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
-                lines.append(get_anexos.id)
-        get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
+                if get_anexos:
+                    get_anexos.write(vals)
+                    lines.append(get_anexos.id)
+                else:
+                    get_anexos.create(vals)
+                    get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name)])
+                    lines.append(get_anexos.id)
+            get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
+            lines = []
+            get_ot.write({'cortadora_id': [(5, 0, {})]})
+            for anexo in self.cortadora_id:
+                attachment = self.env['ir.attachment'].browse(anexo.id)
+                vals = {
+                    "documentos":attachment.datas,
+                    "nombre":attachment.name
+                }
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+                if get_anexos:
+                    get_anexos.write(vals)
+                    lines.append(get_anexos.id)
+                else:
+                    get_anexos.create(vals)
+                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+                    lines.append(get_anexos.id)
+            get_ot.write({'cortadora_id': [(6, 0, lines)]})
+        else:
+            lines = []
+            get_ot.write({'cortadora_id': [(5, 0, {})]})
+            for anexo in self.cortadora_id:
+                attachment = self.env['ir.attachment'].browse(anexo.id)
+                vals = {
+                    "documentos":attachment.datas,
+                    "nombre":attachment.name
+                }
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+                if get_anexos:
+                    get_anexos.write(vals)
+                    lines.append(get_anexos.id)
+                else:
+                    get_anexos.create(vals)
+                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
+                    lines.append(get_anexos.id)
+            get_ot.write({'cortadora_id': [(6, 0, lines)]})
+
 
         # Cortadora laser al modulo proceso
-        lines = []
-        get_ot.write({'cortadora_id': [(5, 0, {})]})
-        for anexo in self.cortadora_id:
-            attachment = self.env['ir.attachment'].browse(anexo.id)
-            vals = {
-                "documentos":attachment.datas,
-                "nombre":attachment.name
-            }
-            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
-            if get_anexos:
-                get_anexos.write(vals)
-                lines.append(get_anexos.id)
-            else:
-                get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name)])
-                lines.append(get_anexos.id)
-        get_ot.write({'cortadora_id': [(6, 0, lines)]})
+
         # Cortadora de tubos al modulo proceso
         get_ot.write({'tubos_id': [(5, 0, {})]})
         lines = []
@@ -190,7 +213,7 @@ class DtmOdt(models.Model):
         self.compras_odt()
 
     def cortadora_laser(self):
-        if self.primera_pieza_id: #Agrega los datos a la máquina de corte
+        if self.primera_pieza_id or self.cortadora_id: #Agrega los datos a la máquina de corte
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
@@ -213,7 +236,10 @@ class DtmOdt(models.Model):
                             archivo.write({"cortado":True})
                             lines.append(archivo.id)
                 get_corte.write({'cortadora_id': [(5, 0, {})]})
-                for file in self.primera_pieza_id:
+                material_corte = self.primera_pieza_id
+                if not self.primera_pieza_id:
+                    material_corte = self.cortadora_id
+                for file in material_corte:
                     attachment = self.env['ir.attachment'].browse(file.id)
                     vals = {
                         "documentos":attachment.datas,
