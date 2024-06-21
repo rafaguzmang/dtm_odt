@@ -244,8 +244,10 @@ class DtmOdt(models.Model):
                     vals = {
                         "documentos":attachment.datas,
                         "nombre":attachment.name,
-                        "primera_pieza":True
+                        "primera_pieza":False
                     }
+                    if self.primera_pieza_id:
+                        vals["primera_pieza"] = True
                     get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
                     if get_files:
                         get_files.write(vals)
@@ -376,7 +378,6 @@ class DtmOdt(models.Model):
 
     def compras_odt(self):
         get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
-        print(get_compras)
         for compra in get_compras:
             contiene = False
             for material in self.materials_ids:
