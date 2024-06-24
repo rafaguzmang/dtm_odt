@@ -775,59 +775,6 @@ class TestModelLine(models.Model):
                     result.materials_required = cantidad - inventario
                 requerido = result.materials_required
 
-                # if requerido > 0:# Manda la solicitud de compra del material requerido
-                #     get_odt = self.env['dtm.odt'].search([])#Obtiene el número de la orden de trabajo
-                #     for get in get_odt:
-                #         for id in get.materials_ids:
-                #             if result._origin.id == id.id:
-                #                 orden = get.ot_number
-                #
-                #     nombre = result.materials_list.nombre
-                #     if result.materials_list.medida:
-                #         nombre = result.materials_list.nombre +" " + result.materials_list.medida
-                #         item_id = result.materials_list.id
-                #
-                #     descripcion = ""
-                #     if descripcion:
-                #         descripcion = result.materials_list.caracteristicas
-                #
-                #     get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",orden),("nombre","=",nombre)])
-                #
-                #     if not get_requerido:
-                #         self.env.cr.execute("INSERT INTO dtm_compras_requerido(orden_trabajo,nombre,cantidad,codigo) VALUES('"+str(orden)+"', '"+nombre+"', "+str(requerido)+",'"+ str(item_id)+"')")
-                #     else:
-                #         self.env.cr.execute("UPDATE dtm_compras_requerido SET cantidad="+ str(requerido)+" WHERE orden_trabajo='"+str(orden)+"' and nombre='"+nombre+"'")
-                #     if requerido <= 0:
-                #         self.env.cr.execute("DELETE FROM dtm_compras_requerido WHERE cantidad = 0")
-                #
-                # if cantidad <= 0:
-                #     result.materials_cuantity = 0
-                #     result.materials_inventory = 0
-                #     result.materials_required = 0
-                #
-                # if inventario < 0:
-                #     result.materials_inventory = 0
-                #
-                # disponible = 0
-                # if consulta[1]:
-                #     disponible = consulta[1].cantidad - (consulta[3] + cantidad)
-                #
-                # if disponible < 0:
-                #     disponible = 0
-                #
-                # vals = {
-                #     "apartado": consulta[3]+cantidad,
-                #     "disponible": disponible
-                # }
-                # if consulta[1]:
-                #
-                #     consulta[1].write(vals)
-                # vals = {
-                #     "cantidad": disponible
-                # }
-                # consulta[2].write(vals)
-            # except:
-            #     print("Error en consulta")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
