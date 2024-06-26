@@ -6,6 +6,7 @@ import pytz
 
 class NPI(models.Model):
     _name = "dtm.npi"
+    _inherit = ['mail.thread']
     _description = "NPI"
     _order = "id desc"
 

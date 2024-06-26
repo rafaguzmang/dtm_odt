@@ -7,6 +7,7 @@ import pytz
 
 class DtmOdt(models.Model):
     _name = "dtm.odt"
+    _inherit = ['mail.thread']
     _description = "Oden de trabajo"
     _order = "ot_number desc"
 

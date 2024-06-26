@@ -1,6 +1,7 @@
 {
     "name":"dtm_odt",
     "description":"Control ordenes de trabajo",
+    'depends': ['base', 'mail'],
     "data":[
         #Security
         'security/ir.model.access.csv',
@@ -16,6 +17,5 @@
 
 
         ],
-    "depends" : ["base"]
      
 }
