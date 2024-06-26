@@ -210,7 +210,7 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         self.cortadora_laser()
         self.cortadora_tubos()
-        # self.compras_odt()
+        self.compras_odt()
 
     def cortadora_laser(self):
         if self.primera_pieza_id or self.cortadora_id: #Agrega los datos a la máquina de corte
@@ -386,7 +386,6 @@ class DtmOdt(models.Model):
                     contiene = True
             if not contiene:
                 compra.unlink()
-
         for material in self.materials_ids:
             medida = ""
             if material.medida:
