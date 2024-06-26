@@ -386,14 +386,15 @@ class DtmOdt(models.Model):
             if not contiene:
                 compra.unlink()
 
-
-
         for material in self.materials_ids:
+            medida = ""
+            if material.medida:
+                medida = material.medida
             if material.materials_required > 0:
                 vals = {
                     "orden_trabajo":self.ot_number,
                     "codigo":material.materials_list.id,
-                    "nombre":material.nombre +material.medida,
+                    "nombre":material.nombre + medida,
                     "cantidad":material.materials_required,
                     "disenador":self.firma
                 }
@@ -402,9 +403,6 @@ class DtmOdt(models.Model):
                     get_compras.write(vals)
                 else:
                     get_compras.create(vals)
-
-
-
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
