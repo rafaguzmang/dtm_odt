@@ -393,8 +393,6 @@ class DtmOdt(models.Model):
                 mapMaterial[material.materials_list.id] = material.materials_required
             else:
                 mapMaterial[material.materials_list.id] = mapMaterial.get(material.materials_list.id) + material.materials_required
-
-        print(mapMaterial)
         mapCompras = {}
         for material in get_compras:
             if not mapCompras.get(material.codigo):
@@ -408,16 +406,16 @@ class DtmOdt(models.Model):
             else:
                 mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
 
-        print(mapCompras)
-
         for material in self.materials_ids:
             medida = ""
             if material.medida:
                 medida = material.medida
+            requerido = 0
+            if mapCompras.get(material.materials_list.id):
+                requerido = mapCompras.get(material.materials_list.id)
             cantidad = mapMaterial.get(material.materials_list.id)
-            print(mapMaterial.get(material.materials_list.id) , mapCompras.get(material.materials_list.id))
-            if mapMaterial.get(material.materials_list.id) > mapCompras.get(material.materials_list.id):
-                cantidad = mapMaterial.get(material.materials_list.id)-mapCompras.get(material.materials_list.id)
+            if mapMaterial.get(material.materials_list.id) > requerido:
+                cantidad = mapMaterial.get(material.materials_list.id)-requerido
 
             if cantidad > 0:
                 vals = {
