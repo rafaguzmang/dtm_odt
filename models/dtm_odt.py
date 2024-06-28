@@ -379,6 +379,7 @@ class DtmOdt(models.Model):
 
     def compras_odt(self):
         get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+        get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",self.ot_number)])
         for compra in get_compras:
             contiene = False
             for material in self.materials_ids:
@@ -386,17 +387,44 @@ class DtmOdt(models.Model):
                     contiene = True
             if not contiene:
                 compra.unlink()
+        mapMaterial = {}
+        for material in self.materials_ids:
+            if not mapMaterial.get(material.materials_list.id):
+                mapMaterial[material.materials_list.id] = material.materials_required
+            else:
+                mapMaterial[material.materials_list.id] = mapMaterial.get(material.materials_list.id) + material.materials_required
+
+        print(mapMaterial)
+        mapCompras = {}
+        for material in get_compras:
+            if not mapCompras.get(material.codigo):
+                mapCompras[material.codigo] = material.cantidad
+            else:
+                mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
+
+        for material in get_realizado:
+            if not mapCompras.get(material.codigo):
+                mapCompras[material.codigo] = material.cantidad
+            else:
+                mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
+
+        print(mapCompras)
 
         for material in self.materials_ids:
             medida = ""
             if material.medida:
                 medida = material.medida
-            if material.materials_required > 0:
+            cantidad = mapMaterial.get(material.materials_list.id)
+            print(mapMaterial.get(material.materials_list.id) , mapCompras.get(material.materials_list.id))
+            if mapMaterial.get(material.materials_list.id) > mapCompras.get(material.materials_list.id):
+                cantidad = mapMaterial.get(material.materials_list.id)-mapCompras.get(material.materials_list.id)
+
+            if cantidad > 0:
                 vals = {
                     "orden_trabajo":self.ot_number,
                     "codigo":material.materials_list.id,
                     "nombre":material.nombre + medida,
-                    "cantidad":material.materials_required,
+                    "cantidad":cantidad,
                     "disenador":self.firma
                 }
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
