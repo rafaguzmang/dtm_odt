@@ -303,7 +303,6 @@ class DtmOdt(models.Model):
                 "tipo_orden": "OT"
             }
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
-
             # get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
             # if not get_corte_realizado:
             if get_corte:
@@ -387,6 +386,7 @@ class DtmOdt(models.Model):
                     contiene = True
             if not contiene:
                 compra.unlink()
+
         for material in self.materials_ids:
             medida = ""
             if material.medida:
