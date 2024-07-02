@@ -18,7 +18,8 @@
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
                     <field name="product_name"/>
-                     <field name="firma"/>
+                    <field name="disenador"/>
+                    <field name="firma"/>
                     <field name="status" />
                 </tree>
             </field>

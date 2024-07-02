@@ -25,6 +25,7 @@ class DtmOdt(models.Model):
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD",readonly=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
+    disenador = fields.Char("Diseñador")
     firma = fields.Char(string="Firma", readonly = True)
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
