@@ -410,11 +410,12 @@ class DtmOdt(models.Model):
             print(mapCompras,mapMaterial)
             for material in self.materials_ids:
                 medida = ""
+                requeridoCompras = 0
+                requeridoDiseno = 0
                 if material.medida: #Quita falso al valor medida
                     medida = material.medida
                 if mapCompras.get(material.materials_list.id):
                     requeridoCompras = mapCompras.get(material.materials_list.id) #Requerido de compras
-                cantidad = mapMaterial.get(material.materials_list.id)
                 if mapMaterial.get(material.materials_list.id): #Requerido de diseño
                     requeridoDiseno = mapMaterial.get(material.materials_list.id)
 
