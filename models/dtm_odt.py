@@ -319,13 +319,13 @@ class DtmOdt(models.Model):
                     "documentos":attachment.datas,
                     "nombre":attachment.name,
                 }
-                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
                 if get_files:
                     get_files.write(vals)
                     lines.append(get_files.id)
                 else:
                     get_files.create(vals)
-                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
                     lines.append(get_files.id)
             get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -380,56 +380,66 @@ class DtmOdt(models.Model):
     def compras_odt(self):
         get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
         get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",self.ot_number)])
-        for compra in get_compras:
-            contiene = False
+        if self.materials_ids:
+            for compra in get_compras:
+                contiene = False
+                for material in self.materials_ids:
+                    if material.materials_list.id == compra.codigo:
+                        contiene = True
+                if not contiene:
+                    compra.unlink()
+            mapMaterial = {}
             for material in self.materials_ids:
-                if material.materials_list.id == compra.codigo:
-                    contiene = True
-            if not contiene:
-                compra.unlink()
-        mapMaterial = {}
-        for material in self.materials_ids:
-            if not mapMaterial.get(material.materials_list.id):
-                mapMaterial[material.materials_list.id] = material.materials_required
-            else:
-                mapMaterial[material.materials_list.id] = mapMaterial.get(material.materials_list.id) + material.materials_required
-        mapCompras = {}
-        for material in get_compras:
-            if not mapCompras.get(material.codigo):
-                mapCompras[material.codigo] = material.cantidad
-            else:
-                mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
-
-        for material in get_realizado:
-            if not mapCompras.get(material.codigo):
-                mapCompras[material.codigo] = material.cantidad
-            else:
-                mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
-
-        for material in self.materials_ids:
-            medida = ""
-            if material.medida:
-                medida = material.medida
-            requerido = 0
-            if mapCompras.get(material.materials_list.id):
-                requerido = mapCompras.get(material.materials_list.id)
-            cantidad = mapMaterial.get(material.materials_list.id)
-            if mapMaterial.get(material.materials_list.id) > requerido:
-                cantidad = mapMaterial.get(material.materials_list.id)-requerido
-
-            if cantidad > 0:
-                vals = {
-                    "orden_trabajo":self.ot_number,
-                    "codigo":material.materials_list.id,
-                    "nombre":material.nombre + medida,
-                    "cantidad":cantidad,
-                    "disenador":self.firma
-                }
-                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
-                if get_compras:
-                    get_compras.write(vals)
+                if not mapMaterial.get(material.materials_list.id):
+                    mapMaterial[material.materials_list.id] = material.materials_required
                 else:
-                    get_compras.create(vals)
+                    mapMaterial[material.materials_list.id] = mapMaterial.get(material.materials_list.id) + material.materials_required
+            mapCompras = {}
+            for material in get_compras:
+                if not mapCompras.get(material.codigo):
+                    mapCompras[material.codigo] = material.cantidad
+                else:
+                    mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
+
+            for material in get_realizado:
+                if not mapCompras.get(material.codigo):
+                    mapCompras[material.codigo] = material.cantidad
+                else:
+                    mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
+
+            print(mapCompras,mapMaterial)
+            for material in self.materials_ids:
+                medida = ""
+                if material.medida: #Quita falso al valor medida
+                    medida = material.medida
+                if mapCompras.get(material.materials_list.id):
+                    requeridoCompras = mapCompras.get(material.materials_list.id) #Requerido de compras
+                cantidad = mapMaterial.get(material.materials_list.id)
+                if mapMaterial.get(material.materials_list.id): #Requerido de diseño
+                    requeridoDiseno = mapMaterial.get(material.materials_list.id)
+
+                if requeridoDiseno > requeridoCompras:
+                    cantidad = requeridoDiseno
+                else:
+                    cantidad = 0
+
+                print(requeridoDiseno,requeridoCompras)
+                if cantidad > 0:
+                    vals = {
+                        "orden_trabajo":self.ot_number,
+                        "codigo":material.materials_list.id,
+                        "nombre":material.nombre + medida,
+                        "cantidad":cantidad,
+                        "disenador":self.firma
+                    }
+
+                    if get_compras:
+                        get_compras.write(vals)
+                    else:
+                        get_compras.create(vals)
+        else:
+            get_compras.unlink()
+
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
