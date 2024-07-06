@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <record id="dtm_odt_action" model="ir.actions.act_window">
-            <field name="name">ORDEN DE TRABAJO</field>
+            <field name="name">ORDEN DE DISEÑO</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
         </record>
@@ -20,7 +20,6 @@
                     <field name="product_name"/>
                     <field name="disenador"/>
                     <field name="firma"/>
-                    <field name="status" />
                 </tree>
             </field>
         </record>
@@ -34,32 +33,24 @@
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" />
-                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" />
+                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" attrs="{'invisible': [('firma_ventas', '=', False)]}" />
                     </header>
 
                     <sheet>
-
                             <h1 > ORDEN DE TRABAJO </h1>
-
-
                             <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
 
-                        <group>
-
-                                <field name="status" />
-
-                        </group>
                         <group>
                             <group>
                                 <field name="name_client" />
                                 <field name="po_number"/>
+                                <field name="firma_ventas" />
                             </group>
                             <group>
                                 <field name="product_name" />
                                 <field name="ot_number"/>
                             </group>
                         </group>
-
                         <group>
                             <group>
                                 <field name="firma" />

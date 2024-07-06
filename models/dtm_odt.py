@@ -13,7 +13,6 @@ class DtmOdt(models.Model):
 
     #---------------------Basicos----------------------
 
-    status = fields.Char(readonly=True)
     ot_number = fields.Integer(string="NÚMERO",readonly=True)
     tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
@@ -30,7 +29,7 @@ class DtmOdt(models.Model):
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
     firma_almacen = fields.Char()
-    firma_ventas = fields.Char()
+    firma_ventas = fields.Char(readonly=True)
     firma_calidad = fields.Char()
 
     planos = fields.Boolean(string="Planos",default=False)
@@ -41,20 +40,34 @@ class DtmOdt(models.Model):
     cortadora_id = fields.Many2many("ir.attachment", "cortadora_id",string="Segundas piezas")
     primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
     tubos_id = fields.Many2many("ir.attachment", "tubos_id")
+    no_cotizacion = fields.Char('')
 
     #---------------------Resumen de descripción------------
-
     description = fields.Text(string="DESCRIPCIÓN")
 
     #------------------------Notas---------------------------
-
     notes = fields.Text(string="notes")
 
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
 
+
     def action_firma(self,parcial=False):
+        email = self.env.user.partner_id.email
+        if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com':
+            self.proceso(parcial)
+        else:
+            self.firma = self.env.user.partner_id.name
+            get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
+            get_ventas.firma = self.firma
+
+    def proceso(self,parcial=False):
         self.firma = self.env.user.partner_id.name
+        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
+        get_procesos.write({
+            "firma_ventas": self.firma_ventas,
+            "firma_ventas_kanba":"Ventas"
+        })
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {
@@ -71,7 +84,6 @@ class DtmOdt(models.Model):
                 "notes":self.notes,
                 "color":self.color
         }
-
         # Pone en veradero los campos boolean para planos y nesteos
         self.planos = False
         self.nesteos = False
@@ -79,7 +91,6 @@ class DtmOdt(models.Model):
             self.planos = True
         if self.cortadora_id or self.primera_pieza_id:
             self.nesteos = True
-
         vals["nesteos"] = self.nesteos
         vals["planos"] = self.planos
         vals["firma_parcial"] = parcial
@@ -136,7 +147,6 @@ class DtmOdt(models.Model):
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
-
         if self.primera_pieza_id:
             for anexo in self.primera_pieza_id:
                 attachment = self.env['ir.attachment'].browse(anexo.id)
@@ -188,10 +198,7 @@ class DtmOdt(models.Model):
                     get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                     lines.append(get_anexos.id)
             get_ot.write({'cortadora_id': [(6, 0, lines)]})
-
-
         # Cortadora laser al modulo proceso
-
         # Cortadora de tubos al modulo proceso
         get_ot.write({'tubos_id': [(5, 0, {})]})
         lines = []
@@ -408,7 +415,6 @@ class DtmOdt(models.Model):
                 else:
                     mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
 
-            print(mapCompras,mapMaterial)
             for material in self.materials_ids:
                 medida = ""
                 requeridoCompras = 0
@@ -424,8 +430,6 @@ class DtmOdt(models.Model):
                     cantidad = requeridoDiseno
                 else:
                     cantidad = 0
-
-                print(requeridoDiseno,requeridoCompras)
                 if cantidad > 0:
                     vals = {
                         "orden_trabajo":self.ot_number,

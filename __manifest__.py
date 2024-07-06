@@ -14,8 +14,6 @@
         'reports/orden_de_trabajo.xml',
         'reports/rechazo.xml',
         'reports/lista_materiales.xml'
-
-
         ],
      
 }
