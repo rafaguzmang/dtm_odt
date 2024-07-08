@@ -54,12 +54,23 @@ class DtmOdt(models.Model):
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
-        if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com':
+        if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com' or email=="rafaguzmang@hotmail.com":
             self.proceso(parcial)
+            # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         else:
             self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.firma = self.firma
+
+        get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
+        print(get_compras)
+        get_compras.write({"status":"Procesos"})
+        for orden in get_compras.descripcion_id:
+            if not orden.firma:
+                get_compras.write({"status":"Diseño"})
+                break
+
+
 
     def proceso(self,parcial=False):
         self.firma = self.env.user.partner_id.name
@@ -171,13 +182,13 @@ class DtmOdt(models.Model):
                     "documentos":attachment.datas,
                     "nombre":attachment.name
                 }
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                 if get_anexos:
                     get_anexos.write(vals)
                     lines.append(get_anexos.id)
                 else:
                     get_anexos.create(vals)
-                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                     lines.append(get_anexos.id)
             get_ot.write({'cortadora_id': [(6, 0, lines)]})
         else:
@@ -189,13 +200,13 @@ class DtmOdt(models.Model):
                     "documentos":attachment.datas,
                     "nombre":attachment.name
                 }
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                 if get_anexos:
                     get_anexos.write(vals)
                     lines.append(get_anexos.id)
                 else:
                     get_anexos.create(vals)
-                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                     lines.append(get_anexos.id)
             get_ot.write({'cortadora_id': [(6, 0, lines)]})
         # Cortadora laser al modulo proceso
@@ -208,13 +219,13 @@ class DtmOdt(models.Model):
                 "documentos":attachment.datas,
                 "nombre":attachment.name,
             }
-            get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+            get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
             if get_anexos:
                 get_anexos.write(vals)
                 lines.append(get_anexos.id)
             else:
                 get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+                get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         self.cortadora_laser()
@@ -257,13 +268,13 @@ class DtmOdt(models.Model):
                     }
                     if self.primera_pieza_id:
                         vals["primera_pieza"] = True
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                     if get_files:
                         get_files.write(vals)
                         lines.append(get_files.id)
                     else:
                         get_files.create(vals)
-                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                         lines.append(get_files.id)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -446,7 +457,6 @@ class DtmOdt(models.Model):
         else:
             get_compras.unlink()
 
-
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
 
@@ -472,7 +482,6 @@ class TestModelLine(models.Model):
 
     def action_materials_list(self):
         pass
-
     def materiales(self,nombre,medida):
         nombre = re.sub("^\s+","",nombre)
         nombre = nombre[nombre.index(" "):]
@@ -815,7 +824,6 @@ class TestModelLine(models.Model):
                     result.materials_inventory = inventario
                     result.materials_required = cantidad - inventario
                 requerido = result.materials_required
-
 
     @api.depends("materials_list")
     def _compute_material_list(self):
