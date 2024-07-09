@@ -48,6 +48,8 @@ class DtmOdt(models.Model):
     #------------------------Notas---------------------------
     notes = fields.Text(string="notes")
 
+    liberado = fields.Char()
+
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
 
@@ -55,16 +57,21 @@ class DtmOdt(models.Model):
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
         if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com' or email=="rafaguzmang@hotmail.com":
+<<<<<<< HEAD
             self.firma_ventas = self.env.user.partner_id.name
+=======
+            self.firma_ventas =  self.env.user.partner_id.name
+>>>>>>> refs/remotes/origin/main
             self.proceso(parcial)
             # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         else:
             self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.firma = self.firma
+            if self.firma_ventas:
+                self.proceso(parcial)
 
         get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
-        print(get_compras)
         get_compras.write({"status":"Procesos"})
         for orden in get_compras.descripcion_id:
             if not orden.firma:
@@ -74,7 +81,6 @@ class DtmOdt(models.Model):
 
 
     def proceso(self,parcial=False):
-        self.firma = self.env.user.partner_id.name
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
         get_procesos.write({
             "firma_ventas": self.firma_ventas,
@@ -250,16 +256,18 @@ class DtmOdt(models.Model):
                     get_corte.create(vals)
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
 
-                lines = []
-                for archivos in get_corte:
+                lines = [] #Guarda los id de los archivos
+                for archivos in get_corte:#Recolecta los archivos que ya fueron cortados para volverlos a cargar
                     for archivo in archivos.cortadora_id:
                         if archivo.estado == "Material cortado":
                             archivo.write({"cortado":True})
                             lines.append(archivo.id)
-                get_corte.write({'cortadora_id': [(5, 0, {})]})
+                get_corte.write({'cortadora_id': [(5, 0, {})]})#limpia la tabla de los archivos
+
                 material_corte = self.primera_pieza_id
-                if not self.primera_pieza_id:
+                if not self.primera_pieza_id or self.liberado:
                     material_corte = self.cortadora_id
+
                 for file in material_corte:
                     attachment = self.env['ir.attachment'].browse(file.id)
                     vals = {
@@ -267,6 +275,7 @@ class DtmOdt(models.Model):
                         "nombre":attachment.name,
                         "primera_pieza":False
                     }
+                    # if not self.liberado:
                     if self.primera_pieza_id:
                         vals["primera_pieza"] = True
                     get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
@@ -277,7 +286,7 @@ class DtmOdt(models.Model):
                         get_files.create(vals)
                         get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                         lines.append(get_files.id)
-                get_corte.write({'cortadora_id': [(6, 0, lines)]})
+                    get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
                 lines = []
                 get_corte.write({"materiales_id":[(5, 0, {})]})
