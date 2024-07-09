@@ -80,6 +80,7 @@
                                             <field name="materials_list"/>  <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
                                             <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                             <field name="materials_inventory"/>
+                                            <field name="materials_availabe"/>
                                             <field name="materials_required" options='{"type": "number"}'/><!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
 
                                         </tree>
