@@ -57,17 +57,13 @@ class DtmOdt(models.Model):
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
         if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com' or email=="rafaguzmang@hotmail.com":
-<<<<<<< HEAD
             self.firma_ventas = self.env.user.partner_id.name
-=======
-            self.firma_ventas =  self.env.user.partner_id.name
->>>>>>> refs/remotes/origin/main
             self.proceso(parcial)
             # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         else:
             self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
-            get_ventas.firma = self.firma
+            get_ventas.write({"firma": self.firma})
             if self.firma_ventas:
                 self.proceso(parcial)
 
@@ -77,8 +73,6 @@ class DtmOdt(models.Model):
             if not orden.firma:
                 get_compras.write({"status":"Diseño"})
                 break
-
-
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
@@ -276,7 +270,7 @@ class DtmOdt(models.Model):
                         "primera_pieza":False
                     }
                     # if not self.liberado:
-                    if self.primera_pieza_id:
+                    if self.primera_pieza_id and not self.liberado:
                         vals["primera_pieza"] = True
                     get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                     if get_files:
@@ -459,7 +453,6 @@ class DtmOdt(models.Model):
                         "cantidad":cantidad,
                         "disenador":self.firma
                     }
-
                     if get_compras:
                         get_compras.write(vals)
                     else:
@@ -489,58 +482,89 @@ class TestModelLine(models.Model):
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("DISPONIBLE", readonly=True)
-    materials_required = fields.Integer("REQUERIDO")
+    materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
 
     def action_materials_list(self):
         pass
 
-    def consultaAlmacen(self):
-         if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales'].search([("codigo","=",self.materials_list.id)])
-            print("Almacén",get_alamacen)
-         elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",self.descripcion):
-            get_alamacen = self.env['dtm.materiales.angulos'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[cC][aA][nN][aA][lL].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.canal'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[pP][eE][rR][fF][iI][lL].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[pP][iI][nN][tT][uU][rR][aA].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.pintura'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.rodamientos'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[tT][oO][rR][nN][iI][lL][lL][oO].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.tornillos'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[tT][uU][bB][oO].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.tubos'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[vV][aA][rR][iI][lL][lL][aA].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.varilla'].search([("codigo","=",self.materials_list.id)])
-         elif re.match(".*[sS][oO][lL][eE][rR][aA].*",self.nombre):
-            get_alamacen = self.env['dtm.materiales.solera'].search([("codigo","=",self.materials_list.id)])
-         return  get_alamacen
+    def consultaAlmacen(self,nombre,codigo):
+         get_almacen = None
+         if nombre:
+             if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
+                get_almacen = self.env['dtm.materiales'].search([("codigo","=",codigo)])
+             elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
+                get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",codigo)])
+             elif re.match(".*[cC][aA][nN][aA][lL].*",nombre):
+                get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",codigo)])
+             elif re.match(".*[pP][eE][rR][fF][iI][lL].*",nombre):
+                get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",codigo)])
+             elif re.match(".*[pP][iI][nN][tT][uU][rR][aA].*",nombre):
+                get_almacen = self.env['dtm.materiales.pintura'].search([("codigo","=",codigo)])
+             elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",nombre):
+                get_almacen = self.env['dtm.materiales.rodamientos'].search([("codigo","=",codigo)])
+             elif re.match(".*[tT][oO][rR][nN][iI][lL][lL][oO].*",nombre):
+                get_almacen = self.env['dtm.materiales.tornillos'].search([("codigo","=",codigo)])
+             elif re.match(".*[tT][uU][bB][oO].*",nombre):
+                get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",codigo)])
+             elif re.match(".*[vV][aA][rR][iI][lL][lL][aA].*",nombre):
+                get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
+             elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
+                get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
+         return  get_almacen
 
-    @api.onchange("materials_cuantity")
-    def _action_materials_inventory(self):
-            consulta  = self.consultaAlmacen()
-            inventario = consulta.cantidad
-            requerido = consulta.disponible - self.materials_cuantity
-            disponible = consulta.disponible
-            self.materials_inventory = inventario
-            self.materials_availabe = disponible
-            self.materials_required = requerido
-            if requerido < 0:
-                self.materials_required = 0
+    @api.depends("materials_cuantity")
+    def _compute_materials_inventory(self):
+        for result in self:
+            result.materials_required = 0
+            consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
+            if consulta:
+                cantidad = result.materials_cuantity
+                inventario = consulta.cantidad
+                disponible_total = consulta.disponible
+                disponible = result.materials_availabe
+                if cantidad <= disponible_total:
+                    requerido = 0
+                    if cantidad >= 0:
+                        disponible = cantidad
 
-            # result.materials_required = 0
-            # cantidad = result.materials_cuantity
-            # inventario = consulta[0]
-            # if inventario < 0:
-            #     inventario = 0
-            # if cantidad <= inventario:
-            #     result.materials_inventory = cantidad
-            # else:
-            #     result.materials_inventory = inventario
-            #     result.materials_required = cantidad - inventario
-            # requerido = result.materials_required
+                else:
+                    requerido = cantidad - disponible
+                #No permiten números negativos manteniendo el valor en cero
+                if cantidad <= disponible:
+                    disponible = cantidad
+                if cantidad <= 0:
+                    cantidad = 0
+                if requerido < 0:
+                    requerido = 0
+
+                self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":disponible})
+
+                get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
+                cantidad_total = 0
+                consulta_disp = 0
+                for item in get_almacen:
+                    cantidad_total+= item.materials_cuantity
+                    consulta_disp += item.materials_availabe
+
+                if consulta_disp >= 0 and consulta_disp < inventario:
+                    requerido = 0
+                    disponible = cantidad
+                else:
+                   requerido = cantidad - disponible
+
+                result.materials_cuantity = cantidad
+                result.materials_inventory = inventario
+                result.materials_required = requerido
+                result.materials_availabe = disponible
+
+                consulta.write({
+                    "apartado":cantidad_total,
+                    "disponible":disponible_total,
+                })
+
+
+
+
 
     @api.depends("materials_list")
     def _compute_material_list(self):
