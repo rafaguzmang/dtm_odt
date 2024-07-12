@@ -481,7 +481,7 @@ class TestModelLine(models.Model):
     materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
-    materials_availabe = fields.Integer("DISPONIBLE", readonly=True)
+    materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
 
     def action_materials_list(self):
@@ -518,25 +518,38 @@ class TestModelLine(models.Model):
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
             if consulta:
+                get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
+                cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+                consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+                for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+                    cantidad_total+= item.materials_cuantity
+                    consulta_disp += item.materials_availabe
+                disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+                if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+                    disp = 0
+                consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+                    "disponible": disp,
+                    "apartado": cantidad_total
+                })
+                #Hace toda la lógica de calculo
                 cantidad = result.materials_cuantity
                 inventario = consulta.cantidad
-                disponible_total = consulta.disponible
-                disponible = result.materials_availabe
-                if cantidad <= disponible_total:
+                apartado = result.materials_availabe
+                if consulta_disp >= 0 and consulta_disp < inventario:
                     requerido = 0
-                    if cantidad >= 0:
-                        disponible = cantidad
-
+                    apartado = cantidad
                 else:
-                    requerido = cantidad - disponible
-                #No permiten números negativos manteniendo el valor en cero
-                if cantidad <= disponible:
-                    disponible = cantidad
-                if cantidad <= 0:
-                    cantidad = 0
+                    requerido = cantidad - apartado
+
+                if cantidad <= apartado:
+                    apartado = cantidad
+
+                if apartado < 0:
+                    apartado = 0
                 if requerido < 0:
                     requerido = 0
 
+<<<<<<< HEAD
                 self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":disponible})
                 #Trabaja a nivel almacén para el control de los materiales
                 get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
@@ -562,6 +575,30 @@ class TestModelLine(models.Model):
                     "disponible":disponible_total,
                 })
 
+=======
+                result.materials_inventory = inventario
+                result.materials_availabe = apartado
+                self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
+                result.materials_required = requerido
+                # consulta_disp += apartado # Suma el nuevo valor apartado al concetrado de todas las ordenes que será el apartado
+                # disp = consulta.cantidad - consulta_disp #Actualiza el nuevo valor de apartado
+
+                # get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
+                cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+                consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+                for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+                    cantidad_total+= item.materials_cuantity
+                    consulta_disp += item.materials_availabe
+                disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+                if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+                    disp = 0
+                consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+                    "disponible": disp,
+                    "apartado": cantidad_total
+                })
+
+
+>>>>>>> refs/remotes/origin/main
     @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
