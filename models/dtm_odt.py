@@ -549,33 +549,6 @@ class TestModelLine(models.Model):
                 if requerido < 0:
                     requerido = 0
 
-<<<<<<< HEAD
-                self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":disponible})
-                #Trabaja a nivel almacén para el control de los materiales
-                get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
-                cantidad_total = 0
-                consulta_disp = 0
-                for item in get_almacen:
-                    cantidad_total+= item.materials_cuantity
-                    consulta_disp += item.materials_availabe
-
-                if consulta_disp >= 0 and consulta_disp < inventario: #Controla el material apartado para que este no se pierda al corregir a un número menor
-                    requerido = 0
-                    disponible = cantidad
-                else:
-                   requerido = cantidad - disponible
-
-                result.materials_cuantity = cantidad
-                result.materials_inventory = inventario
-                result.materials_required = requerido
-                result.materials_availabe = disponible
-
-                consulta.write({
-                    "apartado":cantidad_total,
-                    "disponible":disponible_total,
-                })
-
-=======
                 result.materials_inventory = inventario
                 result.materials_availabe = apartado
                 self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
@@ -597,8 +570,6 @@ class TestModelLine(models.Model):
                     "apartado": cantidad_total
                 })
 
-
->>>>>>> refs/remotes/origin/main
     @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
