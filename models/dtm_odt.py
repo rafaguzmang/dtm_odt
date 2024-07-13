@@ -553,10 +553,6 @@ class TestModelLine(models.Model):
                 result.materials_availabe = apartado
                 self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
                 result.materials_required = requerido
-                # consulta_disp += apartado # Suma el nuevo valor apartado al concetrado de todas las ordenes que será el apartado
-                # disp = consulta.cantidad - consulta_disp #Actualiza el nuevo valor de apartado
-
-                # get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
                 cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
                 consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
                 for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
