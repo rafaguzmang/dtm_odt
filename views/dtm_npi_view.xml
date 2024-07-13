@@ -78,6 +78,7 @@
                                             <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
                                             <field name="materials_cuantity" options='{"type": "number"}'/>
                                             <field name="materials_inventory"/>
+                                            <field name="materials_availabe"/>
                                             <field name="materials_required" options='{"type": "number"}'/>
                                         </tree>
                                     </field>
