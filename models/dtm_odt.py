@@ -67,12 +67,12 @@ class DtmOdt(models.Model):
             if self.firma_ventas:
                 self.proceso(parcial)
 
-        get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
-        get_compras.write({"status":"Procesos"})
-        for orden in get_compras.descripcion_id:
-            if not orden.firma:
-                get_compras.write({"status":"Diseño"})
-                break
+        # get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
+        # get_compras.write({"status":"Procesos"})
+        # for orden in get_compras.descripcion_id:
+        #     if not orden.firma:
+        #         get_compras.write({"status":"Diseño"})
+        #         break
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
