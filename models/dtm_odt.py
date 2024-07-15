@@ -29,7 +29,7 @@ class DtmOdt(models.Model):
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
     firma_almacen = fields.Char()
-    firma_ventas = fields.Char(readonly=True)
+    firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
 
     planos = fields.Boolean(string="Planos",default=False)
@@ -53,7 +53,6 @@ class DtmOdt(models.Model):
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
 
-
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
         if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com' or email=="rafaguzmang@hotmail.com":
@@ -67,12 +66,12 @@ class DtmOdt(models.Model):
             if self.firma_ventas:
                 self.proceso(parcial)
 
-        get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
-        get_compras.write({"status":"Procesos"})
-        for orden in get_compras.descripcion_id:
-            if not orden.firma:
-                get_compras.write({"status":"Diseño"})
-                break
+        # get_compras = self.env['dtm.ordenes.compra'].search([("no_cotizacion","=",self.no_cotizacion)])
+        # get_compras.write({"status":"Procesos"})
+        # for orden in get_compras.descripcion_id:
+        #     if not orden.firma:
+        #         get_compras.write({"status":"Diseño"})
+        #         break
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
