@@ -29,7 +29,7 @@ class DtmOdt(models.Model):
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
     firma_almacen = fields.Char()
-    firma_ventas = fields.Char(readonly=True)
+    firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
 
     planos = fields.Boolean(string="Planos",default=False)
@@ -52,7 +52,6 @@ class DtmOdt(models.Model):
 
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
-
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email

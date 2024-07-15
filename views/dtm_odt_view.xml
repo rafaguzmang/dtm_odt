@@ -20,6 +20,7 @@
                     <field name="product_name"/>
                     <field name="disenador"/>
                     <field name="firma"/>
+                    <field name="firma_ventas"/>
                 </tree>
             </field>
         </record>
