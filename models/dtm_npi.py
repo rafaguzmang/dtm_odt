@@ -224,13 +224,13 @@ class NPI(models.Model):
                         "nombre":attachment.name,
                         "primera_pieza":True
                     }
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                     if get_files:
                         get_files.write(vals)
                         lines.append(get_files.id)
                     else:
                         get_files.create(vals)
-                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                         lines.append(get_files.id)
                 get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -294,13 +294,13 @@ class NPI(models.Model):
                     "documentos":attachment.datas,
                     "nombre":attachment.name,
                 }
-                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
                 if get_files:
                     get_files.write(vals)
                     lines.append(get_files.id)
                 else:
                     get_files.create(vals)
-                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)])
+                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
                     lines.append(get_files.id)
             get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
