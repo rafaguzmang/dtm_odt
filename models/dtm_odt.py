@@ -465,6 +465,20 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+        get_almdis = self.env['dtm.diseno.almacen'].search([])
+
+        for material in get_almdis:
+            get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+            get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+            if not get_ot and  not get_npi:
+                print(material.id)
+                material.unlink()
+
+
+        return res
+
 
     #-----------------------Materiales----------------------
 
