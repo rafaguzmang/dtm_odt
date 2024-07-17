@@ -22,7 +22,7 @@ class NPI(models.Model):
     ot_number = fields.Integer("NÚMERO",default=action_autoNum,  readonly=True )
     tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")
-    product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
+    product_name = fields.Char(string="NOMBRE DEL PRODUCTO", required=True)
     date_in = fields.Date(string="FECHA DE ENTRADA",default= datetime.today())
     date_rel = fields.Date(string="FECHA DE ENTREGA",default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)

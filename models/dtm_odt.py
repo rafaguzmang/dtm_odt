@@ -487,7 +487,9 @@ class TestModelLine(models.Model):
         pass
 
     def consultaAlmacen(self,nombre,codigo):
-         get_almacen = None
+         get_almacen =  self.env['dtm.materiales.otros'].search([("codigo", "=", codigo)])
+         if get_almacen:
+             return get_almacen
          if nombre:
              if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales'].search([("codigo","=",codigo)])
@@ -509,6 +511,7 @@ class TestModelLine(models.Model):
                 get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
              elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
+         print(get_almacen,nombre,codigo)
          return  get_almacen
 
     @api.depends("materials_cuantity")
@@ -516,6 +519,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
+            print(consulta)
             if consulta:
                 get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
                 cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
