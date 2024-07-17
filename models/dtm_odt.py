@@ -454,12 +454,20 @@ class DtmOdt(models.Model):
                         "cantidad":cantidad,
                         "disenador":self.firma
                     }
+<<<<<<< HEAD
                     if get_compras:
                         get_compras.write(vals)
                         print("Si",get_compras)
                     else:
                         get_compras.create(vals)
                         print("No",get_compras)
+=======
+                    get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
+                    if get_compras_item:
+                        get_compras_item.write(vals)
+                    else:
+                        get_compras_item.create(vals)
+>>>>>>> 4589cdf1aebcb16ff7d8e431ef328f6c9e8384ee
         else:
             get_compras.unlink()
 
