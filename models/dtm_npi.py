@@ -57,7 +57,22 @@ class NPI(models.Model):
         self.action_firma(parcial=True)
 
     def action_firma(self,parcial=False):
-        self.firma = self.env.user.partner_id.name
+        email = self.env.user.partner_id.email
+        if email == 'hugo_chacon@dtmindustry.com'or email=='ventas1@dtmindustry.com' or email=="rafaguzmang@hotmail.com":
+            self.firma_ventas = self.env.user.partner_id.name
+            self.proceso(parcial)
+            # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
+        else:
+            self.firma = self.env.user.partner_id.name
+            if self.firma_ventas:
+                self.proceso(parcial)
+
+    def proceso(self,parcial=False):
+        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
+        get_procesos.write({
+            "firma_ventas": self.firma_ventas,
+            "firma_ventas_kanba":"Ventas"
+        })
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","NPI")])
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {

@@ -74,7 +74,7 @@ class DtmOdt(models.Model):
         #         break
 
     def proceso(self,parcial=False):
-        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number)])
+        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
         get_procesos.write({
             "firma_ventas": self.firma_ventas,
             "firma_ventas_kanba":"Ventas"
