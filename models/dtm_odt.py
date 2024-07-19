@@ -613,5 +613,3 @@ class Rechazo(models.Model):
 
 
 
-
-
