@@ -419,7 +419,9 @@ class TestModelLineNPI(models.Model):
 
 
     def consultaAlmacen(self,nombre,codigo):
-         get_almacen = None
+         get_almacen =  self.env['dtm.materiales.otros'].search([("codigo", "=", codigo)])
+         if get_almacen:
+             return get_almacen
          if nombre:
              if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales'].search([("codigo","=",codigo)])
@@ -441,7 +443,9 @@ class TestModelLineNPI(models.Model):
                 get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
              elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
-         return  get_almacen
+             if len(get_almacen) > 1:
+                raise ValidationError("Codigo duplicado, favor de borrar desde Almacén.")
+         return get_almacen
 
     def action_materials_list(self):
         pass

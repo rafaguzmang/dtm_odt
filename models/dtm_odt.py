@@ -526,7 +526,8 @@ class TestModelLine(models.Model):
                 get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
              elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
-         print(get_almacen,nombre,codigo)
+             if len(get_almacen) > 1:
+                raise ValidationError("Codigo duplicado, favor de borrar desde Almacén.")
          return  get_almacen
 
     @api.depends("materials_cuantity")
@@ -534,7 +535,6 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
-            print(consulta)
             if consulta:
                 get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
                 cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
@@ -561,12 +561,10 @@ class TestModelLine(models.Model):
 
                 if cantidad <= apartado:
                     apartado = cantidad
-
                 if apartado < 0:
                     apartado = 0
                 if requerido < 0:
                     requerido = 0
-
                 result.materials_inventory = inventario
                 result.materials_availabe = apartado
                 self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
