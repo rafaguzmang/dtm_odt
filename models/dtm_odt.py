@@ -400,13 +400,13 @@ class DtmOdt(models.Model):
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
     def compras_odt(self):
-        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
-        get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",self.ot_number)])
+        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
+        get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number))])
         if self.materials_ids:# si la orden contiene materiales ejecuta el código
             for compra in get_compras:#Borra los materiales que esten en compras pero no en la orden
                 contiene = False
                 for material in self.materials_ids:
-                    print(material.materials_list.id,compra.codigo)
+                    # print(material.materials_list.id,compra.codigo)
                     if material.materials_list.id == compra.codigo:
                         contiene = True
                 if not contiene:
@@ -445,7 +445,7 @@ class DtmOdt(models.Model):
                     cantidad = requeridoDiseno
                 else:
                     cantidad = 0
-                print(material.nombre,cantidad)
+                # print(material.nombre,cantidad)
                 if cantidad > 0:
                     vals = {
                         "orden_trabajo":self.ot_number,
@@ -454,7 +454,7 @@ class DtmOdt(models.Model):
                         "cantidad":cantidad,
                         "disenador":self.firma
                     }
-                    get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
+                    get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",material.materials_list.id)])
                     if get_compras_item:
                         get_compras_item.write(vals)
                     else:
