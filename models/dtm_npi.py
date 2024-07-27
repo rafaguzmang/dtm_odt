@@ -368,7 +368,7 @@ class NPI(models.Model):
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
     def compras_odt(self):
-        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number)])
+        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
         for compra in get_compras:
             contiene = False
             for material in self.materials_npi_ids:
@@ -386,7 +386,7 @@ class NPI(models.Model):
                     "cantidad":material.materials_required,
                     "disenador":self.firma
                 }
-                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",self.ot_number),("codigo","=",material.materials_list.id)])
+                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",material.materials_list.id)])
                 if get_compras:
                     get_compras.write(vals)
                 else:

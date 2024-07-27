@@ -1,7 +1,7 @@
 {
     "name":"dtm_odt",
     "description":"Control ordenes de trabajo",
-    'depends': ['base', 'mail'],
+    'depends': ['base', 'mail','dtm_servicios_externos'],
     "data":[
         #Security
         'security/ir.model.access.csv',

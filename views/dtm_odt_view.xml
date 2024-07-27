@@ -112,6 +112,10 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
+                            <page string="Maquinados">
+<!--                                <field name="maquinados_id"/>-->
+
+                            </page>
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
@@ -121,5 +125,7 @@
                 </form>
             </field>
         </record>
+
+<!--        <menuitem id="dtm_odt_action_menu" action="dtm_odt.dtm_odt_action"/>-->
     </data>
 </odoo>
