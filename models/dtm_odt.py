@@ -279,6 +279,7 @@ class DtmOdt(models.Model):
             get_corte.write({'cortadora_id': [(5, 0, {})]})#limpia la tabla de los archivos
 
             for file in material_corte:
+                print("file",file.name)
                 attachment = self.env['ir.attachment'].browse(file.id)
                 vals = {
                     "documentos":attachment.datas,
@@ -288,52 +289,55 @@ class DtmOdt(models.Model):
                 # if not self.liberado:
                 if self.primera_pieza_id and not self.liberado:
                     vals["primera_pieza"] = True
-                get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
+                get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
                 if get_files:
                     get_files.write(vals)
                     lines.append(get_files.id)
                 else:
+                    print("No existe")
                     get_files.create(vals)
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
                     lines.append(get_files.id)
-                get_corte.write({'cortadora_id': [(6, 0, lines)]})
+                    print(get_files)
+            get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
-                lines = []
-                get_corte.write({"materiales_id":[(5, 0, {})]})
-                for lamina in self.materials_ids:
-                    if re.match("Lámina",lamina.nombre):
-                        get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
-                        localizacion = ""
-                        if get_almacen.localizacion:
-                            localizacion = get_almacen.localizacion
-                        content = {
-                            "identificador": lamina.materials_list.id,
-                            "nombre": lamina.nombre,
-                            "medida": lamina.medida,
-                            "cantidad": lamina.materials_cuantity,
-                            "inventario": lamina.materials_inventory,
-                            "requerido": lamina.materials_required,
-                            "localizacion": localizacion
-                        }
+
+            lines = []
+            get_corte.write({"materiales_id":[(5, 0, {})]})
+            for lamina in self.materials_ids:
+                if re.match("Lámina",lamina.nombre):
+                    get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
+                    localizacion = ""
+                    if get_almacen.localizacion:
+                        localizacion = get_almacen.localizacion
+                    content = {
+                        "identificador": lamina.materials_list.id,
+                        "nombre": lamina.nombre,
+                        "medida": lamina.medida,
+                        "cantidad": lamina.materials_cuantity,
+                        "inventario": lamina.materials_inventory,
+                        "requerido": lamina.materials_required,
+                        "localizacion": localizacion
+                    }
+                    get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                        ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                        ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                        ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                        ("localizacion","=",localizacion)])
+                    if get_cortadora_laminas:
+                        get_cortadora_laminas.write(content)
+                        lines.append(get_cortadora_laminas.id)
+                    else:
+                        get_cortadora_laminas.create(content)
                         get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                            ("localizacion","=",localizacion)])
-                        if get_cortadora_laminas:
-                            get_cortadora_laminas.write(content)
-                            lines.append(get_cortadora_laminas.id)
-                        else:
-                            get_cortadora_laminas.create(content)
-                            get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                            ("localizacion","=",localizacion)])
-                            lines.append(get_cortadora_laminas.id)
-                get_corte.write({"materiales_id":[(6, 0,lines)]})
-        else:
-            raise ValidationError("Primera pieza en espera de validación del área de calidad")
+                        ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                        ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                        ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                        ("localizacion","=",localizacion)])
+                        lines.append(get_cortadora_laminas.id)
+            get_corte.write({"materiales_id":[(6, 0,lines)]})
+        # else:
+        #     raise ValidationError("Primera pieza en espera de validación del área de calidad")
 
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
@@ -559,8 +563,13 @@ class TestModelLine(models.Model):
                 cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
                 consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
                 for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
-                    cantidad_total+= item.materials_cuantity
-                    consulta_disp += item.materials_availabe
+                    print("item",item.model_id.ot_number)
+                    get_status = self.env['dtm.proceso'].search([("ot_number","=",item.model_id.ot_number)])
+                    print(get_status.status)
+                    if not get_status and get_status == "corte":
+                        print(get_status.status)
+                        cantidad_total+= item.materials_cuantity
+                        consulta_disp += item.materials_availabe
                 disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
                 if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
                     disp = 0
