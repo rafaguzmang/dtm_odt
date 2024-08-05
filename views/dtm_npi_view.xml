@@ -24,8 +24,8 @@
                     <header>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary"/>
-                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" />
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True)]}"/>
+                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/>
                     </header>
 
                     <sheet>
@@ -44,10 +44,12 @@
                             <group>
                                 <field name="tipe_order"/>
                                 <field name="name_client" />
+                                <field name="firma_ventas" />
                             </group>
                             <group>
                                 <field name="product_name" />
                                 <field name="ot_number"/>
+                                <field name="retrabajo" invisible="1"/>
                             </group>
                         </group>
 

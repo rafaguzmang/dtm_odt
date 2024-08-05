@@ -50,8 +50,10 @@ class NPI(models.Model):
     description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
 
     #------------------------Notas---------------------------
-
     notes = fields.Text()
+
+    liberado = fields.Char()
+    retrabajo = fields.Boolean(defaul=False) #Al estar en verdadero pone todos los campos en readonly
 
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
@@ -209,80 +211,132 @@ class NPI(models.Model):
         self.compras_odt()
 
     def cortadora_laser(self):
-        if self.primera_pieza_id: #Agrega los datos a la máquina de corte
-            vals = {
-                "orden_trabajo":self.ot_number,
-                "fecha_entrada": datetime.today(),
-                "nombre_orden":self.product_name,
-                "tipo_orden": "NPI"
-            }
-            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
-            get_corte_realizado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
-            if not get_corte_realizado:
+        vals = {
+            "orden_trabajo":self.ot_number,
+            "fecha_entrada": datetime.today(),
+            "nombre_orden":self.product_name,
+            "tipo_orden": "NPI"
+        }
+        material_corte = ""
+        # Se encargan de buscar la información necesario -------------------------------
+        get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])# Guarda la información (archivos) para pasar a corte
+        get_encorte_primera = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI"),("primera_pieza","=",True)])# Busca si la primera pieza está en proceso de corte
+        get_corte_primer = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI"),("primera_pieza","=",True)]) # Busca si la primera pieza esta cortada
+        #---------------------------------------------------
+        # Condicionales
+        #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
+        if not get_encorte_primera  and not get_corte_primer:
+            if self.primera_pieza_id:
+                vals["primera_pieza"]= True
+                get_corte.create(vals) #Crea la orden de primera pieza
+                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
+                material_corte = self.primera_pieza_id #Pasa los archivos de la primera pieza
+
+        # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
+        elif get_encorte_primera:
+            get_corte = get_encorte_primera
+            get_corte.write(vals)
+            material_corte = self.primera_pieza_id
+
+        #-------------------------------------------------------
+        # Si la orden ya fue cortada agregara una nueva solo con los archivos para corte nuevos
+        if get_corte_primer:
+            if self.primera_pieza_id:
+                vals["primera_pieza"]= True
                 if get_corte:
                     get_corte.write(vals)
                 else:
-                    get_corte.create(vals)
-                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI")])
-
-                lines = []
-                for archivos in get_corte:
-                    for archivo in archivos.cortadora_id:
-                        if archivo.estado == "Material cortado":
-                            archivo.write({"cortado":True})
-                            lines.append(archivo.id)
-                get_corte.write({'cortadora_id': [(5, 0, {})]})
-                for file in self.primera_pieza_id:
-                    attachment = self.env['ir.attachment'].browse(file.id)
-                    vals = {
-                        "documentos":attachment.datas,
-                        "nombre":attachment.name,
-                        "primera_pieza":True
-                    }
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                    if get_files:
-                        get_files.write(vals)
-                        lines.append(get_files.id)
-                    else:
-                        get_files.create(vals)
-                        get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                        lines.append(get_files.id)
-                get_corte.write({'cortadora_id': [(6, 0, lines)]})
-
-                lines = []
-                get_corte.write({"materiales_id":[(5, 0, {})]})
-                for lamina in self.materials_npi_ids:
-                    if re.match("Lámina",lamina.nombre):
-                        get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)])
-                        localizacion = ""
-                        if get_almacen.localizacion:
-                            localizacion = get_almacen.localizacion
-                        content = {
-                            "identificador": lamina.materials_list.id,
-                            "nombre": lamina.nombre,
-                            "medida": lamina.medida,
-                            "cantidad": lamina.materials_cuantity,
-                            "inventario": lamina.materials_inventory,
-                            "requerido": lamina.materials_required,
-                            "localizacion": localizacion
-                        }
-                        get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                            ("localizacion","=",localizacion)])
-                        if get_cortadora_laminas:
-                            get_cortadora_laminas.write(content)
-                            lines.append(get_cortadora_laminas.id)
+                    get_corte.create(vals) #Crea la orden de primera pieza
+                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
+                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","NPI"),("primera_pieza","=",True)])
+                if get_terminado:
+                    record_ids = [] #Almacena los id que serán agregados para ser cortados
+                    record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
+                    for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
+                        for orden in ordenes:
+                            mapa = orden.cortadora_id.mapped("nombre")
+                            record_nombres.extend(mapa)
+                    for thisFile in self.primera_pieza_id: #Comprara los nuevos archivos con los ya cortados
+                        attachment = self.env['ir.attachment'].browse(thisFile.id)
+                        if attachment.name in record_nombres:
+                            record_nombres.remove(attachment.name)
                         else:
-                            get_cortadora_laminas.create(content)
-                            get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                            ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                            ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                            ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                            ("localizacion","=",localizacion)])
-                            lines.append(get_cortadora_laminas.id)
-                get_corte.write({"materiales_id":[(6, 0,lines)]})
+                            record_nombres.append(attachment.name)
+                            record_ids.append(attachment.id)
+                    recordset = self.env['ir.attachment'].browse(record_ids)
+                    material_corte = recordset #Pasa los archivos de la primera pieza
+
+        lines = []
+        get_corte.write({'cortadora_id': [(5, 0, {})]})#limpia la tabla de los archivos
+        for file in material_corte:
+            attachment = self.env['ir.attachment'].browse(file.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name,
+                "primera_pieza":False
+            }
+            # if not self.liberado:
+            if self.primera_pieza_id:
+                vals["primera_pieza"] = True
+            get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
+            if get_files:
+                get_files.write(vals)
+                lines.append(get_files.id)
+            else:
+                get_files.create(vals)
+                get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
+                lines.append(get_files.id)
+        get_corte.write({'cortadora_id': [(6, 0, lines)]})
+
+        # Busca todo el material que sea lámina
+        lines = []  # Lista para agregar lo ids que serán encontrados
+        get_corte.write({"materiales_id":[(5, 0, {})]})#Pasa los materiales correspondientes de la orden
+        for lamina in self.materials_npi_ids:
+            if re.match("Lámina",lamina.nombre): # Revisa si el material tiene la palabra lámina de no ser así lo descarta
+                get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)]) # Busca el material en el almacén por codigo
+                localizacion = ""
+                if get_almacen.localizacion:  # Si tiene localización la asigna
+                    localizacion = get_almacen.localizacion
+                content = { # Valores a sobreescribir o a crear
+                    "identificador": lamina.materials_list.id,
+                    "nombre": lamina.nombre,
+                    "medida": lamina.medida,
+                    "cantidad": lamina.materials_cuantity,
+                    "inventario": lamina.materials_inventory,
+                    "requerido": lamina.materials_required,
+                    "localizacion": localizacion
+                }
+                get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                    ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                    ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                    ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                    ("localizacion","=",localizacion)]) # Busca si exite el material
+                if get_cortadora_laminas: # Si existe lo actualiza
+                    get_cortadora_laminas.write(content)
+                    lines.append(get_cortadora_laminas.id) # Agrega el id a la lista
+                else:  # Si no existe lo crea
+                    get_cortadora_laminas.create(content)
+                    get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
+                    ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
+                    ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
+                    ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
+                    ("localizacion","=",localizacion)])
+                    lines.append(get_cortadora_laminas.id) # Agrega el id a la lista
+        # Busca los material en el modelo dtm.cortes.realizado para quitarlos de lines
+        get_lamina_cortadas = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])#Busca si hay materiales cortados
+        if get_lamina_cortadas:
+            list_nombre = []
+            result = []
+            for ordenes in get_lamina_cortadas:
+                for orden in ordenes:
+                    mapa = orden.materiales_id.mapped("id")
+                    list_nombre.extend(mapa)
+            for line in lines: #Revisa todos los ids de la lista() lines y si alguno ya fué cortado (dtm_laser_realizados) lo elimina de la lista
+                if not line in list_nombre:
+                    result.append(line)
+            lines = result
+        get_corte.write({"materiales_id":[(6, 0,lines)]})
+        # self.retrabajo = False
 
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
