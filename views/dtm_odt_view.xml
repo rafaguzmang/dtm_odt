@@ -33,7 +33,7 @@
                     <header>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True)]}" />
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True), ('firma_ventas', '=', True)]}" />
                         <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/> />
 
                     </header>
