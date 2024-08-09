@@ -36,7 +36,7 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
-    anexos_id = fields.Many2many("ir.attachment" ,"anexos_id")
+    anexos_id = fields.Many2many("ir.attachment" ,"anexos_id",string="Archivos")
     cortadora_id = fields.Many2many("ir.attachment", "cortadora_id",string="Segundas piezas")
     primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
     tubos_id = fields.Many2many("ir.attachment", "tubos_id")
@@ -262,6 +262,7 @@ class DtmOdt(models.Model):
         # Condicionales
         #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
         if not get_encorte_primera and not get_encorte_segunda and not get_corte_primer and not get_corte_segunda:
+            # print("primer")
             if self.primera_pieza_id:
                 vals["primera_pieza"]= True
                 get_corte.create(vals) #Crea la orden de primera pieza
@@ -273,32 +274,28 @@ class DtmOdt(models.Model):
                 get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
                 material_corte = self.cortadora_id # Pasa los archivos de la segunda pieza
         # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
-        elif get_encorte_primera:
+        # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
+        elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
+            print("Primera pieza solo en corte")
             get_corte = get_encorte_primera
             get_corte.write(vals)
             material_corte = self.primera_pieza_id
-        elif get_encorte_segunda:
-            get_corte = get_encorte_segunda
-            get_corte.write(vals)
-            material_corte = self.cortadora_id
-        #-------------------------------------------------------
-        # Si la orden ya fue cortada agregara una nueva solo con los archivos para corte nuevos
-        if get_corte_primer:
+        elif not get_encorte_primera and get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
+            print("Primera pieza cortada pero no hay segundas piezas")
             if self.primera_pieza_id:
                 vals["primera_pieza"]= True
-                if get_corte:
-                    get_corte.write(vals)
-                else:
-                    get_corte.create(vals) #Crea la orden de primera pieza
+                get_corte.create(vals) #Crea la orden de primera pieza
+                material_corte = self.primera_pieza_id
                 get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
                 get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])
-                if get_terminado:
+                if get_terminado:# Si hay archivos cortados los quita del retrabajo
                     record_ids = [] #Almacena los id que serán agregados para ser cortados
                     record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
                     for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
                         for orden in ordenes:
                             mapa = orden.cortadora_id.mapped("nombre")
                             record_nombres.extend(mapa)
+                        print(record_nombres)
                     for thisFile in self.primera_pieza_id: #Comprara los nuevos archivos con los ya cortados
                         attachment = self.env['ir.attachment'].browse(thisFile.id)
                         if attachment.name in record_nombres:
@@ -307,31 +304,56 @@ class DtmOdt(models.Model):
                             record_nombres.append(attachment.name)
                             record_ids.append(attachment.id)
                     recordset = self.env['ir.attachment'].browse(record_ids)
-                    material_corte = recordset #Pasa los archivos de la primera pieza
-        elif get_corte_segunda:
-                vals["primera_pieza"]= False
-                if get_corte:
-                    get_corte.write(vals)
-                else:
-                    get_corte.create(vals) #Crea la orden de segunda pieza
-                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
-                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])
-                if get_terminado:# Si hay archivos cortados los quita del retrabajo
-                    record_ids = [] #Almacena los id que serán agregados para ser cortados
-                    record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
-                    for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
-                        for orden in ordenes:
-                            mapa = orden.cortadora_id.mapped("nombre")
-                            record_nombres.extend(mapa)
-                    for thisFile in self.cortadora_id: #Comprara los nuevos archivos con los ya cortados
-                        attachment = self.env['ir.attachment'].browse(thisFile.id)
-                        if attachment.name in record_nombres:
-                            record_nombres.remove(attachment.name)
-                        else:
-                            record_nombres.append(attachment.name)
-                            record_ids.append(attachment.id)
-                    recordset = self.env['ir.attachment'].browse(record_ids)
                     material_corte = recordset #Pasa los archivos de la segunda pieza
+        elif not get_encorte_primera and get_corte_primer and get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
+            #Segunda pieza en corte
+            # print("Segunda pieza en corte")
+            vals["primera_pieza"]= False
+            get_corte = get_encorte_segunda
+            get_corte.write(vals)
+            material_corte = self.cortadora_id
+            get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])
+            if get_terminado:# Si hay archivos cortados los quita del retrabajo
+                record_ids = [] #Almacena los id que serán agregados para ser cortados
+                record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
+                for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
+                    for orden in ordenes:
+                        mapa = orden.cortadora_id.mapped("nombre")
+                        record_nombres.extend(mapa)
+                for thisFile in self.cortadora_id: #Comprara los nuevos archivos con los ya cortados
+                    attachment = self.env['ir.attachment'].browse(thisFile.id)
+                    if attachment.name in record_nombres:
+                        record_nombres.remove(attachment.name)
+                    else:
+                        record_nombres.append(attachment.name)
+                        record_ids.append(attachment.id)
+                recordset = self.env['ir.attachment'].browse(record_ids)
+                material_corte = recordset #Pasa los archivos de la segunda pieza
+        elif not get_encorte_primera and get_corte_primer and not get_encorte_segunda and get_corte_segunda:
+            # print("Segunda pieza a retrabajo ya con algunas en el status de cortado")
+            vals["primera_pieza"]= False
+            get_corte.create(vals) #Crea la orden de segunda pieza
+            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
+            material_corte = self.cortadora_id # Pasa los archivos de la segunda pieza
+            get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])
+            if get_terminado:# Si hay archivos cortados los quita del retrabajo
+                record_ids = [] #Almacena los id que serán agregados para ser cortados
+                record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
+                for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
+                    for orden in ordenes:
+                        mapa = orden.cortadora_id.mapped("nombre")
+                        record_nombres.extend(mapa)
+                for thisFile in self.cortadora_id: #Comprara los nuevos archivos con los ya cortados
+                    attachment = self.env['ir.attachment'].browse(thisFile.id)
+                    if attachment.name in record_nombres:
+                        record_nombres.remove(attachment.name)
+                    else:
+                        record_nombres.append(attachment.name)
+                        record_ids.append(attachment.id)
+                recordset = self.env['ir.attachment'].browse(record_ids)
+                material_corte = recordset #Pasa los archivos de la segunda pieza
+        #-----------------------------------------------------------------------------------------------------------------------
+
 
         lines = []
         get_corte.write({'cortadora_id': [(5, 0, {})]})#limpia la tabla de los archivos
@@ -403,7 +425,7 @@ class DtmOdt(models.Model):
                     result.append(line)
             lines = result
         get_corte.write({"materiales_id":[(6, 0,lines)]})
-        # self.retrabajo = False
+        self.retrabajo = False
 
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
