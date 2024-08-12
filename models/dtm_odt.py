@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError
 from fractions import Fraction
 import re
 import pytz
+import os
 
 class DtmOdt(models.Model):
     _name = "dtm.odt"
@@ -53,12 +54,12 @@ class DtmOdt(models.Model):
 
     # maquinados_id = fields.One2many("dtm.servicios.externos","extern_id")
 
-    @api.onchange('maquinados_id')
-    def _onchange_maquinados_id(self):
-        if self.maquinados_id:
-            for record in self.maquinados_id:
-                # Alguna lógica aquí
-                pass
+    # @api.onchange('maquinados_id')
+    # def _onchange_maquinados_id(self):
+    #     if self.maquinados_id:
+    #         for record in self.maquinados_id:
+    #             # Alguna lógica aquí
+    #             pass
 
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
@@ -581,14 +582,20 @@ class DtmOdt(models.Model):
 
     # def get_view(self, view_id=None, view_type='form', **options):
     #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #     get_almdis = self.env['dtm.diseno.almacen'].search([])
-    #
-    #     for material in get_almdis:
-    #         get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-    #         get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-    #         if not get_ot and  not get_npi:
-    #             print(material.id)
-    #             material.unlink()
+    #     # get_almdis = self.env['dtm.diseno.almacen'].search([])
+    #     #
+    #     # for material in get_almdis:
+    #     #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+    #     #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+    #     #     if not get_ot and  not get_npi:
+    #     #         print(material.id)
+    #     #         material.unlink()
+    #     attachments = self.env['ir.attachment'].search([])
+    #     for attachment in attachments:
+    #         if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+    #             if not os.path.exists(attachment._full_path(attachment.store_fname)):
+    #                 # print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}")
+    #                 pass
     #     return res
 
 
