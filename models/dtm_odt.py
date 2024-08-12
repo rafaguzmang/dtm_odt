@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError
 from fractions import Fraction
 import re
 import pytz
+import os
 
 class DtmOdt(models.Model):
     _name = "dtm.odt"
@@ -305,7 +306,7 @@ class DtmOdt(models.Model):
                             record_ids.append(attachment.id)
                     recordset = self.env['ir.attachment'].browse(record_ids)
                     material_corte = recordset #Pasa los archivos de la segunda pieza
-        elif not get_encorte_primera and get_corte_primer and get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
+        elif get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
             #Segunda pieza en corte
             # print("Segunda pieza en corte")
             vals["primera_pieza"]= False
@@ -579,17 +580,23 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #     get_almdis = self.env['dtm.diseno.almacen'].search([])
-    #
-    #     for material in get_almdis:
-    #         get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-    #         get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-    #         if not get_ot and  not get_npi:
-    #             print(material.id)
-    #             material.unlink()
-    #     return res
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+        # get_almdis = self.env['dtm.diseno.almacen'].search([])
+        #
+        # for material in get_almdis:
+        #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+        #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+        #     if not get_ot and  not get_npi:
+        #         print(material.id)
+        #         material.unlink()
+        attachments = self.env['ir.attachment'].search([])
+        for attachment in attachments:
+            if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+                if not os.path.exists(attachment._full_path(attachment.store_fname)):
+                    # print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}")
+                    pass
+        return res
 
 
     #-----------------------Materiales----------------------

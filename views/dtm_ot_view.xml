@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="dtm_odt_action" model="ir.actions.act_window">
+        <record id="dtm_ot_action" model="ir.actions.act_window">
             <field name="name">ORDEN DE DISEÑO</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
         </record>
-        
-        <record id="dtm_odt_tree" model="ir.ui.view">
+
+        <record id="dtm_ot_tree" model="ir.ui.view">
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
@@ -25,7 +25,7 @@
             </field>
         </record>
 
-        <record id="dtm_odt_form" model="ir.ui.view">
+        <record id="dtm_ot_form" model="ir.ui.view">
             <field name="name">dtm.odt.form</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">

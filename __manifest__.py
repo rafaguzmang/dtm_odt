@@ -6,7 +6,7 @@
         #Security
         'security/ir.model.access.csv',
         #Views
-        'views/dtm_odt_view.xml',
+        'views/dtm_ot_view.xml',
         'views/dtm_npi_view.xml',
 
         #Reports
