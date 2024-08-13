@@ -22,10 +22,10 @@
             <field name="arch" type="xml">
                 <form string="formulario">
                     <header>
-                        <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True)]}"/>
-                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/>
+                        <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary" title="print"/>
+                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True)]}"/>
+                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/>
                     </header>
 
                     <sheet>
@@ -71,7 +71,7 @@
                             <page string="MATERIALES" >
                                 <field name="materials_npi_ids" >
                                     <tree editable="bottom">
-                                        <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
+                                        <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary" title="check"/>
                                         <field name="materials_cuantity" options='{"type": "number"}'/>
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe"/>

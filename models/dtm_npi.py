@@ -19,7 +19,7 @@ class NPI(models.Model):
 
     status = fields.Char(string="Estado del Producto", readonly=True )
     ot_number = fields.Integer("NÚMERO",default=action_autoNum,  readonly=True )
-    tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
+    tipe_order = fields.Char(string="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO", required=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today())
@@ -46,13 +46,13 @@ class NPI(models.Model):
 
     # ---------------------Resumen de descripción------------
 
-    description = fields.Text(string= "DESCRIPCIÓN",placeholder="RESUMEN DE DESCRIPCIÓN")
+    description = fields.Text(string= "DESCRIPCIÓN")
 
     #------------------------Notas---------------------------
     notes = fields.Text()
 
     liberado = fields.Char()
-    retrabajo = fields.Boolean(defaul=False) #Al estar en verdadero pone todos los campos en readonly
+    retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
 
     def action_firma_parcial(self):
         self.action_firma(parcial=True)

@@ -50,7 +50,7 @@ class DtmOdt(models.Model):
     notes = fields.Text(string="notes")
 
     liberado = fields.Char()
-    retrabajo = fields.Boolean(defaul=False) #Al estar en verdadero pone todos los campos en readonly
+    retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
 
     # maquinados_id = fields.One2many("dtm.servicios.externos","extern_id")
 
@@ -590,12 +590,14 @@ class DtmOdt(models.Model):
     #     #     if not get_ot and  not get_npi:
     #     #         print(material.id)
     #     #         material.unlink()
-    #     attachments = self.env['ir.attachment'].search([])
-    #     for attachment in attachments:
-    #         if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
-    #             if not os.path.exists(attachment._full_path(attachment.store_fname)):
-    #                 # print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}")
-    #                 pass
+    #     # attachments = self.env['ir.attachment'].search([])
+    #     # for attachment in attachments:
+    #     #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+    #     #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
+    #     #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
+    #     #             attachment.unlink()
+    #     self.env['ir.cache'].clear()
+    #
     #     return res
 
 
