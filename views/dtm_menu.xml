@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+     <menuitem name="Diseño" id="menu_root_dtm_diseno">
+        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
+        <menuitem id="dtm_npi_menu_action" action="dtm_odt.dtm_npi_action"/>
+     </menuitem>
+</odoo>

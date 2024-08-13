@@ -29,18 +29,12 @@
                     </header>
 
                     <sheet>
-
-                            <h1 > NPI </h1>
-
-
-                            <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
-
-                        <group >
-
-                                <field name="status"/>
-
+                        <h1> NPI </h1>
+                        <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
+                        <group>
+                            <field name="status"/>
                         </group>
-                        <group >
+                        <group>
                             <group>
                                 <field name="tipe_order"/>
                                 <field name="name_client" />
@@ -55,14 +49,14 @@
 
                         <group>
                             <group>
-                                 <field name="firma" />
-                                <field name="date_in" />
+                                <field name="firma"/>
+<!--                                <field name="date_in"/>-->
                                 <field name="date_rel"/>
                             </group>
                              <group>
-                                <field name="version_ot" />
+                                <field name="version_ot"/>
                                 <field name="cuantity" options='{"type": "number"}'/>
-                                 <field name="color" />
+                                <field name="color" />
                             </group>
                         </group>
 
@@ -75,15 +69,15 @@
 
                             <!--MATERIALES OR-->
                             <page string="MATERIALES" >
-                                    <field name="materials_npi_ids" >
-                                        <tree editable="bottom">
-                                            <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
-                                            <field name="materials_cuantity" options='{"type": "number"}'/>
-                                            <field name="materials_inventory"/>
-                                            <field name="materials_availabe"/>
-                                            <field name="materials_required" options='{"type": "number"}'/>
-                                        </tree>
-                                    </field>
+                                <field name="materials_npi_ids" >
+                                    <tree editable="bottom">
+                                        <field name="materials_list"/> <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary"/>
+                                        <field name="materials_cuantity" options='{"type": "number"}'/>
+                                        <field name="materials_inventory"/>
+                                        <field name="materials_availabe"/>
+                                        <field name="materials_required" options='{"type": "number"}'/>
+                                    </tree>
+                                </field>
                             </page>
                             <page string="RECHAZO">
                                 <field name="rechazo_id">

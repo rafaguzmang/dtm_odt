@@ -13,17 +13,16 @@ class NPI(models.Model):
     #---------------------Basicos----------------------
 
     def action_autoNum(self): # Genera número consecutivo de NPI y OT
-
+        get_terminado = self.env['dtm.facturado.npi'].search([],order='ot_number desc',limit=1)
         get_odt = self.env['dtm.npi'].search([],order='ot_number desc', limit=1)
-        ot_number = get_odt.ot_number + 1
-        return ot_number
+        return get_odt.ot_number + 1 if get_odt.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
 
     status = fields.Char(string="Estado del Producto", readonly=True )
     ot_number = fields.Integer("NÚMERO",default=action_autoNum,  readonly=True )
     tipe_order = fields.Char(strint="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO", required=True)
-    date_in = fields.Date(string="FECHA DE ENTRADA",default= datetime.today())
+    date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today())
     date_rel = fields.Date(string="FECHA DE ENTREGA",default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")

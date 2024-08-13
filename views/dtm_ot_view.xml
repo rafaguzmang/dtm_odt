@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="dtm_ot_action" model="ir.actions.act_window">
+
+        <record id="dtm_odt.dtm_ot_action" model="ir.actions.act_window">
             <field name="name">ORDEN DE DISEÑO</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
@@ -35,7 +36,6 @@
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True), ('firma_ventas', '=', True)]}" />
                         <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/> />
-
                     </header>
 
                     <sheet>
@@ -48,6 +48,7 @@
                                 <field name="po_number"/>
                                 <field name="firma_ventas" />
                             </group>
+
                             <group>
                                 <field name="product_name" />
                                 <field name="ot_number"/>
@@ -76,7 +77,6 @@
                                 </group>
                             </page>
 
-                            <!-- MATERIALES OR -->
                             <page string="MATERIALES" attrs="{'invisible': [('retrabajo', '=', True)]}">
                                     <field name="materials_ids" >
                                         <tree editable="bottom">
@@ -84,8 +84,7 @@
                                             <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                             <field name="materials_inventory"/>
                                             <field name="materials_availabe"/>
-                                            <field name="materials_required" options='{"type": "number"}'/><!--                                            <button type="object" name="action_corte"  attrs="{'invisible': [('tipe_order', '=', '')]}" icon="fa-print" class="btn btn-primary"/>-->
-
+                                            <field name="materials_required" options='{"type": "number"}'/>
                                         </tree>
                                     </field>
                             </page>
@@ -114,10 +113,10 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-                            <page string="Maquinados">
-<!--                                <field name="maquinados_id"/>-->
+<!--                            <page string="Maquinados">-->
+<!--&lt;!&ndash;                                <field name="maquinados_id"/>&ndash;&gt;-->
 
-                            </page>
+<!--                            </page>-->
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
@@ -128,6 +127,6 @@
             </field>
         </record>
 
-<!--        <menuitem id="dtm_odt_action_menu" action="dtm_odt.dtm_odt_action"/>-->
+<!--        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>-->
     </data>
 </odoo>
