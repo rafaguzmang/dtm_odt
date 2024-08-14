@@ -7,12 +7,23 @@
             <field name="view_mode">tree,form</field>
         </record>
 
+        <record id = "dtm_ot_search" model="ir.ui.view">
+            <field name="name">dtm_ot_search</field>
+            <field name="model">dtm.odt</field>
+            <field name ="arch" type="xml">
+               <search>
+                    <field name="ot_number"/>
+                    <field name="po_number"/>
+                    <field name="disenador"/>
+               </search>
+            </field>
+        </record>
+
         <record id="dtm_ot_tree" model="ir.ui.view">
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
                 <tree  >
-<!--                    <field name="sequence" widget="handle"></field>-->
                     <field name="ot_number"/>
                     <field name="po_number"/>
                     <field name="date_rel" widget="date"/>
