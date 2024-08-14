@@ -52,7 +52,7 @@ class DtmOdt(models.Model):
     liberado = fields.Char()
     retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
 
-    # maquinados_id = fields.One2many("dtm.servicios.externos","extern_id")
+    maquinados_id = fields.One2many("dtm.odt.sercicios","extern_id")
 
     # @api.onchange('maquinados_id')
     # def _onchange_maquinados_id(self):
@@ -580,25 +580,43 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #     # get_almdis = self.env['dtm.diseno.almacen'].search([])
-    #     #
-    #     # for material in get_almdis:
-    #     #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-    #     #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-    #     #     if not get_ot and  not get_npi:
-    #     #         print(material.id)
-    #     #         material.unlink()
-    #     # attachments = self.env['ir.attachment'].search([])
-    #     # for attachment in attachments:
-    #     #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
-    #     #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
-    #     #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
-    #     #             attachment.unlink()
-    #     self.env['ir.cache'].clear()
-    #
-    #     return res
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+        get_almdis = self.env['dtm.diseno.almacen'].search([])
+
+        for lamina in get_almdis:
+            if lamina.nombre.rfind("Lámina") >= 0:
+                get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
+                get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
+                get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
+
+                if not get_ot and  not get_npi and not get_lamina:
+                    print(lamina.id)
+                    lamina.unlink()
+
+                if get_ot or get_npi and not get_lamina:
+                    print(lamina.id)
+                    lamina.write({"no_almacen":True})
+
+        # for material in get_almdis:
+        #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+        #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+        #     # get_lamina = self.env['dtm.materiales'].search([()])
+        #
+        #     if not get_ot and  not get_npi:
+        #         print(material.id)
+        #         material.unlink()
+
+
+        # attachments = self.env['ir.attachment'].search([])
+        # for attachment in attachments:
+        #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+        #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
+        #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
+        #             attachment.unlink()
+        # self.env['ir.cache'].clear()
+
+        return res
 
 
     #-----------------------Materiales----------------------
@@ -608,6 +626,7 @@ class TestModelLine(models.Model):
     _description = "Tabla de materiales"
 
     model_id = fields.Many2one("dtm.odt")
+    model_servicio_id = fields.Many2one("dtm.odt.sercicios")
 
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
@@ -729,6 +748,127 @@ class Rechazo(models.Model):
         self.fecha = datetime.now()
 
         self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
+
+class Servicios(models.Model):
+    _name = "dtm.odt.sercicios"
+    _description = "Modelo para la solicitud de servicios externos"
+
+    extern_id = fields.Many2one("dtm.odt")
+
+    nombre = fields.Char(string="Nombre del Servicio")
+    cantidad = fields.Integer(string="Cantidad")
+    tipo_orden = fields.Char(string="OT/NPI")
+    numero_orden = fields.Integer(string="Orden")
+    proveedor = fields.Char(string="Proveedor")
+    fecha_solicitud = fields.Date(string="Fecha de Solicitud", default= datetime.today(),readonly=True)
+    fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
+    fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
+    material_id = fields.One2many("dtm.odt.servmateriales","model_id")
+    anexos_id = fields.Many2many("ir.attachment")
+
+class MaterialeServicios (models.Model):
+    _name = "dtm.odt.servmateriales"
+    _description = "Modelo para la solicitud de materiales para servicios externos"
+
+    model_id = fields.Many2one("dtm.odt.sercicios")
+
+    # nombre = fields.Char(compute="_compute_material_list",store=True)
+    nombre = fields.Char()
+    medida = fields.Char()
+
+    # materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
+    materials_cuantity = fields.Integer("CANTIDAD")
+    materials_inventory = fields.Integer("INVENTARIO", readonly=True)
+    materials_availabe = fields.Integer("APARTADO", readonly=True)
+    # materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
+    materials_required = fields.Integer("REQUERIDO")
+
+    # def consultaAlmacen(self,nombre,codigo):
+    #      get_almacen =  self.env['dtm.materiales.otros'].search([("codigo", "=", codigo)])
+    #      if get_almacen:
+    #          return get_almacen
+    #      if nombre:
+    #          if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
+    #             get_almacen = self.env['dtm.materiales'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
+    #             get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[cC][aA][nN][aA][lL].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[pP][eE][rR][fF][iI][lL].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[pP][iI][nN][tT][uU][rR][aA].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.pintura'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.rodamientos'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[tT][oO][rR][nN][iI][lL][lL][oO].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.tornillos'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[tT][uU][bB][oO].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[vV][aA][rR][iI][lL][lL][aA].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
+    #          elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
+    #             get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
+    #          if len(get_almacen) > 1:
+    #             raise ValidationError("Codigo duplicado, favor de borrar desde Almacén.")
+    #      return  get_almacen
+    #
+    # @api.depends("materials_cuantity")
+    # def _compute_materials_inventory(self):
+    #     for result in self:
+    #         result.materials_required = 0
+    #         consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
+    #         if consulta:
+    #             get_almacen = self.env['dtm.servicios.materiales'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
+    #             cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+    #             consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+    #             for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+    #                 cantidad_total+= item.materials_cuantity
+    #                 consulta_disp += item.materials_availabe
+    #             disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+    #             if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+    #                 disp = 0
+    #             consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+    #                 "disponible": disp,
+    #                 "apartado": cantidad_total
+    #             })
+    #             #Hace toda la lógica de calculo
+    #             cantidad = result.materials_cuantity
+    #             inventario = consulta.cantidad
+    #             apartado = result.materials_availabe
+    #             if consulta_disp >= 0 and consulta_disp < inventario:
+    #                 requerido = 0
+    #                 apartado = cantidad
+    #             else:
+    #                 requerido = cantidad - apartado
+    #
+    #             if cantidad <= apartado:
+    #                 apartado = cantidad
+    #             if apartado < 0:
+    #                 apartado = 0
+    #             if requerido < 0:
+    #                 requerido = 0
+    #             result.materials_inventory = inventario
+    #             result.materials_availabe = apartado
+    #             self.env['dtm.servicios.materiales'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
+    #             result.materials_required = requerido
+    #             cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+    #             consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+    #             for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+    #                 cantidad_total+= item.materials_cuantity
+    #                 consulta_disp += item.materials_availabe
+    #             disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+    #             if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+    #                 disp = 0
+    #             consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+    #                 "disponible": disp,
+    #                 "apartado": cantidad_total
+    #             })
+    #
+    # @api.depends("materials_list")
+    # def _compute_material_list(self):
+    #     for result in self:
+    #         result.nombre = result.materials_list.nombre
+    #         result.medida = result.materials_list.medida
 
 
 
