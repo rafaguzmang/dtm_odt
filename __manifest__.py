@@ -19,5 +19,6 @@
         'reports/rechazo.xml',
         'reports/lista_materiales.xml'
         ],
+    'license': 'LGPL-3',
      
 }
