@@ -124,10 +124,46 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-<!--                            <page string="Maquinados">-->
-<!--&lt;!&ndash;                                <field name="maquinados_id"/>&ndash;&gt;-->
+                            <page string="MAQUINADOS">
+                                <field name="maquinados_id">
+                                    <tree>
+                                        <field name="nombre"/>
+                                        <field name="cantidad"/>
+                                        <field name="tipo_orden"/>
+                                        <field name="numero_orden"/>
+                                        <field name="proveedor"/>
+                                        <field name="fecha_solicitud"/>
+                                        <field name="fecha_compra"/>
+                                        <field name="fecha_entrada"/>
+                                    </tree>
+                                    <form>
+                                        <group>
+                                            <group>
+                                            <field name="nombre"/>
+                                            <field name="cantidad" options='{"type": "number"}'/>
+                                            <field name="tipo_orden"/>
+                                            <field name="numero_orden"/>
+                                            <field name="proveedor"/>
+                                            </group>
+                                            <group>
+                                                <field name="fecha_solicitud"/>
+                                                <field name="fecha_compra"/>
+                                                <field name="fecha_entrada"/>
+                                            </group>
+                                        </group>
+                                        <notebook>
+                                            <page string="Materiales">
+                                                <field name="material_id"/>
+                                            </page>
+                                             <page string="Anexos">
+                                                <field name="anexos_id"/>
+                                            </page>
+                                        </notebook>
 
-<!--                            </page>-->
+                                    </form>
+                                </field>
+
+                            </page>
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
