@@ -701,6 +701,7 @@ class TestModelLine(models.Model):
                 consulta.write({
                     "apartado": consulta.cantidad if suma > consulta.cantidad else suma,
                     "disponible":consulta.cantidad - suma if consulta.cantidad - suma > 0 else 0
+                })
 
 
     @api.depends("materials_list")
