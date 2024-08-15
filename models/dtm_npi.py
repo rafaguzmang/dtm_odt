@@ -17,7 +17,6 @@ class NPI(models.Model):
         get_odt = self.env['dtm.npi'].search([],order='ot_number desc', limit=1)
         return get_odt.ot_number + 1 if get_odt.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
 
-    status = fields.Char(string="Estado del Producto", readonly=True )
     ot_number = fields.Integer("NÚMERO",default=action_autoNum,  readonly=True )
     tipe_order = fields.Char(string="NPI", default="NPI",  readonly=True )
     name_client = fields.Many2one("res.partner", string="CLIENTE")

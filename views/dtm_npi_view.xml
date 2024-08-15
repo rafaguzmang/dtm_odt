@@ -11,7 +11,8 @@
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
                     <field name="product_name"/>
-                    <field name="status" />
+                    <field name="firma"/>
+                    <field name="firma_ventas"/>
                 </tree>
             </field>
         </record>
@@ -31,9 +32,7 @@
                     <sheet>
                         <h1> NPI </h1>
                         <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
-                        <group>
-                            <field name="status"/>
-                        </group>
+
                         <group>
                             <group>
                                 <field name="tipe_order"/>
