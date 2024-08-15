@@ -580,46 +580,7 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-<<<<<<< HEAD
 
-    def get_view(self, view_id=None, view_type='form', **options):
-        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-        get_almdis = self.env['dtm.diseno.almacen'].search([])
-
-        for lamina in get_almdis:
-            if lamina.nombre.rfind("Lámina") >= 0:
-                get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
-                get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
-                get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
-
-                if not get_ot and  not get_npi and not get_lamina:
-                    print(lamina.id)
-                    lamina.unlink()
-
-                if get_ot or get_npi and not get_lamina:
-                    print(lamina.id)
-                    lamina.write({"no_almacen":True})
-
-        # for material in get_almdis:
-        #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-        #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-        #     # get_lamina = self.env['dtm.materiales'].search([()])
-        #
-        #     if not get_ot and  not get_npi:
-        #         print(material.id)
-        #         material.unlink()
-
-
-        # attachments = self.env['ir.attachment'].search([])
-        # for attachment in attachments:
-        #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
-        #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
-        #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
-        #             attachment.unlink()
-        # self.env['ir.cache'].clear()
-
-        return res
-=======
     # def get_view(self, view_id=None, view_type='form', **options):
     #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
     #     get_almdis = self.env['dtm.diseno.almacen'].search([])
@@ -657,8 +618,6 @@ class DtmOdt(models.Model):
     #     # self.env['ir.cache'].clear()
     #
     #     return res
->>>>>>> 77e08e02125e2eecc3fc8ba1740cc0dbf2fa2f66
-
 
 
     #-----------------------Materiales----------------------
@@ -720,6 +679,7 @@ class TestModelLine(models.Model):
                 self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
                 self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
                 self.materials_required = self.materials_cuantity - self.materials_availabe
+                #Condicionales para cantidad, apartado y requerido
                 if self.materials_cuantity < 0:
                     self.materials_cuantity = 0
                 if self.materials_availabe < 0:
@@ -743,9 +703,9 @@ class TestModelLine(models.Model):
                 consulta.write({
                     "apartado": consulta.cantidad if suma > consulta.cantidad else suma,
                     "disponible":consulta.cantidad - suma if consulta.cantidad - suma > 0 else 0
+                })
 
 
-    @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
             result.nombre = result.materials_list.nombre
