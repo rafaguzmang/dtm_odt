@@ -306,7 +306,7 @@ class DtmOdt(models.Model):
                             record_ids.append(attachment.id)
                     recordset = self.env['ir.attachment'].browse(record_ids)
                     material_corte = recordset #Pasa los archivos de la segunda pieza
-        elif not get_encorte_primera and get_corte_primer and get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
+        elif get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
             #Segunda pieza en corte
             # print("Segunda pieza en corte")
             vals["primera_pieza"]= False
@@ -330,7 +330,7 @@ class DtmOdt(models.Model):
                         record_ids.append(attachment.id)
                 recordset = self.env['ir.attachment'].browse(record_ids)
                 material_corte = recordset #Pasa los archivos de la segunda pieza
-        elif not get_encorte_primera and get_corte_primer and not get_encorte_segunda and get_corte_segunda:
+        elif not get_encorte_segunda and get_corte_segunda:
             # print("Segunda pieza a retrabajo ya con algunas en el status de cortado")
             vals["primera_pieza"]= False
             get_corte.create(vals) #Crea la orden de segunda pieza
@@ -580,43 +580,43 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-    def get_view(self, view_id=None, view_type='form', **options):
-        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-        get_almdis = self.env['dtm.diseno.almacen'].search([])
-
-        for lamina in get_almdis:
-            if lamina.nombre.rfind("Lámina") >= 0:
-                get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
-                get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
-                get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
-
-                if not get_ot and  not get_npi and not get_lamina:
-                    print(lamina.id)
-                    lamina.unlink()
-
-                if get_ot or get_npi and not get_lamina:
-                    print(lamina.id)
-                    lamina.write({"no_almacen":True})
-
-        # for material in get_almdis:
-        #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-        #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-        #     # get_lamina = self.env['dtm.materiales'].search([()])
-        #
-        #     if not get_ot and  not get_npi:
-        #         print(material.id)
-        #         material.unlink()
-
-
-        # attachments = self.env['ir.attachment'].search([])
-        # for attachment in attachments:
-        #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
-        #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
-        #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
-        #             attachment.unlink()
-        # self.env['ir.cache'].clear()
-
-        return res
+    # def get_view(self, view_id=None, view_type='form', **options):
+    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+    #     get_almdis = self.env['dtm.diseno.almacen'].search([])
+    #
+    #     for lamina in get_almdis:
+    #         if lamina.nombre.rfind("Lámina") >= 0:
+    #             get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
+    #             get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
+    #             get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
+    #
+    #             if not get_ot and  not get_npi and not get_lamina:
+    #                 print(lamina.id)
+    #                 lamina.unlink()
+    #
+    #             if get_ot or get_npi and not get_lamina:
+    #                 print(lamina.id)
+    #                 lamina.write({"no_almacen":True})
+    #
+    #     # for material in get_almdis:
+    #     #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+    #     #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+    #     #     # get_lamina = self.env['dtm.materiales'].search([()])
+    #     #
+    #     #     if not get_ot and  not get_npi:
+    #     #         print(material.id)
+    #     #         material.unlink()
+    #
+    #
+    #     # attachments = self.env['ir.attachment'].search([])
+    #     # for attachment in attachments:
+    #     #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+    #     #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
+    #     #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
+    #     #             attachment.unlink()
+    #     # self.env['ir.cache'].clear()
+    #
+    #     return res
 
 
     #-----------------------Materiales----------------------
@@ -674,57 +674,103 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
+            print(consulta.codigo,consulta.cantidad,consulta.disponible,consulta.apartado)
             if consulta:
-                get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
-                cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
-                consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
-                for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
-                    # print("item",item.model_id.ot_number)
-                    get_status = self.env['dtm.proceso'].search([("ot_number","=",item.model_id.ot_number)])
-                    # print(get_status.status)
-                    if not get_status and get_status == "corte":
-                        # print(get_status.status)
-                        cantidad_total+= item.materials_cuantity
-                        consulta_disp += item.materials_availabe
-                disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
-                if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
-                    disp = 0
-                consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
-                    "disponible": disp,
-                    "apartado": cantidad_total
-                })
-                #Hace toda la lógica de calculo
-                cantidad = result.materials_cuantity
-                inventario = consulta.cantidad
-                apartado = result.materials_availabe
-                if consulta_disp >= 0 and consulta_disp < inventario:
-                    requerido = 0
-                    apartado = cantidad
-                else:
-                    requerido = cantidad - apartado
+                self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
+                self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
+                self.materials_required = self.materials_cuantity - self.materials_availabe
 
-                if cantidad <= apartado:
-                    apartado = cantidad
-                if apartado < 0:
-                    apartado = 0
-                if requerido < 0:
-                    requerido = 0
-                result.materials_inventory = inventario
-                result.materials_availabe = apartado
-                self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
-                result.materials_required = requerido
-                cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
-                consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
-                for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
-                    cantidad_total+= item.materials_cuantity
-                    consulta_disp += item.materials_availabe
-                disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
-                if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
-                    disp = 0
-                consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
-                    "disponible": disp,
-                    "apartado": cantidad_total
+                if self.materials_cuantity < 0:
+                    self.materials_cuantity = 0
+                if self.materials_availabe < 0:
+                    self.materials_availabe = 0
+
+
+                #Revisa las ordenes que contengan este material y que este apartado
+                #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
+                get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)])
+                get_npi = self.env['dtm.npi'].search([("firma_ventas","=",False)])
+                get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+                get_proceso_npi = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+
+                list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
+                cont = 0
+                suma = 0
+                for search in list_search:
+                    list_materiales = search.materials_ids if cont == 0 or cont ==2 else search.materials_npi_ids
+                    cont += 1
+                    material_line = list(filter(lambda x:x!=False,list_materiales))
+                    diseno_almacen = list(filter(lambda x:x.materials_list.id==self.materials_list.id,material_line))
+                    print("diseno_almacén",diseno_almacen)
+                    cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
+                    print(cantidad_material)
+                    suma += cantidad_material
+                print(consulta.codigo,consulta.cantidad,consulta.disponible,consulta.apartado,"suma",suma)
+                consulta.write({
+                    "apartado": consulta.cantidad if suma > consulta.cantidad else suma,
+                    "disponible":consulta.cantidad - suma if consulta.cantidad - suma > 0 else 0
                 })
+
+
+
+
+    #  @api.depends("materials_cuantity")
+    # def _compute_materials_inventory(self):
+    #     for result in self:
+    #         result.materials_required = 0
+    #         consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
+    #         print(consulta.codigo)
+    #         if consulta:
+    #             get_almacen = self.env['dtm.materials.line'].search([("materials_list","=",consulta.codigo)])# Busca el material en todas las ordenes para sumar el total de requerido
+    #             cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+    #             consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+    #             for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+    #                 # print("item",item.model_id.ot_number)
+    #                 get_status = self.env['dtm.proceso'].search([("ot_number","=",item.model_id.ot_number)])
+    #                 # print(get_status.status)
+    #                 if not get_status and get_status == "corte":
+    #                     # print(get_status.status)
+    #                     cantidad_total+= item.materials_cuantity
+    #                     consulta_disp += item.materials_availabe
+    #             disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+    #             if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+    #                 disp = 0
+    #             consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+    #                 "disponible": disp,
+    #                 "apartado": cantidad_total
+    #             })
+    #             #Hace toda la lógica de calculo
+    #             cantidad = result.materials_cuantity
+    #             inventario = consulta.cantidad
+    #             apartado = result.materials_availabe
+    #             if consulta_disp >= 0 and consulta_disp < inventario:
+    #                 requerido = 0
+    #                 apartado = cantidad
+    #             else:
+    #                 requerido = cantidad - apartado
+    #
+    #             if cantidad <= apartado:
+    #                 apartado = cantidad
+    #             if apartado < 0:
+    #                 apartado = 0
+    #             if requerido < 0:
+    #                 requerido = 0
+    #             result.materials_inventory = inventario
+    #             result.materials_availabe = apartado
+    #             self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write({"materials_availabe":apartado})
+    #             result.materials_required = requerido
+    #             cantidad_total = 0 # Guarda las cantidades de materiales solicitadas de todas las ordenes
+    #             consulta_disp = 0 #Guarda las cantidades del material apartado cuando este es igual o mayor al del stock(aparta)
+    #             for item in get_almacen:#obtiene las dos variables anteriores al recorrer la tabla materials.line enfocandose en este item
+    #                 cantidad_total+= item.materials_cuantity
+    #                 consulta_disp += item.materials_availabe
+    #             disp = consulta.cantidad - cantidad_total #Resetea el valor de disponible de la tabla del material correspondiente en el modulo Almacén
+    #             if disp < 0:#Revisa si el dato es menor a cero y de serlo lo restablece a cero
+    #                 disp = 0
+    #             consulta.write({ # Actualiza los valores en la categoria correspondiente del modulo almacén
+    #                 "disponible": disp,
+    #                 "apartado": cantidad_total
+    #             })
 
     @api.depends("materials_list")
     def _compute_material_list(self):
