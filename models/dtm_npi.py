@@ -422,17 +422,17 @@ class NPI(models.Model):
     def compras_odt(self):
             get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
             get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number))])
-            if self.materials_ids:# si la orden contiene materiales ejecuta el código
+            if self.materials_npi_ids:# si la orden contiene materiales ejecuta el código
                 for compra in get_compras:#Borra los materiales que esten en compras pero no en la orden
                     contiene = False
-                    for material in self.materials_ids:
+                    for material in self.materials_npi_ids:
                         # print(material.materials_list.id,compra.codigo)
                         if material.materials_list.id == compra.codigo:
                             contiene = True
                     if not contiene:
                         compra.unlink()
                 mapMaterial = {}
-                for material in self.materials_ids:
+                for material in self.materials_npi_ids:
                     if not mapMaterial.get(material.materials_list.id):
                         mapMaterial[material.materials_list.id] = material.materials_required
                     else:
@@ -450,7 +450,7 @@ class NPI(models.Model):
                     else:
                         mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
 
-                for material in self.materials_ids:
+                for material in self.materials_npi_ids:
                     medida = ""
                     requeridoCompras = 0
                     requeridoDiseno = 0
