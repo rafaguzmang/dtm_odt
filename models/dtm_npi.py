@@ -420,67 +420,75 @@ class NPI(models.Model):
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
     def compras_odt(self):
+        get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
+        get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number))])
+        if self.materials_npi_ids:# si la orden contiene materiales ejecuta el código
+            compras_codigo = get_compras.mapped("codigo")
+            materiales_self = self.materials_npi_ids.mapped("materials_list").mapped("id")
+            no_coinciden = list(filter(lambda x:x not in materiales_self,compras_codigo))
+            list(map(lambda x:self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",x)]).unlink(),no_coinciden))
             get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
-            get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number))])
-            if self.materials_npi_ids:# si la orden contiene materiales ejecuta el código
-                for compra in get_compras:#Borra los materiales que esten en compras pero no en la orden
-                    contiene = False
-                    for material in self.materials_npi_ids:
-                        # print(material.materials_list.id,compra.codigo)
-                        if material.materials_list.id == compra.codigo:
-                            contiene = True
-                    if not contiene:
-                        compra.unlink()
-                mapMaterial = {}
-                for material in self.materials_npi_ids:
-                    if not mapMaterial.get(material.materials_list.id):
-                        mapMaterial[material.materials_list.id] = material.materials_required
-                    else:
-                        mapMaterial[material.materials_list.id] = mapMaterial.get(material.materials_list.id) + material.materials_required
-                mapCompras = {}
-                for material in get_compras:
-                    if not mapCompras.get(material.codigo):
-                        mapCompras[material.codigo] = material.cantidad
-                    else:
-                        mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
 
-                for material in get_realizado:
-                    if not mapCompras.get(material.codigo):
-                        mapCompras[material.codigo] = material.cantidad
-                    else:
-                        mapCompras[material.codigo] = mapCompras.get(material.codigo) + material.cantidad
 
-                for material in self.materials_npi_ids:
-                    medida = ""
-                    requeridoCompras = 0
-                    requeridoDiseno = 0
-                    if material.medida: #Quita falso al valor medida
-                        medida = material.medida
-                    if mapCompras.get(material.materials_list.id):
-                        requeridoCompras = mapCompras.get(material.materials_list.id) #Requerido de compras
-                    if mapMaterial.get(material.materials_list.id): #Requerido de diseño
-                        requeridoDiseno = mapMaterial.get(material.materials_list.id)
+            mapMaterial = {}# Obtiene los codigos de los materiales con sus cantidades del modulo diseño
+            for material in self.materials_npi_ids:
+                mapMaterial[material.materials_list.id] = material.materials_required if not mapMaterial.get(material.materials_list.id) else mapMaterial.get(material.materials_list.id) + material.materials_required
+            mapCompras = {}# Obtiene los codigos de los materiales con sus cantidades del modulo compras_requerido y compras realizado
+            mapComprasTotal = {}
+            for material in get_compras:
+                 mapCompras[material.codigo] = material.cantidad if not mapCompras.get(material.codigo) else mapCompras.get(material.codigo) + material.cantidad
+                 mapComprasTotal[material.codigo] = material.cantidad if not mapComprasTotal.get(material.codigo) else mapComprasTotal.get(material.codigo) + material.cantidad
 
-                    if requeridoDiseno > requeridoCompras:
-                        cantidad = requeridoDiseno
-                    else:
-                        cantidad = 0
-                    # print(material.nombre,cantidad)
-                    if cantidad > 0:
+            for material in get_realizado:
+                mapComprasTotal[material.codigo] = material.cantidad if not mapComprasTotal.get(material.codigo) else mapComprasTotal.get(material.codigo) + material.cantidad
+
+
+            list_cero = []#Lista para borrar materiales que estén en cero y existan solo en compras requerido
+            list_item = []#Actualiza materiales que estén en compras requerido
+            list_requ = []#Carga los materiales a compras si su cantidad es mayor a cero
+            for material in mapMaterial: #Los tres posibles condicionales para el material
+                if mapMaterial[material] == 0 and material in mapCompras:#El material es cero pero existe en compras requerido (delete)
+                    list_cero.append(material)
+                elif material in mapCompras:#El material es mayor a cero y existe en compras requerido (update)
+                    list_item.append(material)
+                elif  mapMaterial[material] > 0:#El material no existe en compras requerido y es mayor a cero (create)
+                    list_requ.append(material)
+
+            if list_cero:#Delete
+                for item in list_cero:
+                    self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).unlink()
+
+            if list_item:#Update
+                for item in list_item:
+                    get_self = self.materials_npi_ids.search([("materials_list","=",item)])
+                    get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)])
+                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
+                    if mapMaterial[item] > mapComprasTotal[item]:
+                        medida = get_self.medida if get_self.medida else ""
                         vals = {
                             "orden_trabajo":self.ot_number,
-                            "codigo":material.materials_list.id,
-                            "nombre":material.nombre + medida,
-                            "cantidad":cantidad,
+                            "codigo":item,
+                            "nombre":get_self.nombre + medida,
+                            "cantidad":mapMaterial[item]-sum(get_real_item),
                             "disenador":self.firma
                         }
-                        get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",material.materials_list.id)])
-                        if get_compras_item:
-                            get_compras_item.write(vals)
-                        else:
-                            get_compras_item.create(vals)
-            else:
-                get_compras.unlink()
+                        get_compras_item.write(vals)
+            if list_requ:#Create
+                for item in list_requ:
+                    get_self = self.materials_npi_ids.search([("materials_list","=",item)])
+                    medida = get_self.medida if get_self.medida else ""
+                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
+                    vals = {
+                        "orden_trabajo":self.ot_number,
+                        "codigo":item,
+                        "nombre":get_self.nombre + medida,
+                        "cantidad":get_self.materials_required-sum(get_real_item) if get_self.materials_required-sum(get_real_item) > 0 else get_self.materials_required,
+                        "disenador":self.firma
+                    }
+                    self.env['dtm.compras.requerido'].create(vals)
+
+        else:
+            get_compras.unlink()
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
             return self.env.ref("dtm_odt.formato_npi").report_action(self)
