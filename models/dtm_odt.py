@@ -559,7 +559,6 @@ class DtmOdt(models.Model):
 
                     get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
                     medida = get_self.medida if get_self.medida else ""
-                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
                     vals = {
                         "orden_trabajo":self.ot_number,
                         "codigo":item,
