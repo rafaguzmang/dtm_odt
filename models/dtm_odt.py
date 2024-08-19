@@ -261,12 +261,12 @@ class DtmOdt(models.Model):
         # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
         # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
         elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
-            print("Primera pieza solo en corte")
+            # print("Primera pieza solo en corte")
             get_corte = get_encorte_primera
             get_corte.write(vals)
             material_corte = self.primera_pieza_id
         elif not get_encorte_primera and get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
-            print("Primera pieza cortada pero no hay segundas piezas")
+            # print("Primera pieza cortada pero no hay segundas piezas")
             if self.primera_pieza_id:
                 vals["primera_pieza"]= True
                 get_corte.create(vals) #Crea la orden de primera pieza
@@ -280,7 +280,7 @@ class DtmOdt(models.Model):
                         for orden in ordenes:
                             mapa = orden.cortadora_id.mapped("nombre")
                             record_nombres.extend(mapa)
-                        print(record_nombres)
+                        # print(record_nombres)
                     for thisFile in self.primera_pieza_id: #Comprara los nuevos archivos con los ya cortados
                         attachment = self.env['ir.attachment'].browse(thisFile.id)
                         if attachment.name in record_nombres:
@@ -366,6 +366,7 @@ class DtmOdt(models.Model):
         lines = []  # Lista para agregar lo ids que serán encontrados
         get_corte.write({"materiales_id":[(5, 0, {})]})#Pasa los materiales correspondientes de la orden
         for lamina in self.materials_ids:
+            # print(lamina.materials_list.nombre,self.materials_ids)
             if re.match("Lámina",lamina.nombre): # Revisa si el material tiene la palabra lámina de no ser así lo descarta
                 get_almacen = self.env['dtm.materiales'].search([("codigo","=",lamina.materials_list.id)]) # Busca el material en el almacén por codigo
                 localizacion = ""
@@ -551,7 +552,8 @@ class DtmOdt(models.Model):
                         get_compras_item.write(vals)
             if list_requ:#Create
                 for item in list_requ:
-                    get_self = self.materials_ids.search([("materials_list","=",item)])
+                    print(self.materials_ids,self.materials_ids[0].model_id.id)
+                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])
                     medida = get_self.medida if get_self.medida else ""
                     get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
                     vals = {
@@ -667,7 +669,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
-            print(consulta.cantidad,consulta.apartado,consulta.disponible)
+            # print(consulta.cantidad,consulta.apartado,consulta.disponible)
             if consulta:
                 self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
                 self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
@@ -698,7 +700,7 @@ class TestModelLine(models.Model):
                     "disponible":consulta.cantidad - suma if consulta.cantidad - suma > 0 else 0
                 })
 
-
+    @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
             result.nombre = result.materials_list.nombre
