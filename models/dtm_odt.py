@@ -525,46 +525,49 @@ class DtmOdt(models.Model):
             for material in mapMaterial: #Los tres posibles condicionales para el material
                 if mapMaterial[material] == 0 and material in mapCompras:#El material es cero pero existe en compras requerido (delete)
                     list_cero.append(material)
-                elif material in mapCompras:#El material es mayor a cero y existe en compras requerido (update)
+                elif material in mapComprasTotal:#El material es mayor a cero y existe en compras requerido (update)
                     list_item.append(material)
-                elif  mapMaterial[material] > 0:#El material no existe en compras requerido y es mayor a cero (create)
+                elif  mapMaterial[material] > 0 and material not in mapComprasTotal: #El material no existe en compras requerido y es mayor a cero (create)
                     list_requ.append(material)
 
             if list_cero:#Delete
                 for item in list_cero:
                     self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).unlink()
 
-            if list_item:#Update
+            if list_item:#Update y create si la el código ya ha sido comprado y se necesitan mas sacando el calculo correspondiente
                 for item in list_item:
-                    get_self = self.materials_ids.search([("materials_list","=",item)])
-                    get_compras_item = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)])
-                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
-                    if mapMaterial[item] > mapComprasTotal[item]:
-                        medida = get_self.medida if get_self.medida else ""
-                        vals = {
-                            "orden_trabajo":self.ot_number,
-                            "codigo":item,
-                            "nombre":get_self.nombre + medida,
-                            "cantidad":mapMaterial[item]-sum(get_real_item),
-                            "disenador":self.firma
+                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
+                    medida = get_self.medida if get_self.medida else ""
+                    vals = {
+                        "orden_trabajo":self.ot_number,
+                        "codigo":item,
+                        "nombre":get_self.nombre + medida,
+                        "disenador":self.firma
                         }
-                        get_compras_item.write(vals)
+                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")#Busca si ya hay comprados
+                    if not get_real_item:
+                        vals["cantidad"] = get_self.materials_required
+                    else:
+                        vals["cantidad"] = get_self.materials_required-sum(get_real_item)
+                    get_item_compra = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)])
+                    if vals["cantidad"] > 0:
+                        get_item_compra.write(vals) if get_item_compra else get_item_compra.create(vals)
+
             if list_requ:#Create
                 for item in list_requ:
-                    get_self = self.materials_ids.search([("materials_list","=",item)])
+                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
                     medida = get_self.medida if get_self.medida else ""
                     get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
                     vals = {
                         "orden_trabajo":self.ot_number,
                         "codigo":item,
                         "nombre":get_self.nombre + medida,
-                        "cantidad":get_self.materials_required-sum(get_real_item) if get_self.materials_required-sum(get_real_item) > 0 else get_self.materials_required,
+                        "cantidad":get_self.materials_required,
                         "disenador":self.firma
                     }
                     self.env['dtm.compras.requerido'].create(vals)
 
-        else:
-            get_compras.unlink()
+
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_orden_de_trabajo").report_action(self)
@@ -666,7 +669,6 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
-            print(consulta.cantidad,consulta.apartado,consulta.disponible)
             if consulta:
                 self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
                 self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
