@@ -556,12 +556,8 @@ class DtmOdt(models.Model):
 
             if list_requ:#Create
                 for item in list_requ:
-<<<<<<< HEAD
-                    print(self.materials_ids,self.materials_ids[0].model_id.id)
-                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])
-=======
+
                     get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
->>>>>>> c404fe9184e732fcf504626ffe780f809d252386
                     medida = get_self.medida if get_self.medida else ""
                     get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")
                     vals = {
@@ -676,10 +672,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
-<<<<<<< HEAD
-            # print(consulta.cantidad,consulta.apartado,consulta.disponible)
-=======
->>>>>>> c404fe9184e732fcf504626ffe780f809d252386
+
             if consulta:
                 self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
                 self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
