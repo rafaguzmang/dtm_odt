@@ -88,15 +88,15 @@
                             </page>
 
                             <page string="MATERIALES" attrs="{'invisible': [('retrabajo', '=', True)]}">
-                                    <field name="materials_ids" >
-                                        <tree editable="bottom">
-                                            <field name="materials_list"/>  <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary" title="check"/>
-                                            <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
-                                            <field name="materials_inventory"/>
-                                            <field name="materials_availabe"/>
-                                            <field name="materials_required" options='{"type": "number"}'/>
-                                        </tree>
-                                    </field>
+<!--                                <field name="materials_ids" >-->
+<!--                                        <tree editable="bottom">-->
+<!--                                            <field name="materials_list"/>  <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary" title="check"/>-->
+<!--                                            <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>-->
+<!--                                            <field name="materials_inventory"/>-->
+<!--                                            <field name="materials_availabe"/>-->
+<!--                                            <field name="materials_required" options='{"type": "number"}'/>-->
+<!--                                        </tree>-->
+<!--                                </field>-->
                             </page>
                             <page string="RECHAZO">
                                 <field name="rechazo_id">
