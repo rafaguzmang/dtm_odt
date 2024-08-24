@@ -20,7 +20,7 @@ class DtmOdt(models.Model):
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
     po_number = fields.Char(string="PO",readonly=True)
-    date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
+    date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today(),readonly=True)
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD",readonly=True)
@@ -32,6 +32,7 @@ class DtmOdt(models.Model):
     firma_almacen = fields.Char()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
+    po_fecha_creacion = fields.Date(string="Fecha PO", readonly=True)
 
     planos = fields.Boolean(string="Planos",default=False)
     nesteos = fields.Boolean(string="Nesteos",default=False)
@@ -623,8 +624,11 @@ class TestModelLine(models.Model):
     _description = "Tabla de materiales"
 
     model_id = fields.Many2one("dtm.odt")
+<<<<<<< HEAD
     model_servicio_id = fields.Many2one("dtm.odt.sercicios")
 
+=======
+>>>>>>> 1161547 (merge con main)
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
 
@@ -701,11 +705,11 @@ class TestModelLine(models.Model):
                 })
 
 
-    @api.depends("materials_list")
-    def _compute_material_list(self):
-        for result in self:
-            result.nombre = result.materials_list.nombre
-            result.medida = result.materials_list.medida
+    # @api.depends("materials_list")
+    # def _compute_material_list(self):
+    #     for result in self:
+    #         result.nombre = result.materials_list.nombre
+    #         result.medida = result.materials_list.medida
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
