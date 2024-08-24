@@ -14,7 +14,7 @@ class DtmOdt(models.Model):
 
     #---------------------Basicos----------------------
 
-    ot_number = fields.Integer(string="NÚMERO",readonly=True)
+    ot_number = fields.Integer(string="OT",readonly=True)
     tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
@@ -578,43 +578,65 @@ class DtmOdt(models.Model):
     def action_imprimir_materiales(self): # Imprime según el formato que se esté llenando
         return self.env.ref("dtm_odt.formato_lista_materiales").report_action(self)
 
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #     get_almdis = self.env['dtm.diseno.almacen'].search([])
-    #
-    #     for lamina in get_almdis:
-    #         if lamina.nombre.rfind("Lámina") >= 0:
-    #             get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
-    #             get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
-    #             get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
-    #
-    #             if not get_ot and  not get_npi and not get_lamina:
-    #                 print(lamina.id)
-    #                 lamina.unlink()
-    #
-    #             if get_ot or get_npi and not get_lamina:
-    #                 print(lamina.id)
-    #                 lamina.write({"no_almacen":True})
-    #
-    #     # for material in get_almdis:
-    #     #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
-    #     #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
-    #     #     # get_lamina = self.env['dtm.materiales'].search([()])
-    #     #
-    #     #     if not get_ot and  not get_npi:
-    #     #         print(material.id)
-    #     #         material.unlink()
-    #
-    #
-    #     # attachments = self.env['ir.attachment'].search([])
-    #     # for attachment in attachments:
-    #     #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
-    #     #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
-    #     #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
-    #     #             attachment.unlink()
-    #     # self.env['ir.cache'].clear()
-    #
-    #     return res
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+
+
+        get_self = self.env['dtm.odt'].search([])
+        get_pos = self.env['dtm.ordenes.compra'].search([])
+
+        # mapa = {}
+        # for compra in get_pos:
+        #     print(compra.create_date)
+        #     fecha = str(compra.create_date.today().strftime("%x"))
+        #     mapa[compra.orden_compra] = fecha
+
+        for orden in get_self:
+
+            if orden.ot_number in self.env['dtm.ordenes.compra'].search([("orden_compra","=",orden.po_number)]).descripcion_id.mapped("orden_trabajo"):
+                orden.po_fecha_creacion = self.env['dtm.ordenes.compra'].search([("orden_compra","=",orden.po_number)]).create_date
+
+        # for self_ot in get_self:
+        # print(mapa)
+
+
+
+
+        # get_almdis = self.env['dtm.diseno.almacen'].search([])
+
+        # for lamina in get_almdis:
+        #     if lamina.nombre.rfind("Lámina") >= 0:
+        #         get_ot = self.env['dtm.materials.line'].search([("materials_list","=",lamina.id)])
+        #         get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",lamina.id)])
+        #         get_lamina = self.env['dtm.materiales'].search([("codigo","=",lamina.id)])
+        #
+        #         if not get_ot and  not get_npi and not get_lamina:
+        #             print(lamina.id)
+        #             lamina.unlink()
+        #
+        #         if get_ot or get_npi and not get_lamina:
+        #             print(lamina.id)
+        #             lamina.write({"no_almacen":True})
+
+        # for material in get_almdis:
+        #     get_ot = self.env['dtm.materials.line'].search([("materials_list","=",material.id)])
+        #     get_npi = self.env['dtm.materials.npi'].search([("materials_list","=",material.id)])
+        #     # get_lamina = self.env['dtm.materiales'].search([()])
+        #
+        #     if not get_ot and  not get_npi:
+        #         print(material.id)
+        #         material.unlink()
+
+
+        # attachments = self.env['ir.attachment'].search([])
+        # for attachment in attachments:
+        #     if attachment and attachment.store_fname and isinstance(attachment.store_fname, str):
+        #         if not os.path.exists(attachment._full_path(attachment.store_fname)):
+        #             print(f"Archivo faltante: {attachment.store_fname} para {attachment.name}",attachment.id)
+        #             attachment.unlink()
+        # self.env['ir.cache'].clear()
+
+        return res
 
 
     #-----------------------Materiales----------------------
@@ -624,11 +646,6 @@ class TestModelLine(models.Model):
     _description = "Tabla de materiales"
 
     model_id = fields.Many2one("dtm.odt")
-<<<<<<< HEAD
-    model_servicio_id = fields.Many2one("dtm.odt.sercicios")
-
-=======
->>>>>>> 1161547 (merge con main)
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
 
