@@ -247,17 +247,20 @@ class DtmOdt(models.Model):
         # Condicionales
         #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
         if not get_encorte_primera and not get_encorte_segunda and not get_corte_primer and not get_corte_segunda:
-            # print("primer")
+            print("primer")
             if self.primera_pieza_id:
+                print("self.primera_pieza_id",self.primera_pieza_id)
                 vals["primera_pieza"]= True
                 get_corte.create(vals) #Crea la orden de primera pieza
                 get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
                 material_corte = self.primera_pieza_id #Pasa los archivos de la primera pieza
             else:
+                print(self.cortadora_id)
                 vals["primera_pieza"]= False
                 get_corte.create(vals) #Crea la orden de segunda pieza
                 get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
                 material_corte = self.cortadora_id # Pasa los archivos de la segunda pieza
+
         # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
         # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
         elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
