@@ -16,6 +16,9 @@
                     <field name="ot_number"/>
                     <field name="po_number"/>
                     <field name="disenador"/>
+
+                    <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
+                    <filter string="En produccion" name="produccion" domain="[('firma_ventas','!=',False)]"/>
                </search>
             </field>
         </record>
@@ -27,6 +30,7 @@
                 <tree  >
                     <field name="ot_number"/>
                     <field name="po_number"/>
+                    <field name="po_fecha_creacion"/>
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
                     <field name="product_name"/>
@@ -89,15 +93,16 @@
                             </page>
 
                             <page string="MATERIALES" attrs="{'invisible': [('retrabajo', '=', True)]}">
-                                    <field name="materials_ids" >
-                                        <tree editable="bottom">
-                                            <field name="materials_list"/>  <button type="object" name="action_materials_list" icon="fa-check" class="btn btn-primary" title="check"/>
-                                            <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
-                                            <field name="materials_inventory"/>
-                                            <field name="materials_availabe"/>
-                                            <field name="materials_required" options='{"type": "number"}'/>
-                                        </tree>
-                                    </field>
+
+                                <field name="materials_ids" >
+                                    <tree editable="bottom">
+                                        <field name="materials_list"/>
+                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
+                                        <field name="materials_inventory"/>
+                                        <field name="materials_availabe"/>
+                                        <field name="materials_required" options='{"type": "number"}'/>
+                                    </tree>
+                                </field>
                             </page>
                             <page string="RECHAZO">
                                 <field name="rechazo_id">
