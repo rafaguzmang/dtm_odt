@@ -72,7 +72,8 @@ class DtmOdt(models.Model):
             self.proceso(parcial)
             # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         else:
-            self.firma = self.env.user.partner_id.name
+            if email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
+                self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.write({"firma": self.firma})
             if self.firma_ventas:
@@ -133,7 +134,7 @@ class DtmOdt(models.Model):
                 "materials_ids":self.materials_ids
             })
         else:
-             print(self.materials_ids)
+             # print(self.materials_ids)
              get_almacen.create({
                 "ot_number":self.ot_number,
                 "tipe_order":self.tipe_order,
@@ -234,7 +235,9 @@ class DtmOdt(models.Model):
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         self.cortadora_laser()
         self.cortadora_tubos()
-        self.compras_odt()
+        email = self.env.user.partner_id.email
+        if email in ['ingenieria1@dtmindustry.com']:
+            self.compras_odt()
 
     def cortadora_laser(self):
         if self.cortadora_id or self.primera_pieza_id:
