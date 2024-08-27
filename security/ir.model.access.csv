@@ -11,6 +11,8 @@ access_dtm_npi,access.dtm.npi,model_dtm_npi,base.group_user,1,1,1,1
 access_dtm_odt_sercicios,access.dtm.odt.sercicios,model_dtm_odt_sercicios,base.group_user,1,1,1,1
 access_dtm_odt_servmateriales,access.dtm.odt.servmateriales,model_dtm_odt_servmateriales,base.group_user,1,1,1,1
 
+access_dtm_odt_ligas,access.dtm.odt.ligas,model_dtm_odt_ligas,base.group_user,1,1,1,1
+
 
 
 

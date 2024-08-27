@@ -43,8 +43,8 @@ class DtmOdt(models.Model):
     primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
     tubos_id = fields.Many2many("ir.attachment", "tubos_id")
     no_cotizacion = fields.Char('')
-    orden_compra_pdf = fields.Many2one("ir.attachment",string='File', readonly =True)
-    orden_compra_binary = fields.Binary(related='orden_compra_pdf.datas',string="Archivo")
+    orden_compra_pdf = fields.Many2many("ir.attachment",string='File', readonly =True)
+    ligas_id = fields.One2many("dtm.odt.ligas","model_id")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -605,7 +605,8 @@ class DtmOdt(models.Model):
                 get_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
                 if get_ir:
                     lines = self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id")
-                    get.orden_compra_pdf = get_ir.id
+                    # get.write({'orden_compra_pdf': [(5, 0, {})]})
+                    get.write({'orden_compra_pdf': [(6, 0, lines)]})
 
         # get_self = self.env['dtm.odt'].search([])
         # get_pos = self.env['dtm.ordenes.compra'].search([])
@@ -809,12 +810,13 @@ class MaterialeServicios (models.Model):
     # materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     materials_required = fields.Integer("REQUERIDO")
 
-# class OtFile(models.Model):
-#     _name="dtm.odt.otfile"
-#     _description = "Modelo para almacenar el archivo de la orden de compra"
-#     _rec_name = "nombre"
-#     archivo = fields.Binary()
-#     nombre = fields.Char()
+class OtFile(models.Model):
+    _name="dtm.odt.ligas"
+    _description = "Modelo para almacenar el archivo de las ligas para el admin"
+
+    model_id = fields.Many2one("dtm.odt")
+    liga = fields.Char(string="Ligas")
+
 
 
 
