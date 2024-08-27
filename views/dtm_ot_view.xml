@@ -55,12 +55,24 @@
                             <h1 > ORDEN DE TRABAJO </h1>
                             <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
 
-                        <group>
-                            <group>
-                                <field name="name_client" />
-                                <field name="po_number"/>
+                        <group >
+                            <group style="display: flex;flex-direction: column;">
+                                <group>
+                                    <field name="name_client" />
+                                </group>
+                                <group>
+                                    <field name="po_number"/>
+                                </group>
+                                <group style="display: flex;width: 100%;" class="col-12">
+                                    <field name="orden_compra_pdf"  readonly="1" options="{'no_open': True}"/>
+                                    <div>
+                                        <field name="orden_compra_binary" widget="pdf_view" readonly="1"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="firma_ventas" />
+                                </group>
 
-                                <field name="firma_ventas" />
                             </group>
 
                             <group>
