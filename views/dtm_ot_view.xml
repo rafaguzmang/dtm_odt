@@ -16,7 +16,6 @@
                     <field name="ot_number"/>
                     <field name="po_number"/>
                     <field name="disenador"/>
-
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
                     <filter string="En produccion" name="produccion" domain="[('firma_ventas','!=',False)]"/>
                </search>
@@ -61,6 +60,7 @@
                             <group>
                                 <field name="name_client" />
                                 <field name="po_number"/>
+
                                 <field name="firma_ventas" />
                             </group>
 
