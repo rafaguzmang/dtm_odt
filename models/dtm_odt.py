@@ -14,12 +14,12 @@ class DtmOdt(models.Model):
 
     #---------------------Basicos----------------------
 
-    ot_number = fields.Integer(string="OT",readonly=True)
+    ot_number = fields.Integer(string="NO.",readonly=True)
     tipe_order = fields.Char(string="TIPO",readonly=True)
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
-    po_number = fields.Char(string="PO",readonly=True)
+    po_number = fields.Char(string="PO/Cot",readonly=True)
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today(),readonly=True)
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")
@@ -32,6 +32,7 @@ class DtmOdt(models.Model):
     firma_almacen = fields.Char()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
+    firma_ingenieria = fields.Char(string="Ingenieria", readonly = True)
     po_fecha_creacion = fields.Date(string="Creación PO", readonly=True)
     po_fecha = fields.Date(string="Fecha PO", readonly=True)
 
@@ -67,20 +68,16 @@ class DtmOdt(models.Model):
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
-        if not parcial:
-            self.retrabajo = True
-        if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"]:
+        if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK":
             self.firma_ventas = self.env.user.partner_id.name
             self.proceso(parcial)
-            # get_items = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
         else:
             if email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
                 self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.write({"firma": self.firma})
-            if self.firma_ventas:
+            if self.firma_ventas and self.tipe_order != "SK":
                 self.proceso(parcial)
-        self.retrabajo = False
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
@@ -235,11 +232,14 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
-        self.cortadora_laser()
-        self.cortadora_tubos()
         email = self.env.user.partner_id.email
         if email in ['ingenieria1@dtmindustry.com']:
+            self.firma_ingenieria = self.env.user.partner_id.name
+            self.cortadora_laser()
+            self.cortadora_tubos()
             self.compras_odt()
+            # if not parcial:
+            #     self.retrabajo = True
 
     def cortadora_laser(self):
         if self.cortadora_id or self.primera_pieza_id:
@@ -599,7 +599,7 @@ class DtmOdt(models.Model):
 
         for get in get_self:
             get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
-            if get_po_file:
+            if get_po_file and get.tipe_order != "SK":
                 get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
                 get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
 
