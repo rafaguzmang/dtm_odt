@@ -17,6 +17,9 @@
                     <field name="po_number"/>
                     <field name="name_client"/>
                     <field name="disenador"/>
+                    <filter string="OT" name="ot" domain="[('tipe_order','=','OT')]"/>
+                    <filter string="SK" name="sk" domain="[('tipe_order','=','SK')]"/>
+                    <separator/>
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
                     <filter string="En produccion" name="produccion" domain="[('firma_ventas','!=',False)]"/>
                </search>
@@ -29,6 +32,7 @@
             <field name="arch" type="xml">
                 <tree  >
                     <field name="ot_number"/>
+                    <field name="tipe_order"/>
                     <field name="po_number"/>
                     <field name="po_fecha"/>
                     <field name="po_fecha_creacion"/>
@@ -59,14 +63,16 @@
                             <h2> Diseño y Transformaciones Metálicas S. de R.L. de C.V.</h2>
 
                         <group >
-                            <group style="display: flex;flex-direction: column;">
+                            <group class="col-6">
                                 <field name="name_client" />
                                 <field name="po_number"/>
-                                <field name="firma_ventas" />
+                                <field name="firma_ventas" attrs="{'invisible': [('tipe_order','=','SK')]}"/>
+                                <field name="firma_ingenieria" attrs="{'invisible': [('tipe_order','=','SK')]}"/>
                             </group>
 
                             <group>
                                 <field name="product_name" />
+                                <field name="tipe_order"/>
                                 <field name="ot_number"/>
                                 <field name="retrabajo" invisible="1"/>
                             </group>
@@ -93,9 +99,9 @@
                                 </group>
                             </page>
 
-                            <page string="MATERIALES" attrs="{'invisible': [('retrabajo', '=', True)]}">
+                            <page string="MATERIALES" attrs="{'invisible': [('tipe_order','=','SK')]}">
 
-                                <field name="materials_ids" >
+                                <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom">
                                         <field name="materials_list"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
@@ -105,8 +111,8 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="RECHAZO">
-                                <field name="rechazo_id">
+                            <page string="RECHAZO" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                                <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom">
                                         <field name="descripcion"/>
                                         <field name="fecha"/>
@@ -115,15 +121,15 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="PLANOS" attrs="{'invisible': [('retrabajo', '=', True)]}">
-                                <field name="anexos_id" widget="many2many_binary" />
+                            <page string="PLANOS" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                                <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
 
                             </page>
-                            <page string="MITSUBISHI" attrs="{'invisible': [('retrabajo', '=', True)]}">
+                            <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','=','SK')]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_id" widget="many2many_binary" />
-                                        <field name="cortadora_id" widget="many2many_binary" />
+                                        <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+                                        <field name="cortadora_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
                                     </div>
                                     <div style="width: 50%">
                                         <field name="ligas_id"  >
@@ -134,11 +140,10 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="LTP 6032" attrs="{'invisible': [('retrabajo', '=', True)]}">
-
+                            <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','=','SK')]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
-                                        <field name="tubos_id" widget="many2many_binary" />
+                                        <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}" />
                                     </div>
                                     <div style="width: 50%">
                                         <field name="ligas_tubos_id"  >
@@ -166,7 +171,7 @@
                                      </form>
                                 </field>
                             </page>
-                            <page string="MAQUINADOS">
+                            <page string="MAQUINADOS" attrs="{'invisible': [('tipe_order','=','SK')]}">
                                 <field name="maquinados_id">
                                     <tree>
                                         <field name="nombre"/>
