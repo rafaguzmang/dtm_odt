@@ -152,7 +152,7 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-                             <page string="Archivo PO">
+                             <page string="PO/ARCHIVOS">
                                   <field name="orden_compra_pdf" >
                                      <tree>
                                             <field name="name" invisible="0"></field>

@@ -600,15 +600,20 @@ class DtmOdt(models.Model):
         for get in get_self:
             get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
             if get_po_file:
-                get_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
+                get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
+                get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
 
-                if get_ir:#Agrega archivo pdf de la po
-                    lines = self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id")
-                    # get.write({'orden_compra_pdf': [(5, 0, {})]})
+                lines = []
+                if get_po_ir:#Agrega archivo pdf de la po
+                    lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id"))
+                if get_anex_ir:#Agrega archivos anexos
+                    for anexo in get_anex_ir:
+                        lines.append(anexo.id.id)
+                if lines:
+                    get.write({'orden_compra_pdf': [(5, 0, {})]})
                     get.write({'orden_compra_pdf': [(6, 0, lines)]})
 
                 #Agrega fechas importantes de la PO
-                print(get_po_file.fecha_captura_po,get_po_file.fecha_po)
                 get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
                            "po_fecha":get_po_file.fecha_po})
 
