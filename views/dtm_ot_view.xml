@@ -30,6 +30,7 @@
                 <tree  >
                     <field name="ot_number"/>
                     <field name="po_number"/>
+                    <field name="po_fecha"/>
                     <field name="po_fecha_creacion"/>
                     <field name="date_rel" widget="date"/>
                     <field name="name_client"/>
@@ -134,7 +135,19 @@
                                 </div>
                             </page>
                             <page string="LTP 6032" attrs="{'invisible': [('retrabajo', '=', True)]}">
-                                <field name="tubos_id" widget="many2many_binary" />
+
+                                 <div style="display:flex;">
+                                    <div style="display:flex;width: 50%">
+                                        <field name="tubos_id" widget="many2many_binary" />
+                                    </div>
+                                    <div style="width: 50%">
+                                        <field name="ligas_tubos_id"  >
+                                            <tree editable="bottom">
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
+                                </div>
 
                             </page>
                             <page string="NOTAS">
