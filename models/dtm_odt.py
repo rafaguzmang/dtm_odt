@@ -666,6 +666,8 @@ class TestModelLine(models.Model):
                 get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
              elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
                 get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
+             elif re.match(".*[mM][aA][qQ][uU][iI][nN][aA][dD][oO][sS].*",nombre):
+                get_almacen = self.env['dtm.materiales.maquinados'].search([("codigo","=",codigo)])
              if len(get_almacen) > 1:
                 raise ValidationError("Codigo duplicado, favor de borrar desde Almacén.")
          return  get_almacen
