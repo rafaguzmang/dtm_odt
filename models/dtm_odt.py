@@ -642,44 +642,12 @@ class TestModelLine(models.Model):
     materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
 
-    def action_materials_list(self):
-        pass
-
-    def consultaAlmacen(self,nombre,codigo):
-         get_almacen =  self.env['dtm.materiales.otros'].search([("codigo", "=", codigo)])
-         if get_almacen:
-             return get_almacen
-         if nombre:
-             if re.match(".*[Ll][aáAÁ][mM][iI][nN][aA].*",nombre):
-                get_almacen = self.env['dtm.materiales'].search([("codigo","=",codigo)])
-             elif re.match(".*[aáAÁ][nN][gG][uU][lL][oO][sS]*.*",nombre):
-                get_almacen = self.env['dtm.materiales.angulos'].search([("codigo","=",codigo)])
-             elif re.match(".*[cC][aA][nN][aA][lL].*",nombre):
-                get_almacen = self.env['dtm.materiales.canal'].search([("codigo","=",codigo)])
-             elif re.match(".*[pP][eE][rR][fF][iI][lL].*",nombre):
-                get_almacen = self.env['dtm.materiales.perfiles'].search([("codigo","=",codigo)])
-             elif re.match(".*[pP][iI][nN][tT][uU][rR][aA].*",nombre):
-                get_almacen = self.env['dtm.materiales.pintura'].search([("codigo","=",codigo)])
-             elif re.match(".*[Rr][oO][dD][aA][mM][iI][eE][nN][tT][oO].*",nombre):
-                get_almacen = self.env['dtm.materiales.rodamientos'].search([("codigo","=",codigo)])
-             elif re.match(".*[tT][oO][rR][nN][iI][lL][lL][oO].*",nombre):
-                get_almacen = self.env['dtm.materiales.tornillos'].search([("codigo","=",codigo)])
-             elif re.match(".*[tT][uU][bB][oO].*",nombre):
-                get_almacen = self.env['dtm.materiales.tubos'].search([("codigo","=",codigo)])
-             elif re.match(".*[vV][aA][rR][iI][lL][lL][aA].*",nombre):
-                get_almacen = self.env['dtm.materiales.varilla'].search([("codigo","=",codigo)])
-             elif re.match(".*[sS][oO][lL][eE][rR][aA].*",nombre):
-                get_almacen = self.env['dtm.materiales.solera'].search([("codigo","=",codigo)])
-             elif re.match(".*[mM][aA][qQ][uU][iI][nN][aA][dD][oO][sS].*",nombre):
-                get_almacen = self.env['dtm.materiales.maquinados'].search([("codigo","=",codigo)])
-             if len(get_almacen) > 1:
-                raise ValidationError("Codigo duplicado, favor de borrar desde Almacén.")
-         return  get_almacen
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
         for result in self:
             result.materials_required = 0
+<<<<<<< HEAD
             consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
 
             if consulta:
@@ -700,18 +668,39 @@ class TestModelLine(models.Model):
                 list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
                 cont = 0
                 suma = 0
+=======
+>>>>>>> 7aa758880570f5a7ee5a20f9ffc2394a728675e4
 
-                for search in list_search:
-                    list_materiales = search.materials_ids if cont == 0 or cont ==2 else search.materials_npi_ids
-                    cont += 1
-                    material_line = list(filter(lambda x:x!=False,list_materiales))
-                    diseno_almacen = list(filter(lambda x:x.materials_list.id==self.materials_list.id,material_line))
-                    cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
-                    suma += cantidad_material
-                consulta.write({
-                    "apartado": consulta.cantidad if suma > consulta.cantidad else suma,
-                    "disponible":consulta.cantidad - suma if consulta.cantidad - suma > 0 else 0
-                })
+            get_almacen = self.env['dtm.diseno.almacen'].browse(self.materials_list.id)#Obtiene la información por medio del id del item seleccionado
+            print(get_almacen.id,get_almacen.nombre)
+            self.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
+            self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
+            self.materials_required = self.materials_cuantity - self.materials_availabe
+            if self.materials_cuantity < 0:
+                self.materials_cuantity = 0
+            if self.materials_availabe < 0:
+                self.materials_availabe = 0
+            #Revisa las ordenes que contengan este material y que este apartado
+            #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
+            get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)])
+            get_npi = self.env['dtm.npi'].search([("firma_ventas","=",False)])
+            get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+            get_proceso_npi = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+            list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
+            cont = 0
+            suma = 0
+
+            for search in list_search:
+                list_materiales = search.materials_ids if cont == 0 or cont ==2 else search.materials_npi_ids
+                cont += 1
+                material_line = list(filter(lambda x:x!=False,list_materiales))
+                diseno_almacen = list(filter(lambda x:x.materials_list.id==self.materials_list.id,material_line))
+                cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
+                suma += cantidad_material
+            get_almacen.write({
+                "apartado": get_almacen.cantidad if suma > get_almacen.cantidad else suma,
+                "disponible":get_almacen.cantidad - suma if get_almacen.cantidad - suma > 0 else 0
+            })
 
     @api.depends("materials_list")
     def _compute_material_list(self):
