@@ -645,7 +645,6 @@ class TestModelLine(models.Model):
             result.materials_required = 0
 
             get_almacen = self.env['dtm.diseno.almacen'].browse(self.materials_list.id)#Obtiene la información por medio del id del item seleccionado
-            print(get_almacen.id,get_almacen.nombre)
             self.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
             self.materials_required = self.materials_cuantity - self.materials_availabe
