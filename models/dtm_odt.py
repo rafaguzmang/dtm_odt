@@ -647,32 +647,7 @@ class TestModelLine(models.Model):
     def _compute_materials_inventory(self):
         for result in self:
             result.materials_required = 0
-<<<<<<< HEAD
-            consulta  = result.consultaAlmacen(result.nombre,result.materials_list.id)
-
-            if consulta:
-                self.materials_inventory = consulta.cantidad# Siempre será el valor dado por la consulta de almacén
-                self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= consulta.disponible else consulta.disponible
-                self.materials_required = self.materials_cuantity - self.materials_availabe
-                #Condicionales para cantidad, apartado y requerido
-                if self.materials_cuantity < 0:
-                    self.materials_cuantity = 0
-                if self.materials_availabe < 0:
-                    self.materials_availabe = 0
-                #Revisa las ordenes que contengan este material y que este apartado
-                #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
-                get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)])
-                get_npi = self.env['dtm.npi'].search([("firma_ventas","=",False)])
-                get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
-                get_proceso_npi = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
-                list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
-                cont = 0
-                suma = 0
-=======
->>>>>>> 7aa758880570f5a7ee5a20f9ffc2394a728675e4
-
             get_almacen = self.env['dtm.diseno.almacen'].browse(self.materials_list.id)#Obtiene la información por medio del id del item seleccionado
-            print(get_almacen.id,get_almacen.nombre)
             self.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
             self.materials_required = self.materials_cuantity - self.materials_availabe
