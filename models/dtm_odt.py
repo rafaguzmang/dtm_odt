@@ -233,11 +233,12 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         email = self.env.user.partner_id.email
+        self.compras_odt()
         if email in ['ingenieria1@dtmindustry.com']:
             self.firma_ingenieria = self.env.user.partner_id.name
             self.cortadora_laser()
             self.cortadora_tubos()
-            self.compras_odt()
+
             # if not parcial:
             #     self.retrabajo = True
 
@@ -555,35 +556,37 @@ class DtmOdt(models.Model):
             if list_item:#Update y create si la el código ya ha sido comprado y se necesitan mas sacando el calculo correspondiente
                 for item in list_item:
                     get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
-                    medida = get_self.medida if get_self.medida else ""
-                    vals = {
-                        "orden_trabajo":self.ot_number,
-                        "codigo":item,
-                        "nombre":get_self.nombre + medida,
-                        "disenador":self.firma
-                        }
-                    get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")#Busca si ya hay comprados
-                    if not get_real_item:
-                        vals["cantidad"] = get_self.materials_required
-                    else:
-                        vals["cantidad"] = get_self.materials_required-sum(get_real_item)
-                    get_item_compra = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)])
-                    if vals["cantidad"] > 0:
-                        get_item_compra.write(vals) if get_item_compra else get_item_compra.create(vals)
+                    if not get_self.revicion:
+                        medida = get_self.medida if get_self.medida else ""
+                        vals = {
+                            "orden_trabajo":self.ot_number,
+                            "codigo":item,
+                            "nombre":get_self.nombre + medida,
+                            "disenador":self.firma
+                            }
+                        get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")#Busca si ya hay comprados
+                        if not get_real_item:
+                            vals["cantidad"] = get_self.materials_required
+                        else:
+                            vals["cantidad"] = get_self.materials_required-sum(get_real_item)
+                        get_item_compra = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)])
+                        if vals["cantidad"] > 0:
+                            get_item_compra.write(vals) if get_item_compra else get_item_compra.create(vals)
 
             if list_requ:#Create
                 for item in list_requ:
 
                     get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
-                    medida = get_self.medida if get_self.medida else ""
-                    vals = {
-                        "orden_trabajo":self.ot_number,
-                        "codigo":item,
-                        "nombre":get_self.nombre + medida,
-                        "cantidad":get_self.materials_required,
-                        "disenador":self.firma
-                    }
-                    self.env['dtm.compras.requerido'].create(vals)
+                    if not get_self.revicion:
+                        medida = get_self.medida if get_self.medida else ""
+                        vals = {
+                            "orden_trabajo":self.ot_number,
+                            "codigo":item,
+                            "nombre":get_self.nombre + medida,
+                            "cantidad":get_self.materials_required,
+                            "disenador":self.firma
+                        }
+                        self.env['dtm.compras.requerido'].create(vals)
 
 # --------------------------------- Botones del header ----------------------------------------------
 
@@ -641,7 +644,7 @@ class TestModelLine(models.Model):
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
-
+    revicion = fields.Boolean(string="Revisión")
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
