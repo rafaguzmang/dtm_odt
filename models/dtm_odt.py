@@ -602,27 +602,28 @@ class DtmOdt(models.Model):
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(DtmOdt,self).get_view(view_id, view_type,**options)
 
-        get_self = self.env['dtm.odt'].search([])
-
-        for get in get_self:
-            get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
-            if get_po_file and get.tipe_order != "SK":
-                get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
-                get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
-
-                lines = []
-                if get_po_ir:#Agrega archivo pdf de la po
-                    lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id"))
-                if get_anex_ir:#Agrega archivos anexos
-                    for anexo in get_anex_ir:
-                        lines.append(anexo.id.id)
-                if lines:
-                    get.write({'orden_compra_pdf': [(5, 0, {})]})
-                    get.write({'orden_compra_pdf': [(6, 0, lines)]})
-
-                #Agrega fechas importantes de la PO
-                get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
-                           "po_fecha":get_po_file.fecha_po})
+        # get_self = self.env['dtm.odt'].search([])
+        #
+        # for get in get_self:
+        #     get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)],limit=1)
+        #     if get_po_file and get.tipe_order != "SK":
+        #         print(get_po_file.archivos_id,get.po_number)
+        #         get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id[0].id)
+        #         get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
+        #
+        #         lines = []
+        #         if get_po_ir:#Agrega archivo pdf de la po
+        #             lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id[0].id).mapped("id"))
+        #         if get_anex_ir:#Agrega archivos anexos
+        #             for anexo in get_anex_ir:
+        #                 lines.append(anexo.id.id)
+        #         if lines:
+        #             get.write({'orden_compra_pdf': [(5, 0, {})]})
+        #             get.write({'orden_compra_pdf': [(6, 0, lines)]})
+        #
+        #         #Agrega fechas importantes de la PO
+        #         get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
+        #                    "po_fecha":get_po_file.fecha_po})
 
 
 
