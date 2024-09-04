@@ -101,12 +101,13 @@
                             <page string="MATERIALES" attrs="{'invisible': [('tipe_order','=','SK')]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
-                                    <tree editable="bottom">
+                                    <tree editable="bottom" >
                                         <field name="materials_list"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
+                                        <field name="revicion" />
                                     </tree>
                                 </field>
                             </page>
