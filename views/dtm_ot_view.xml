@@ -63,14 +63,14 @@
 
                         <group >
                             <group class="col-6">
-                                <field name="name_client" />
+                                <field name="name_client" attrs="{'readonly': [('ot_number', '=', 'OT')]}" />
                                 <field name="po_number"/>
                                 <field name="firma_ventas" attrs="{'invisible': [('tipe_order','=','SK')]}"/>
                                 <field name="firma_ingenieria" attrs="{'invisible': [('tipe_order','=','SK')]}"/>
                             </group>
 
                             <group>
-                                <field name="product_name" />
+                                <field name="product_name" attrs="{'readonly': [('ot_number', '=', 'OT')]}" />
                                 <field name="tipe_order"/>
                                 <field name="ot_number"/>
                                 <field name="retrabajo" invisible="1"/>
@@ -80,12 +80,12 @@
                             <group>
                                 <field name="firma" />
                                 <field name="date_in" />
-                                <field name="date_rel"/>
+                                <field name="date_rel" attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
 <!--                                <field name="nesteos" widget="boolean_toggle" />-->
                             </group>
                              <group>
                                 <field name="version_ot"  options='{"type": "number"}'/>
-                                <field name="cuantity" options='{"type": "number"}'/>
+                                <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
                                 <field name="color" />
 <!--                                <field name="planos" widget="boolean_toggle" />-->
                             </group>
