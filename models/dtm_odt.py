@@ -13,9 +13,13 @@ class DtmOdt(models.Model):
     _order = "ot_number desc"
 
     #---------------------Basicos----------------------
+    def action_autoNum(self): # Genera número consecutivo de NPI
+        get_terminado = self.env['dtm.facturado.npi'].search([],order='ot_number desc',limit=1)
+        get_npi = self.env['dtm.odt'].search([("tipe_order","=","NPI")],order='ot_number desc', limit=1)
+        return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
 
-    ot_number = fields.Integer(string="NO.",readonly=True)
-    tipe_order = fields.Char(string="TIPO",readonly=True)
+    ot_number = fields.Integer(string="NO.",default=action_autoNum,readonly=True)
+    tipe_order = fields.Char(string="TIPO",readonly=True, default='NPI')
     name_client = fields.Char(string="CLIENTE",readonly=True)
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO",readonly=True)
     date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
