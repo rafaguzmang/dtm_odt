@@ -107,7 +107,7 @@
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
-                                        <field name="revicion" />
+                                        <field name="revicion"/>
                                     </tree>
                                 </field>
                             </page>
@@ -158,7 +158,7 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-                             <page string="PO/ARCHIVOS">
+                            <page string="PO/ARCHIVOS">
                                   <field name="orden_compra_pdf" >
                                      <tree>
                                             <field name="name" invisible="0"></field>
@@ -176,8 +176,6 @@
                                     <tree>
                                         <field name="nombre"/>
                                         <field name="cantidad"/>
-                                        <field name="tipo_orden"/>
-                                        <field name="numero_orden"/>
                                         <field name="proveedor"/>
                                         <field name="fecha_solicitud"/>
                                         <field name="fecha_compra"/>
@@ -188,8 +186,6 @@
                                             <group>
                                             <field name="nombre"/>
                                             <field name="cantidad" options='{"type": "number"}'/>
-                                            <field name="tipo_orden"/>
-                                            <field name="numero_orden"/>
                                             <field name="proveedor"/>
                                             </group>
                                             <group>
@@ -200,10 +196,19 @@
                                         </group>
                                         <notebook>
                                             <page string="Materiales">
-                                                <field name="material_id"/>
+                                                <field name="material_id">
+                                                      <tree editable="bottom" >
+                                                        <field name="materials_list"/>
+                                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
+                                                        <field name="materials_inventory"/>
+                                                        <field name="materials_availabe"/>
+                                                        <field name="materials_required" options='{"type": "number"}'/>
+                                                        <field name="revicion"/>
+                                                    </tree>
+                                                </field>
                                             </page>
                                              <page string="Anexos">
-                                                <field name="anexos_id"/>
+                                                <field name="anexos_id" widget="many2many_binary"/>
                                             </page>
                                         </notebook>
 

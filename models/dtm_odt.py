@@ -35,7 +35,6 @@ class DtmOdt(models.Model):
     firma_ingenieria = fields.Char(string="Ingenieria", readonly = True)
     po_fecha_creacion = fields.Date(string="Creación PO", readonly=True)
     po_fecha = fields.Date(string="Fecha PO", readonly=True)
-
     planos = fields.Boolean(string="Planos",default=False)
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
@@ -58,7 +57,8 @@ class DtmOdt(models.Model):
     liberado = fields.Char()
     retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
 
-    maquinados_id = fields.One2many("dtm.odt.sercicios","extern_id")
+    maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
+
 
 
     # ----------------------------------- Funciones ----------------------------------------------------------
@@ -233,7 +233,8 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         email = self.env.user.partner_id.email
-        self.compras_odt()
+        self.compras_odt(self.materials_ids,1)
+        self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com']:
             self.firma_ingenieria = self.env.user.partner_id.name
             self.cortadora_laser()
@@ -279,12 +280,12 @@ class DtmOdt(models.Model):
             # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
             # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
             elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
-                print("Primera pieza solo en corte")
+                # print("Primera pieza solo en corte")
                 get_corte = get_encorte_primera
                 get_corte.write(vals)
                 material_corte = self.primera_pieza_id
             elif not get_encorte_primera and get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
-                print("Primera pieza cortada pero no hay segundas piezas")
+                # print("Primera pieza cortada pero no hay segundas piezas")
                 if self.primera_pieza_id:
                     vals["primera_pieza"]= True
                     get_corte.create(vals) #Crea la orden de primera pieza
@@ -298,7 +299,7 @@ class DtmOdt(models.Model):
                             for orden in ordenes:
                                 mapa = orden.cortadora_id.mapped("nombre")
                                 record_nombres.extend(mapa)
-                            print(record_nombres)
+                            # print(record_nombres)
                         for thisFile in self.primera_pieza_id: #Comprara los nuevos archivos con los ya cortados
                             attachment = self.env['ir.attachment'].browse(thisFile.id)
                             if attachment.name in record_nombres:
@@ -513,30 +514,20 @@ class DtmOdt(models.Model):
                         lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    def compras_odt(self):
+    def compras_odt(self,materiales,modelo,servicio=None):
         get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
         get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number))])
-        if self.materials_ids:# si la orden contiene materiales ejecuta el código
-            compras_codigo = get_compras.mapped("codigo")
-            materiales_self = self.materials_ids.mapped("materials_list").mapped("id")
-            no_coinciden = list(filter(lambda x:x not in materiales_self,compras_codigo))
-            list(map(lambda x:self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",x)]).unlink(),no_coinciden))
-            get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number))])
-
-
+        if materiales:# si la orden contiene materiales ejecuta el código
             mapMaterial = {}# Obtiene los codigos de los materiales con sus cantidades del modulo diseño
-            for material in self.materials_ids:
+            for material in materiales:
                 mapMaterial[material.materials_list.id] = material.materials_required if not mapMaterial.get(material.materials_list.id) else mapMaterial.get(material.materials_list.id) + material.materials_required
             mapCompras = {}# Obtiene los codigos de los materiales con sus cantidades del modulo compras_requerido y compras realizado
             mapComprasTotal = {}
             for material in get_compras:
                  mapCompras[material.codigo] = material.cantidad if not mapCompras.get(material.codigo) else mapCompras.get(material.codigo) + material.cantidad
                  mapComprasTotal[material.codigo] = material.cantidad if not mapComprasTotal.get(material.codigo) else mapComprasTotal.get(material.codigo) + material.cantidad
-
             for material in get_realizado:
                 mapComprasTotal[material.codigo] = material.cantidad if not mapComprasTotal.get(material.codigo) else mapComprasTotal.get(material.codigo) + material.cantidad
-
-
             list_cero = []#Lista para borrar materiales que estén en cero y existan solo en compras requerido
             list_item = []#Actualiza materiales que estén en compras requerido
             list_requ = []#Carga los materiales a compras si su cantidad es mayor a cero
@@ -554,7 +545,7 @@ class DtmOdt(models.Model):
 
             if list_item:#Update y create si la el código ya ha sido comprado y se necesitan mas sacando el calculo correspondiente
                 for item in list_item:
-                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
+                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0] if modelo == 1 else materiales.search([("materials_list","=",item),("servicio_id","=",materiales[0].servicio_id.id)])[0]
                     if not get_self.revicion:
                         medida = get_self.medida if get_self.medida else ""
                         vals = {
@@ -562,7 +553,8 @@ class DtmOdt(models.Model):
                             "codigo":item,
                             "nombre":get_self.nombre + medida,
                             "disenador":self.firma
-                            }
+                        }
+                        vals['servicio'] = True if servicio else None
                         get_real_item = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",item)]).mapped("cantidad")#Busca si ya hay comprados
                         if not get_real_item:
                             vals["cantidad"] = get_self.materials_required
@@ -574,7 +566,7 @@ class DtmOdt(models.Model):
 
             if list_requ:#Create
                 for item in list_requ:
-                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0]
+                    get_self = self.materials_ids.search([("materials_list","=",item),("model_id","=",self.materials_ids[0].model_id.id)])[0] if modelo == 1 else materiales.search([("materials_list","=",item),("servicio_id","=",materiales[0].servicio_id.id)])[0]
                     if not get_self.revicion:
                         medida = get_self.medida if get_self.medida else ""
                         vals = {
@@ -584,7 +576,45 @@ class DtmOdt(models.Model):
                             "cantidad":get_self.materials_required,
                             "disenador":self.firma
                         }
+                        vals['servicio'] = True if servicio else None
                         self.env['dtm.compras.requerido'].create(vals)
+
+    def compras_servicios(self):
+        get_servicios = self.env['dtm.compras.servicios'].search([("numero_orden","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
+        if get_servicios:
+            for servicio in self.maquinados_id:
+                vals = {
+                    "nombre": servicio.nombre,
+                    "cantidad": servicio.cantidad,
+                    "tipo_orden": self.tipe_order,
+                    "numero_orden": self.ot_number,
+                    "proveedor": servicio.proveedor,
+                    "fecha_solicitud": servicio.fecha_solicitud,
+                    "fecha_compra": servicio.fecha_compra,
+                    "fecha_entrada": servicio.fecha_entrada,
+                    "material_id": servicio.material_id,
+                    "anexos_id": servicio.anexos_id
+                }
+                get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
+                self.compras_odt(servicio.material_id,2,True)
+
+    @api.onchange("maquinados_id")
+    def _onchange_maquinados_id(self):
+        for item in self.maquinados_id:
+            nombre = f"Maquinado {item.nombre}"
+            get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+            get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre})
+            get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+
+            get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"Maquinado {item.nombre}")])
+            vals = {
+                "model_id":self.id,
+                "nombre":nombre,
+                "materials_list":get_almacen.id,
+                "materials_cuantity":item.cantidad,
+            }
+            get_materials.write(vals) if item.nombre in self.materials_ids.mapped('nombre') else get_materials.create(vals)
+
 
 # --------------------------------- Botones del header ----------------------------------------------
 
@@ -633,6 +663,7 @@ class TestModelLine(models.Model):
     _description = "Tabla de materiales"
 
     model_id = fields.Many2one("dtm.odt")
+    servicio_id = fields.Many2one("dtm.odt.servicios")
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
 
@@ -647,21 +678,20 @@ class TestModelLine(models.Model):
     def _compute_materials_inventory(self):
         for result in self:
             result.materials_required = 0
-
-            get_almacen = self.env['dtm.diseno.almacen'].browse(self.materials_list.id)#Obtiene la información por medio del id del item seleccionado
-            self.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
-            self.materials_availabe = self.materials_cuantity if self.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
-            self.materials_required = self.materials_cuantity - self.materials_availabe
-            if self.materials_cuantity < 0:
-                self.materials_cuantity = 0
-            if self.materials_availabe < 0:
-                self.materials_availabe = 0
+            get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
+            result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
+            result.materials_availabe = result.materials_cuantity if result.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
+            result.materials_required = result.materials_cuantity - result.materials_availabe
+            if result.materials_cuantity < 0:
+                result.materials_cuantity = 0
+            if result.materials_availabe < 0:
+                result.materials_availabe = 0
             #Revisa las ordenes que contengan este material y que este apartado
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
-            get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)])
-            get_npi = self.env['dtm.npi'].search([("firma_ventas","=",False)])
-            get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
-            get_proceso_npi = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+            get_odt = result.env['dtm.odt'].search([("firma_ventas","=",False)])
+            get_npi = result.env['dtm.npi'].search([("firma_ventas","=",False)])
+            get_proceso = result.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
+            get_proceso_npi = result.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
             list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
             cont = 0
             suma = 0
@@ -670,7 +700,7 @@ class TestModelLine(models.Model):
                 list_materiales = search.materials_ids if cont == 0 or cont ==2 else search.materials_npi_ids
                 cont += 1
                 material_line = list(filter(lambda x:x!=False,list_materiales))
-                diseno_almacen = list(filter(lambda x:x.materials_list.id==self.materials_list.id,material_line))
+                diseno_almacen = list(filter(lambda x:x.materials_list.id==result.materials_list.id,material_line))
                 cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
                 suma += cantidad_material
             get_almacen.write({
@@ -703,7 +733,7 @@ class Rechazo(models.Model):
         self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
 
 class Servicios(models.Model):
-    _name = "dtm.odt.sercicios"
+    _name = "dtm.odt.servicios"
     _description = "Modelo para la solicitud de servicios externos"
 
     extern_id = fields.Many2one("dtm.odt")
@@ -716,30 +746,23 @@ class Servicios(models.Model):
     fecha_solicitud = fields.Date(string="Fecha de Solicitud", default= datetime.today(),readonly=True)
     fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
-    material_id = fields.One2many("dtm.odt.servmateriales","model_id")
+    material_id = fields.One2many("dtm.materials.line","servicio_id")
     anexos_id = fields.Many2many("ir.attachment")
 
 class MaterialeServicios (models.Model):
     _name = "dtm.odt.servmateriales"
     _description = "Modelo para la solicitud de materiales para servicios externos"
-
     model_id = fields.Many2one("dtm.odt.sercicios")
-
-    # nombre = fields.Char(compute="_compute_material_list",store=True)
     nombre = fields.Char()
     medida = fields.Char()
-
-    # materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("APARTADO", readonly=True)
-    # materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     materials_required = fields.Integer("REQUERIDO")
 
 class OtFile(models.Model):
     _name="dtm.odt.ligas"
     _description = "Modelo para almacenar el archivo de las ligas para el admin"
-
     model_id = fields.Many2one("dtm.odt")
     model_tubo_id = fields.Many2one("dtm.odt")
     liga = fields.Char(string="Ligas")
