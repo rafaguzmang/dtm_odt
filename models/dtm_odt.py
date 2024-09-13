@@ -520,7 +520,7 @@ class DtmOdt(models.Model):
 
     def compras_odt(self,materiales,modelo,servicio=None):
 
-        print(materiales.mapped('materials_list.id'))
+        # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
             cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
