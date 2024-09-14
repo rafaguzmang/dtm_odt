@@ -6,25 +6,29 @@
             <field name="name">ORDEN DE DISEÑO</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_diseno': True}</field>
         </record>
 
-        <record id = "dtm_ot_search" model="ir.ui.view">
+        <record id="dtm_ot_search" model="ir.ui.view">
             <field name="name">dtm_ot_search</field>
             <field name="model">dtm.odt</field>
-            <field name ="arch" type="xml">
+            <field name="arch" type="xml">
                <search>
                     <field name="ot_number"/>
                     <field name="po_number"/>
                     <field name="name_client"/>
                     <field name="disenador"/>
+                    <!-- Filtros por tipo de orden -->
                     <filter string="OT" name="ot" domain="[('tipe_order','=','OT')]"/>
                     <filter string="SK" name="sk" domain="[('tipe_order','=','SK')]"/>
                     <separator/>
+                    <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
                     <filter string="En produccion" name="produccion" domain="[('firma_ventas','!=',False)]"/>
                </search>
             </field>
         </record>
+
 
         <record id="dtm_ot_tree" model="ir.ui.view">
             <field name="name">dtm.odt.tree</field>
