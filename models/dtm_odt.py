@@ -519,7 +519,7 @@ class DtmOdt(models.Model):
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
     def compras_odt(self,materiales,ref):
-        ref == 2 and print(materiales,ref)
+        # ref == 2 and print(materiales,ref)
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Si el item no tiene marcado el check box hace los calculos para el área de compras
