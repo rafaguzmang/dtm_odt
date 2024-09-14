@@ -237,7 +237,7 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         email = self.env.user.partner_id.email
-        self.compras_odt(self.materials_ids,1)
+        self.compras_odt(self.materials_ids)
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com']:
             self.firma_ingenieria = self.env.user.partner_id.name
@@ -518,63 +518,63 @@ class DtmOdt(models.Model):
                         lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    def compras_odt(self,materiales,modelo,servicio=None):
+    def compras_odt(self,materiales):
 
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
-            cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
-            # print("Solicitado",cantidad_item)
-            # Busca los materiales solicitados en el apartado de requerido
-            get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
-            get_compras_odt = get_compras.mapped('orden_trabajo')
-            get_compras_cantidad = get_compras.mapped('cantidad')
-            # print("Codigo",codigo.materials_list.id)
-            list_reque_odt = list(set(",".join(get_compras_odt).replace(","," ").split()))
-            list_reque_odt = list(filter(lambda x: x!=str(self.ot_number),list_reque_odt))
-            total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
-            cantidad_reque = sum(get_compras_cantidad) - total_reque
-            # print("Requerido",cantidad_reque)
+            if not codigo.revicion:
+                cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
+                # print("Solicitado",cantidad_item)
+                # Busca los materiales solicitados en el apartado de requerido
+                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
+                get_compras_odt = get_compras.mapped('orden_trabajo')
+                get_compras_cantidad = get_compras.mapped('cantidad')
+                # print("Codigo",codigo.materials_list.id)
+                list_reque_odt = list(set(",".join(get_compras_odt).replace(","," ").split()))
+                list_reque_odt = list(filter(lambda x: x!=str(self.ot_number),list_reque_odt))
+                total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
+                cantidad_reque = sum(get_compras_cantidad) - total_reque
+                # print("Requerido",cantidad_reque)
 
-            # Busca los materiales solicitados en el apartado de comprado
-            get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
-            get_comprado_odt = get_comprado.mapped('orden_trabajo')
-            get_comprado_cantidad = get_comprado.mapped('cantidad')
-            # print(get_comprado,get_comprado_odt,get_comprado_cantidad)
-            list_comprado_odt = list(set(",".join(get_comprado_odt).replace(","," ").split()))
-            # print(list_comprado_odt)
-            list_comprado_odt = list(filter(lambda x: x!=str(self.ot_number),list_comprado_odt))
-            # print(list_comprado_odt)
-            total_comprado = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_comprado_odt])
-            # print("--",sum(get_comprado_cantidad),total_comprado)
-            cantidad_comprado = (sum(get_comprado_cantidad) if sum(get_comprado_cantidad) > 0 else 0) - (total_comprado if total_comprado > 0 else 0)
-            # print("Comprado",cantidad_comprado)
-            # print("Comparación",cantidad_item,cantidad_comprado)
-            # print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-            vals = {
-                    'orden_trabajo':self.ot_number,
-                    'codigo':codigo.materials_list.id,
-                    'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
-                    'cantidad':cantidad_item - cantidad_comprado,
-                    'disenador':self.firma,
-                }
-            get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
-            # Si la cantidad requerida no ha sido comprada la crea o la actualiza
-            if not get_comprado:
-                get_compras.write(vals) if get_compras else get_compras.create(vals)
-            # Si la cantidad requerida es mayor a la comprada crea una nueva compra o la actualiza
-            elif cantidad_item > cantidad_comprado:
-                get_compras.write(vals) if get_compras else get_compras.create(vals)
-            # Si la cantidad requerida es igual a la comprada y se había generado un nueva orden de compra esta sera borrada
-            elif cantidad_item == cantidad_comprado:
-                get_compras.unlink()
-            # Si este item requiere cero esta será borrada
-            if codigo.materials_required <= 0 and get_compras:
-                get_compras.unlink()
+                # Busca los materiales solicitados en el apartado de comprado
+                get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
+                get_comprado_odt = get_comprado.mapped('orden_trabajo')
+                get_comprado_cantidad = get_comprado.mapped('cantidad')
+                # print(get_comprado,get_comprado_odt,get_comprado_cantidad)
+                list_comprado_odt = list(set(",".join(get_comprado_odt).replace(","," ").split()))
+                # print(list_comprado_odt)
+                list_comprado_odt = list(filter(lambda x: x!=str(self.ot_number),list_comprado_odt))
+                # print(list_comprado_odt)
+                total_comprado = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_comprado_odt])
+                # print("--",sum(get_comprado_cantidad),total_comprado)
+                cantidad_comprado = (sum(get_comprado_cantidad) if sum(get_comprado_cantidad) > 0 else 0) - (total_comprado if total_comprado > 0 else 0)
+                # print("Comprado",cantidad_comprado)
+                # print("Comparación",cantidad_item,cantidad_comprado)
+                # print("------------------------------------------------------------------------------------------------------------------------------------------------------")
+                vals = {
+                        'orden_trabajo':self.ot_number,
+                        'codigo':codigo.materials_list.id,
+                        'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
+                        'cantidad':cantidad_item - cantidad_comprado,
+                        'disenador':self.firma,
+                    }
+                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
+                # Si la cantidad requerida no ha sido comprada la crea o la actualiza
+                if not get_comprado:
+                    get_compras.write(vals) if get_compras else get_compras.create(vals)
+                # Si la cantidad requerida es mayor a la comprada crea una nueva compra o la actualiza
+                elif cantidad_item > cantidad_comprado:
+                    get_compras.write(vals) if get_compras else get_compras.create(vals)
+                # Si la cantidad requerida es igual a la comprada y se había generado un nueva orden de compra esta sera borrada
+                elif cantidad_item == cantidad_comprado:
+                    get_compras.unlink()
+                # Si este item requiere cero esta será borrada
+                if codigo.materials_required <= 0 and get_compras:
+                    get_compras.unlink()
 
     def compras_servicios(self):
         get_servicios = self.env['dtm.compras.servicios'].search([("numero_orden","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
-        print(get_servicios)
         if self.maquinados_id:
             for servicio in self.maquinados_id:
                 vals = {
@@ -591,7 +591,7 @@ class DtmOdt(models.Model):
                 }
                 print(vals)
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
-                self.compras_odt(servicio.material_id,2,True)
+                self.compras_odt(servicio.material_id)
 
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
@@ -608,7 +608,7 @@ class DtmOdt(models.Model):
                 "materials_list":get_almacen.id,
                 "materials_cuantity":item.cantidad,
             }
-            get_materials.write(vals) if item.nombre in self.materials_ids.mapped('nombre') else get_materials.create(vals)
+            get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
 
 
 # --------------------------------- Botones del header ----------------------------------------------
