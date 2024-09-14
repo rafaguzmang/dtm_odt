@@ -574,7 +574,8 @@ class DtmOdt(models.Model):
 
     def compras_servicios(self):
         get_servicios = self.env['dtm.compras.servicios'].search([("numero_orden","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
-        if get_servicios:
+        print(get_servicios)
+        if self.maquinados_id:
             for servicio in self.maquinados_id:
                 vals = {
                     "nombre": servicio.nombre,
@@ -588,6 +589,7 @@ class DtmOdt(models.Model):
                     "material_id": servicio.material_id,
                     "anexos_id": servicio.anexos_id
                 }
+                print(vals)
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
                 self.compras_odt(servicio.material_id,2,True)
 
@@ -701,7 +703,6 @@ class TestModelLine(models.Model):
                 "apartado": get_almacen.cantidad if suma > get_almacen.cantidad else suma,
                 "disponible":get_almacen.cantidad - suma if get_almacen.cantidad - suma > 0 else 0
             })
-            print(f"get_almacen.cantidad {get_almacen.cantidad},suma {suma},get_almacen.cantidad {get_almacen.cantidad}")
 
 
     @api.depends("materials_list")
@@ -737,7 +738,7 @@ class Servicios(models.Model):
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
-    proveedor = fields.Char(string="Proveedor")
+    proveedor = fields.Char(string="Proveedor",readonly=True)
     fecha_solicitud = fields.Date(string="Fecha de Solicitud", default= datetime.today(),readonly=True)
     fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
