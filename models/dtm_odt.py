@@ -605,6 +605,7 @@ class DtmOdt(models.Model):
             vals = {
                 "model_id":self.id,
                 "nombre":nombre,
+                "medida": "",
                 "materials_list":get_almacen.id,
                 "materials_cuantity":item.cantidad,
             }
