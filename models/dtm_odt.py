@@ -84,16 +84,16 @@ class DtmOdt(models.Model):
                 self.proceso(parcial)
 
     def proceso(self,parcial=False):
-        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
         get_procesos.write({
             "firma_ventas": self.firma_ventas,
             "firma_ventas_kanba":"Ventas"
         })
-        get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+        get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
         get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {
                 "ot_number":self.ot_number,
-                "tipe_order":"OT",
+                "tipe_order":self.tipe_order,
                 "name_client":self.name_client,
                 "product_name":self.product_name,
                 "date_in":self.date_in,
@@ -124,7 +124,7 @@ class DtmOdt(models.Model):
                 if self.cortadora_id or self.primera_pieza_id:
                     status = "corte"
             get_ot.create(vals)
-            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=","OT")])
+            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
             get_ot.write(
                 {
                     "firma_diseno":self.firma,
@@ -249,7 +249,7 @@ class DtmOdt(models.Model):
 
     def cortadora_laser(self):
         if self.cortadora_id or self.primera_pieza_id:
-            get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=','OT')])
+            get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=',self.tipe_order)])
             get_proceso.status != "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
             # print(status)
@@ -696,10 +696,12 @@ class TestModelLine(models.Model):
                 diseno_almacen = list(filter(lambda x:x.materials_list.id==result.materials_list.id,material_line))
                 cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
                 suma += cantidad_material
+            # Actualiza el almacén de diseno
             get_almacen.write({
                 "apartado": get_almacen.cantidad if suma > get_almacen.cantidad else suma,
                 "disponible":get_almacen.cantidad - suma if get_almacen.cantidad - suma > 0 else 0
             })
+            print(f"get_almacen.cantidad {get_almacen.cantidad},suma {suma},get_almacen.cantidad {get_almacen.cantidad}")
 
 
     @api.depends("materials_list")
