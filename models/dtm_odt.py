@@ -237,7 +237,7 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
         email = self.env.user.partner_id.email
-        self.compras_odt(self.materials_ids)
+        self.compras_odt(self.materials_ids,1)
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com']:
             self.firma_ingenieria = self.env.user.partner_id.name
@@ -518,40 +518,48 @@ class DtmOdt(models.Model):
                         lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    def compras_odt(self,materiales):
-
+    def compras_odt(self,materiales,ref):
+        # ref == 2 and print(materiales,ref)
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
-            # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
+            # Si el item no tiene marcado el check box hace los calculos para el área de compras
             if not codigo.revicion:
+
+                # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
-                # print("Solicitado",cantidad_item)
+                if ref == 2:
+                    cantidad_item = self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required
+                # ref == 2 and print("Solicitado",cantidad_item)
                 # Busca los materiales solicitados en el apartado de requerido
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
                 get_compras_odt = get_compras.mapped('orden_trabajo')
                 get_compras_cantidad = get_compras.mapped('cantidad')
-                # print("Codigo",codigo.materials_list.id)
+                # ref == 2 and print("Codigo",codigo.materials_list.id)
                 list_reque_odt = list(set(",".join(get_compras_odt).replace(","," ").split()))
                 list_reque_odt = list(filter(lambda x: x!=str(self.ot_number),list_reque_odt))
                 total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
+                if ref == 2:
+                    total_reque = sum([self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required for item in list_reque_odt])
                 cantidad_reque = sum(get_compras_cantidad) - total_reque
-                # print("Requerido",cantidad_reque)
+                # ref == 2 and print("Requerido",cantidad_reque)
 
                 # Busca los materiales solicitados en el apartado de comprado
                 get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
                 get_comprado_odt = get_comprado.mapped('orden_trabajo')
                 get_comprado_cantidad = get_comprado.mapped('cantidad')
-                # print(get_comprado,get_comprado_odt,get_comprado_cantidad)
+                # ref == 2 and print(get_comprado,get_comprado_odt,get_comprado_cantidad)
                 list_comprado_odt = list(set(",".join(get_comprado_odt).replace(","," ").split()))
-                # print(list_comprado_odt)
+                # ref == 2 and print(list_comprado_odt)
                 list_comprado_odt = list(filter(lambda x: x!=str(self.ot_number),list_comprado_odt))
-                # print(list_comprado_odt)
+                # ref == 2 and print(list_comprado_odt)
                 total_comprado = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_comprado_odt])
-                # print("--",sum(get_comprado_cantidad),total_comprado)
+                if ref == 2:
+                    total_comprado = sum([self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required for item in list_comprado_odt])
+                # ref == 2 and print("--",sum(get_comprado_cantidad),total_comprado)
                 cantidad_comprado = (sum(get_comprado_cantidad) if sum(get_comprado_cantidad) > 0 else 0) - (total_comprado if total_comprado > 0 else 0)
-                # print("Comprado",cantidad_comprado)
-                # print("Comparación",cantidad_item,cantidad_comprado)
-                # print("------------------------------------------------------------------------------------------------------------------------------------------------------")
+                # ref == 2 and print("Comprado",cantidad_comprado)
+                # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
+                # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
@@ -589,9 +597,8 @@ class DtmOdt(models.Model):
                     "material_id": servicio.material_id,
                     "anexos_id": servicio.anexos_id
                 }
-                print(vals)
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
-                self.compras_odt(servicio.material_id)
+                self.compras_odt(servicio.material_id,2)
 
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
@@ -606,6 +613,7 @@ class DtmOdt(models.Model):
                 "model_id":self.id,
                 "nombre":nombre,
                 "medida": "",
+                "materials_list":get_almacen.id,
                 "materials_list":get_almacen.id,
                 "materials_cuantity":item.cantidad,
             }
