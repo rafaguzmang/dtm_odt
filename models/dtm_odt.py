@@ -560,6 +560,7 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Comprado",cantidad_comprado)
                 # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
+                print(codigo.nombre,codigo.materials_list.id,servicio,)
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
