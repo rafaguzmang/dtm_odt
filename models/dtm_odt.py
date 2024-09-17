@@ -248,16 +248,17 @@ class DtmOdt(models.Model):
             #     self.retrabajo = True
 
     def cortadora_laser(self):
+        print(self.cortadora_id,self.primera_pieza_id)
         if self.cortadora_id or self.primera_pieza_id:
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=',self.tipe_order)])
-            get_proceso.status != "aprobacion" and get_proceso.write({'status':"corte"})
+            get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
-            # print(status)
+            print(get_proceso.status,status)
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
                 "nombre_orden":self.product_name,
-                "tipo_orden": "OT"
+                "tipo_orden": self.tipe_order
             }
             material_corte = ""
             # Se encargan de buscar la información necesario -------------------------------
@@ -544,7 +545,7 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Requerido",cantidad_reque)
 
                 # Busca los materiales solicitados en el apartado de comprado
-                get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
+                get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id),("comprado","=",False)])
                 get_comprado_odt = get_comprado.mapped('orden_trabajo')
                 get_comprado_cantidad = get_comprado.mapped('cantidad')
                 # ref == 2 and print(get_comprado,get_comprado_odt,get_comprado_cantidad)
@@ -570,10 +571,10 @@ class DtmOdt(models.Model):
                     }
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
                 # Si la cantidad requerida no ha sido comprada la crea o la actualiza
-                if not get_comprado:
+                if not get_comprado and codigo.materials_required > 0:
                     get_compras.write(vals) if get_compras else get_compras.create(vals)
                 # Si la cantidad requerida es mayor a la comprada crea una nueva compra o la actualiza
-                elif cantidad_item > cantidad_comprado:
+                elif cantidad_item > cantidad_comprado and codigo.materials_required > 0:
                     get_compras.write(vals) if get_compras else get_compras.create(vals)
                 # Si la cantidad requerida es igual a la comprada y se había generado un nueva orden de compra esta sera borrada
                 elif cantidad_item == cantidad_comprado:
