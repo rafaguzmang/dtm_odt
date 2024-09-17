@@ -518,7 +518,7 @@ class DtmOdt(models.Model):
                         lines.append(get_cortadora_laminas.id)
                 get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    def compras_odt(self,materiales,ref):
+    def compras_odt(self,materiales,ref,servicio=False):
         # ref == 2 and print(materiales,ref)
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
@@ -566,6 +566,7 @@ class DtmOdt(models.Model):
                         'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
                         'disenador':self.firma,
+                        'servicio':servicio
                     }
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
                 # Si la cantidad requerida no ha sido comprada la crea o la actualiza
@@ -598,7 +599,7 @@ class DtmOdt(models.Model):
                     "anexos_id": servicio.anexos_id
                 }
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
-                self.compras_odt(servicio.material_id,2)
+                self.compras_odt(servicio.material_id,2,True)
 
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
