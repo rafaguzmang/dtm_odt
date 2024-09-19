@@ -9,10 +9,8 @@
         #Views
         'views/dtm_ot_view.xml',
         'views/dtm_npi_view.xml',
-
         #Menú
         'views/dtm_menu.xml',
-
         #Reports
         'reports/npi.xml',
         'reports/orden_de_trabajo.xml',
@@ -20,5 +18,4 @@
         'reports/lista_materiales.xml'
         ],
     'license': 'LGPL-3',
-     
 }

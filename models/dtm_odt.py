@@ -248,7 +248,6 @@ class DtmOdt(models.Model):
             #     self.retrabajo = True
 
     def cortadora_laser(self):
-        print(self.cortadora_id,self.primera_pieza_id)
         if self.cortadora_id or self.primera_pieza_id:
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
@@ -524,10 +523,11 @@ class DtmOdt(models.Model):
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Si el item no tiene marcado el check box hace los calculos para el área de compras
-            if not codigo.revicion:
+            if codigo.revicion:
 
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
+                cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
                 if ref == 2:
                     cantidad_item = self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required
                 # ref == 2 and print("Solicitado",cantidad_item)
