@@ -239,7 +239,8 @@ class DtmOdt(models.Model):
         email = self.env.user.partner_id.email
         self.compras_odt(self.materials_ids,1)
         self.compras_servicios()
-        if email in ['ingenieria1@dtmindustry.com']:
+        if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
+            print("email",email)
             self.firma_ingenieria = self.env.user.partner_id.name
             self.cortadora_laser()
             self.cortadora_tubos()
@@ -248,7 +249,7 @@ class DtmOdt(models.Model):
             #     self.retrabajo = True
 
     def cortadora_laser(self):
-        print(self.cortadora_id,self.primera_pieza_id)
+        print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
         if self.cortadora_id or self.primera_pieza_id:
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
@@ -262,11 +263,11 @@ class DtmOdt(models.Model):
             }
             material_corte = ""
             # Se encargan de buscar la información necesario -------------------------------
-            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])# Guarda la información (archivos) para pasar a corte
-            get_encorte_primera = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])# Busca si la primera pieza está en proceso de corte
-            get_encorte_segunda =  self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Busca si la segunda está en proceso de corte
-            get_corte_primer = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)]) # Busca si la primera pieza esta cortada
-            get_corte_segunda = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)]) # Busca si las segundas piezas ya fueron cortadas
+            get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])# Guarda la información (archivos) para pasar a corte
+            get_encorte_primera = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Busca si la primera pieza está en proceso de corte
+            get_encorte_segunda =  self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Busca si la segunda está en proceso de corte
+            get_corte_primer = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)]) # Busca si la primera pieza esta cortada
+            get_corte_segunda = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)]) # Busca si las segundas piezas ya fueron cortadas
             #---------------------------------------------------
             # Condicionales
             #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
@@ -275,12 +276,12 @@ class DtmOdt(models.Model):
                 if self.primera_pieza_id:
                     vals["primera_pieza"]= True
                     get_corte.create(vals) #Crea la orden de primera pieza
-                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
+                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
                     material_corte = self.primera_pieza_id #Pasa los archivos de la primera pieza
                 else:
                     vals["primera_pieza"]= False
                     get_corte.create(vals) #Crea la orden de segunda pieza
-                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
+                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
                     material_corte = self.cortadora_id # Pasa los archivos de la segunda pieza
             # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
             # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
@@ -295,8 +296,8 @@ class DtmOdt(models.Model):
                     vals["primera_pieza"]= True
                     get_corte.create(vals) #Crea la orden de primera pieza
                     material_corte = self.primera_pieza_id
-                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
-                    get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",True)])
+                    get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
+                    get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])
                     if get_terminado:# Si hay archivos cortados los quita del retrabajo
                         record_ids = [] #Almacena los id que serán agregados para ser cortados
                         record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
@@ -321,7 +322,7 @@ class DtmOdt(models.Model):
                 get_corte = get_encorte_segunda
                 get_corte.write(vals)
                 material_corte = self.cortadora_id
-                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])
+                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
                 if get_terminado:# Si hay archivos cortados los quita del retrabajo
                     record_ids = [] #Almacena los id que serán agregados para ser cortados
                     record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
@@ -342,9 +343,9 @@ class DtmOdt(models.Model):
                 # print("Segunda pieza a retrabajo ya con algunas en el status de cortado")
                 vals["primera_pieza"]= False
                 get_corte.create(vals) #Crea la orden de segunda pieza
-                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
+                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
                 material_corte = self.cortadora_id # Pasa los archivos de la segunda pieza
-                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT"),("primera_pieza","=",False)])
+                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
                 if get_terminado:# Si hay archivos cortados los quita del retrabajo
                     record_ids = [] #Almacena los id que serán agregados para ser cortados
                     record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
@@ -442,16 +443,16 @@ class DtmOdt(models.Model):
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
                 "nombre_orden":self.product_name,
-                "tipo_orden": "OT"
+                "tipo_orden": self.tipe_order
             }
-            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
-            # get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
+            # get_corte_realizado = self.env['dtm.tubos.realizados'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
             # if not get_corte_realizado:
             if get_corte:
                 get_corte.write(vals)
             else:
                 get_corte.create(vals)
-                get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=","OT")])
+                get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
 
             lines = []
             get_corte.write({'cortadora_id': [(5, 0, {})]})
