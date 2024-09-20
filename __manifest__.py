@@ -1,8 +1,8 @@
 {
     "name":"dtm_odt",
     "description":"Control ordenes de trabajo",
-    # 'depends': ['base', 'mail','dtm_servicios_externos'],
-    'depends': ['base', 'mail'],
+    'depends': ['base', 'mail','dtm_servicios_externos'],
+    # 'depends': ['base', 'mail'],
     "data":[
         #Security
         'security/ir.model.access.csv',
@@ -10,7 +10,7 @@
         'views/dtm_ot_view.xml',
         'views/dtm_npi_view.xml',
         #Menú
-        'views/dtm_menu.xml',
+        # 'views/dtm_menu.xml',
         #Reports
         'reports/npi.xml',
         'reports/orden_de_trabajo.xml',
