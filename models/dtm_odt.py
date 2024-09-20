@@ -529,7 +529,7 @@ class DtmOdt(models.Model):
 
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
-                cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
+                # cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
                 if ref == 2:
                     cantidad_item = self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required
                 # ref == 2 and print("Solicitado",cantidad_item)
@@ -564,14 +564,18 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 print(codigo.nombre,codigo.materials_list.id,servicio,)
+                print(get_compras.disenador)
+                print(self.firma if not get_compras.disenador else "")
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
                         'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
-                        'disenador':self.firma,
+                        'disenador':self.env.user.partner_id.name,
                         'servicio':servicio
                     }
+                if get_compras.disenador:
+                    vals['disenador'] = get_compras.disenador
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
                 # Si la cantidad requerida no ha sido comprada la crea o la actualiza
                 if not get_comprado and codigo.materials_required > 0:
@@ -681,7 +685,7 @@ class TestModelLine(models.Model):
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
-    revicion = fields.Boolean(string="Revisión")
+    revicion = fields.Boolean(string="COMPRAR")
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
@@ -758,17 +762,6 @@ class Servicios(models.Model):
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
     material_id = fields.One2many("dtm.materials.line","servicio_id")
     anexos_id = fields.Many2many("ir.attachment")
-
-class MaterialeServicios (models.Model):
-    _name = "dtm.odt.servmateriales"
-    _description = "Modelo para la solicitud de materiales para servicios externos"
-    model_id = fields.Many2one("dtm.odt.sercicios")
-    nombre = fields.Char()
-    medida = fields.Char()
-    materials_cuantity = fields.Integer("CANTIDAD")
-    materials_inventory = fields.Integer("INVENTARIO", readonly=True)
-    materials_availabe = fields.Integer("APARTADO", readonly=True)
-    materials_required = fields.Integer("REQUERIDO")
 
 class OtFile(models.Model):
     _name="dtm.odt.ligas"

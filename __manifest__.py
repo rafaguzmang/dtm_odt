@@ -8,7 +8,7 @@
         'security/ir.model.access.csv',
         #Views
         'views/dtm_ot_view.xml',
-        'views/dtm_npi_view.xml',
+        # 'views/dtm_npi_view.xml',
         #Menú
         # 'views/dtm_menu.xml',
         #Reports
