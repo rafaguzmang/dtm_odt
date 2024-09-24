@@ -534,7 +534,7 @@ class DtmOdt(models.Model):
                     cantidad_item = self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required
                 # ref == 2 and print("Solicitado",cantidad_item)
                 # Busca los materiales solicitados en el apartado de requerido
-                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)])
+                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),("codigo","=",codigo.materials_list.id)], limit=1)
                 get_compras_odt = get_compras.mapped('orden_trabajo')
                 get_compras_cantidad = get_compras.mapped('cantidad')
                 # ref == 2 and print("Codigo",codigo.materials_list.id)
