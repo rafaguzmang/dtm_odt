@@ -240,7 +240,7 @@ class DtmOdt(models.Model):
         self.compras_odt(self.materials_ids,1)
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
-            print("email",email)
+            # print("email",email)
             self.firma_ingenieria = self.env.user.partner_id.name
             self.cortadora_laser()
             self.cortadora_tubos()
@@ -249,12 +249,12 @@ class DtmOdt(models.Model):
             #     self.retrabajo = True
 
     def cortadora_laser(self):
-        print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
+        # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
         if self.cortadora_id or self.primera_pieza_id:
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
-            print(get_proceso.status,status)
+            # print(get_proceso.status,status)
             vals = {
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
@@ -563,9 +563,9 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Comprado",cantidad_comprado)
                 # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-                print(codigo.nombre,codigo.materials_list.id,servicio,)
-                print(get_compras.disenador)
-                print(self.firma if not get_compras.disenador else "")
+                # print(codigo.nombre,codigo.materials_list.id,servicio,)
+                # print(get_compras.disenador)
+                # print(self.firma if not get_compras.disenador else "")
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
@@ -692,6 +692,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
+            print(get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             result.materials_availabe = result.materials_cuantity if result.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
             result.materials_required = result.materials_cuantity - result.materials_availabe
