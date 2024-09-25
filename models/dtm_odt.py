@@ -692,7 +692,6 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
-            print(get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             result.materials_availabe = result.materials_cuantity if result.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
             result.materials_required = result.materials_cuantity - result.materials_availabe
@@ -702,22 +701,17 @@ class TestModelLine(models.Model):
                 result.materials_availabe = 0
             #Revisa las ordenes que contengan este material y que este apartado
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
-            get_odt = result.env['dtm.odt'].search([("firma_ventas","=",False)])
-            get_npi = result.env['dtm.npi'].search([("firma_ventas","=",False)])
-            get_proceso = result.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
-            get_proceso_npi = result.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")])
-            list_search = [get_odt,get_npi,get_proceso,get_proceso_npi]
+            get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
+            get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_odt))
+            get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")]).mapped('id')
+            get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_proceso))
+            # Es la suma de todas las ordenes donde se encuentra este item
+            list_search = []
+            # Guarda el id de las ordenes que contiene el item
+            list_search.extend(get_odt_codigo)
+            list_search.extend(get_proceso_codigo)
             cont = 0
-            suma = 0
-
-            for search in list_search:
-                list_materiales = search.materials_ids if cont == 0 or cont ==2 else search.materials_npi_ids
-                cont += 1
-                material_line = list(filter(lambda x:x!=False,list_materiales))
-                diseno_almacen = list(filter(lambda x:x.materials_list.id==result.materials_list.id,material_line))
-                cantidad_material = sum(list(map(lambda x:x.materials_availabe,diseno_almacen)))
-                suma += cantidad_material
-            # Actualiza el almacén de diseno
+            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",self.materials_list.id)]).materials_cuantity for item in list_search])
             get_almacen.write({
                 "apartado": get_almacen.cantidad if suma > get_almacen.cantidad else suma,
                 "disponible":get_almacen.cantidad - suma if get_almacen.cantidad - suma > 0 else 0
