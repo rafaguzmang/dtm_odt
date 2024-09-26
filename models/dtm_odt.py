@@ -692,13 +692,6 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
-            result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
-            result.materials_availabe = result.materials_cuantity if result.materials_cuantity <= get_almacen.disponible else get_almacen.disponible
-            result.materials_required = result.materials_cuantity - result.materials_availabe
-            if result.materials_cuantity < 0:
-                result.materials_cuantity = 0
-            if result.materials_availabe < 0:
-                result.materials_availabe = 0
             #Revisa las ordenes que contengan este material y que este apartado
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
@@ -711,10 +704,21 @@ class TestModelLine(models.Model):
             list_search.extend(get_odt_codigo)
             list_search.extend(get_proceso_codigo)
             cont = 0
-            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",self.materials_list.id)]).materials_cuantity for item in list_search])
+            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",self.materials_list.id)],limit=1).materials_cuantity for item in list_search])
+            suma = suma if suma  else 0
+            result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
+            result.materials_availabe = get_almacen.cantidad if get_almacen.cantidad <= get_almacen.apartado else 0
+            result.materials_required = result.materials_cuantity - result.materials_availabe
+            # Pone a cero cantidad y disponible si estos son menores a cero
+            result.materials_cuantity = 0 if result.materials_cuantity < 0 else result.materials_cuantity
+            result.materials_availabe = 0 if result.materials_availabe < 0 else result.materials_availabe
+            result.materials_required = 0 if result.materials_required < 0 else result.materials_required
+            apartado = result.materials_cuantity - suma if suma <= result.materials_cuantity else 0
+            apartado = 0 if apartado < 0 else apartado
+            disponible = get_almacen.cantidad - apartado
             get_almacen.write({
-                "apartado": get_almacen.cantidad if suma > get_almacen.cantidad else suma,
-                "disponible":get_almacen.cantidad - suma if get_almacen.cantidad - suma > 0 else 0
+                "apartado": apartado,
+                "disponible": disponible if disponible > 0 else 0
             })
 
 
