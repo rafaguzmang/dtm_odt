@@ -695,9 +695,11 @@ class TestModelLine(models.Model):
             #Revisa las ordenes que contengan este material y que este apartado
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
-            get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_odt))
+            # print(get_odt)
+            # print(self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)],limit=1))
+            get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)],limit=1),get_odt))
             get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")]).mapped('id')
-            get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_proceso))
+            get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)],limit=1),get_proceso))
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
@@ -706,6 +708,7 @@ class TestModelLine(models.Model):
             cont = 0
             suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",self.materials_list.id)],limit=1).materials_cuantity for item in list_search])
             suma = suma if suma  else 0
+
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             result.materials_availabe = get_almacen.cantidad if get_almacen.cantidad <= get_almacen.apartado else 0
             result.materials_required = result.materials_cuantity - result.materials_availabe
