@@ -571,7 +571,7 @@ class DtmOdt(models.Model):
                         'codigo':codigo.materials_list.id,
                         'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
-                        'disenador':self.env.user.partner_id.name,
+                        'disenador':self.env.user.partner_id.name if not self.env.user.partner_id.name in ["Alejandro Erives Chavez","Hugo Chacon","Administrator"] else self.firma,
                         'servicio':servicio
                     }
                 if get_compras.disenador:
