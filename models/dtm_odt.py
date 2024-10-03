@@ -11,6 +11,7 @@ class DtmOdt(models.Model):
     _inherit = ['mail.thread']
     _description = "Oden de trabajo"
     _order = "ot_number desc"
+    _rec_name = "ot_number"
 
     #---------------------Basicos----------------------
     def action_autoNum(self): # Genera número consecutivo de NPI
