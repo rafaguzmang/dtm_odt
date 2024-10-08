@@ -163,8 +163,11 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-                            <page string="PO/ARCHIVOS">
-                                  <field name="orden_compra_pdf" >
+                            <page string="PO/ARCHIVOS" attrs="{'invisible': [('usuario','=','ingenieria1@dtmindustry.com')]}">
+                                <group>
+                                    <field name="usuario" invisible="1"/>
+                                </group>
+                                <field name="orden_compra_pdf" >
                                      <tree>
                                             <field name="name" invisible="0"></field>
                                      </tree>
