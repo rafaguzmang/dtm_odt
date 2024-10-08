@@ -714,14 +714,15 @@ class TestModelLine(models.Model):
                     "materials_cuantity":result.materials_cuantity,
                     "materials_availabe":result.materials_availabe,
             }
-            self.env['dtm.materials.line'].search([("id","=",self._origin.id)]).write(vals)
+
+            self.env['dtm.materials.line'].search([("id","=",result._origin.id)]).write(vals)
             #Revisa las ordenes que contengan este material y que este apartado
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
-            get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_odt))
+            get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
             get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")]).mapped('ot_number')
             get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number)]).id for number in get_proceso]
-            get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",self.materials_list.id)]),get_proceso_odt))
+            get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
