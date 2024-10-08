@@ -64,6 +64,13 @@ class DtmOdt(models.Model):
 
     maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
 
+    usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
+
+    def _compute_usuario(self):
+        for result in self:
+            # print(self.env.user.partner_id.email)
+            result.usuario = self.env.user.partner_id.email
+
 
 
     # ----------------------------------- Funciones ----------------------------------------------------------
@@ -612,22 +619,24 @@ class DtmOdt(models.Model):
 
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
-        for item in self.maquinados_id:
-            nombre = f"Maquinado {item.nombre}"
-            get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
-            get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre})
-            get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+        print(self.maquinados_id)
+        if self.maquinados_id:
+            for item in self.maquinados_id:
+                nombre = f"Maquinado {item.nombre}"
+                get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+                get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre})
+                get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
 
-            get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"Maquinado {item.nombre}")])
-            vals = {
-                "model_id":self.id,
-                "nombre":nombre,
-                "medida": "",
-                "materials_list":get_almacen.id,
-                "materials_list":get_almacen.id,
-                "materials_cuantity":item.cantidad,
-            }
-            get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
+                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"Maquinado {item.nombre}")])
+                vals = {
+                    "model_id":self.id,
+                    "nombre":nombre,
+                    "medida": "",
+                    "materials_list":get_almacen.id,
+                    "materials_list":get_almacen.id,
+                    "materials_cuantity":item.cantidad,
+                }
+                get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
 
 
 # --------------------------------- Botones del header ----------------------------------------------
