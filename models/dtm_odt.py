@@ -619,7 +619,6 @@ class DtmOdt(models.Model):
 
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
-        print(self.maquinados_id)
         if self.maquinados_id:
             for item in self.maquinados_id:
                 nombre = f"Maquinado {item.nombre}"
@@ -729,7 +728,7 @@ class TestModelLine(models.Model):
             list_search.extend(get_odt_codigo)
             list_search.extend(get_proceso_codigo)
             cont = 0
-            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",self.materials_list.id)],limit=1).materials_cuantity for item in list_search])
+            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",result.materials_list.id)],limit=1).materials_cuantity for item in list_search])
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
