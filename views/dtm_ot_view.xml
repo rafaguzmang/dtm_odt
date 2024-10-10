@@ -65,13 +65,13 @@
                     <sheet>
                          <div class="oe_button_box" name="button_box">
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
-                                <field name="date_in"  string="" widget="statinfo"/>
+                                <field name="date_rel"  string="" widget="statinfo"/>
                             </button>
                             <button name="action_pasive" type="object" string="Cliente" class="oe_stat_button" icon="fa-user">
                                 <field name="name_client"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-clipboard">
-                                <field name="tipe_order"  string="" widget="statinfo"/>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-paperclip">
+                                <field name="orden_compra_pdf"  string="" widget="statinfo"/>
                             </button>
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-certificate">
                                 <field name="firma_ventas"  string="" widget="statinfo"/>
@@ -82,14 +82,20 @@
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield">
                                 <field name="firma_ingenieria"  string="" widget="statinfo"/>
                             </button>
-                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-envelope">
+                            <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-clipboard">
+                                <field name="tipe_order"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-envelope">
                                 <field name="po_number"  string="" widget="statinfo"/>
+                            </button>
+                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
+                                <field name="date_in"  string="" widget="statinfo"/>
                             </button>
                         </div>
                         <group>
-                                <field name="name_client" attrs="{'invisible': [('ot_number', '!=', 'NPI')]}" />
-                                <field name="product_name" attrs="{'readonly': [('ot_number', '=', 'OT')]}" />
-                                <field name="date_rel" attrs="{'invisible': [('ot_number', '!=', 'NPI')]}"/>
+                                <field name="name_client" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}" />
+                                <field name="product_name" attrs="{'readonly': [('tipe_order', '=', 'OT')]}" />
+                                <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
                                 <field name="version_ot"  options='{"type": "number"}'/>
                                 <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
                                 <field name="color"/>

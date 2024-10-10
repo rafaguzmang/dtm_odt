@@ -20,12 +20,12 @@ class DtmOdt(models.Model):
         return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
 
     ot_number = fields.Integer(string="NO.",default=action_autoNum,readonly=True)
-    tipe_order = fields.Char(string="TIPO",readonly=True, default='NPI')
+    tipe_order = fields.Char(string=" ",readonly=True, default='NPI')
     name_client = fields.Char(string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
     date_in = fields.Date(string="ENTRADA", default= datetime.today(),readonly=True)
     po_number = fields.Char(string="PO/Cot",readonly=True)
-    date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
+    date_rel = fields.Date(string="ENTREGA", default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD")
