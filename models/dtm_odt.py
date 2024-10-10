@@ -23,7 +23,7 @@ class DtmOdt(models.Model):
     tipe_order = fields.Char(string="TIPO",readonly=True, default='NPI')
     name_client = fields.Char(string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
-    date_in = fields.Date(string="FECHA DE ENTRADA", default= datetime.today(),readonly=True)
+    date_in = fields.Date(string="ENTRADA", default= datetime.today(),readonly=True)
     po_number = fields.Char(string="PO/Cot",readonly=True)
     date_rel = fields.Date(string="FECHA DE ENTREGA", default= datetime.today())
     version_ot = fields.Integer(string="VERSIÓN OT",default=1)
@@ -37,7 +37,7 @@ class DtmOdt(models.Model):
     firma_almacen = fields.Char()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
-    firma_ingenieria = fields.Char(string="Ingenieria", readonly = True)
+    firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
     po_fecha_creacion = fields.Date(string="Creación PO", readonly=True)
     po_fecha = fields.Date(string="Fecha PO", readonly=True)
     planos = fields.Boolean(string="Planos",default=False)
@@ -65,6 +65,9 @@ class DtmOdt(models.Model):
     maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
+
+    def action_pasive(self):
+        pass
 
     def _compute_usuario(self):
         for result in self:
@@ -701,6 +704,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
+            print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             if result.materials_cuantity <= get_almacen.disponible:
                 result.materials_availabe = result.materials_cuantity
@@ -732,6 +736,7 @@ class TestModelLine(models.Model):
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
+            # print(suma,apartado,disponible)
             get_almacen.write({
                 "apartado": apartado,
                 "disponible": disponible if disponible > 0 else 0
