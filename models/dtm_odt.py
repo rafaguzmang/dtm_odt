@@ -83,7 +83,7 @@ class DtmOdt(models.Model):
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
-        if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK":
+        if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
             self.firma_ventas = self.env.user.partner_id.name
             self.proceso(parcial)
         else:
@@ -91,7 +91,7 @@ class DtmOdt(models.Model):
                 self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.write({"firma": self.firma})
-            if self.firma_ventas and self.tipe_order != "SK":
+            if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
                 self.proceso(parcial)
 
     def proceso(self,parcial=False):
@@ -773,6 +773,7 @@ class Servicios(models.Model):
     extern_id = fields.Many2one("dtm.odt")
 
     nombre = fields.Char(string="Nombre del Servicio")
+    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("sinquiado","Sinquiado"),("estanado","Estañado")])
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
@@ -782,6 +783,9 @@ class Servicios(models.Model):
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
     material_id = fields.One2many("dtm.materials.line","servicio_id")
     anexos_id = fields.Many2many("ir.attachment")
+
+    def action_pasive(self):
+        pass
 
 class OtFile(models.Model):
     _name="dtm.odt.ligas"

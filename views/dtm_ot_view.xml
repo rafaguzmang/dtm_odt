@@ -29,7 +29,6 @@
             </field>
         </record>
 
-
         <record id="dtm_ot_tree" model="ir.ui.view">
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
@@ -92,9 +91,19 @@
                                 <field name="date_in"  string="" widget="statinfo"/>
                             </button>
                         </div>
-                        <group>
-                                <field name="name_client" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}" />
-                                <field name="product_name" attrs="{'readonly': [('tipe_order', '=', 'OT')]}" />
+                            <div class="row" style="padding-bottom: 15px;">
+                                <div class="col-6">
+                                    <h1>
+                                        <field name="product_name" attrs="{'readonly': [('tipe_order', '=', 'OT')]}" />
+                                    </h1>
+                                </div>
+                                 <div class="col-6">
+                                    <h1>
+                                        <field name="name_client" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}" />
+                                    </h1>
+                                </div>
+                            </div>
+                        <group class="col-4">
                                 <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
                                 <field name="version_ot"  options='{"type": "number"}'/>
                                 <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
@@ -102,8 +111,8 @@
                         </group>
 
                                 <field name="po_number" invisible="1"/>
-                                <field name="firma_ventas" attrs="{'invisible': [('tipe_order','=','SK')]}" invisible="1"/>
-                                <field name="firma_ingenieria" attrs="{'invisible': [('tipe_order','=','SK')]}" invisible="1"/>
+                                <field name="firma_ventas" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
+                                <field name="firma_ingenieria" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
                                 <field name="tipe_order" invisible="1"/>
                                 <field name="ot_number" invisible="1"/>
                                 <field name="retrabajo" invisible="1"/>
@@ -116,7 +125,7 @@
                                 </group>
                             </page>
 
-                            <page string="MATERIALES" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom" >
@@ -129,7 +138,7 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="RECHAZO" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="RECHAZO" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom">
                                         <field name="descripcion"/>
@@ -139,11 +148,11 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="PLANOS" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="PLANOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
 
                             </page>
-                            <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="MITSUBISHI" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
@@ -158,7 +167,7 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="LTP 6032"  attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}" />
@@ -192,9 +201,10 @@
                                      </form>
                                 </field>
                             </page>
-                            <page string="MAQUINADOS" attrs="{'invisible': [('tipe_order','=','SK')]}">
+                            <page string="SERVICIOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="maquinados_id">
                                     <tree>
+                                        <field name="tipo_servicio"/>
                                         <field name="nombre"/>
                                         <field name="cantidad"/>
                                         <field name="proveedor"/>
@@ -203,17 +213,40 @@
                                         <field name="fecha_entrada"/>
                                     </tree>
                                     <form>
+                                        <div class="flex-fechas">
+                                            <div class="flex-fecha">
+                                                <i class="fa fa-calendar"></i>
+                                                <div class="flex-content">
+                                                    <field name="fecha_solicitud"/>
+                                                    <p>Solicitud</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex-fecha">
+                                                <i class="fa fa-calendar"></i>
+                                                    <div class="flex-content">
+                                                    <field name="fecha_compra"/>
+                                                    <p>Compra</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex-fecha">
+                                                <i class="fa fa-calendar"></i>
+                                                 <div class="flex-content">
+                                                    <field name="fecha_entrada"/>
+                                                    <p>Entrada</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <group>
                                             <group>
-                                            <field name="nombre"/>
-                                            <field name="cantidad" options='{"type": "number"}'/>
-                                            <field name="proveedor"/>
+                                                <field name="tipo_servicio"/>
+                                                <field name="nombre"/>
+                                                <field name="cantidad" options='{"type": "number"}'/>
                                             </group>
-                                            <group>
-                                                <field name="fecha_solicitud"/>
-                                                <field name="fecha_compra"/>
-                                                <field name="fecha_entrada"/>
-                                            </group>
+<!--                                            <group>-->
+<!--                                                <field name="fecha_solicitud"/>-->
+<!--                                                <field name="fecha_compra"/>-->
+<!--                                                <field name="fecha_entrada"/>-->
+<!--                                            </group>-->
                                         </group>
                                         <notebook>
                                             <page string="Materiales">
@@ -228,7 +261,7 @@
                                                     </tree>
                                                 </field>
                                             </page>
-                                             <page string="Anexos">
+                                            <page string="Anexos">
                                                 <field name="anexos_id" widget="many2many_binary"/>
                                             </page>
                                         </notebook>

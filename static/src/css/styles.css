@@ -1,4 +1,28 @@
-body {
-    background-image: url();
-    background-color: #cccccc;
+
+.flex-fechas{
+    display: flex;
+    border: 1px, solid rgba(0, 0, 0, 0.1);
+    margin: -21px 0px 20px;
+    padding: 10px 10px;
+    justify-content: left;
+    align-items: center;
+}
+
+.flex-fecha{
+    display: flex;
+    align-items: center;
+    width: 12%;
+}
+
+.fa-calendar{
+    font-size: 22px
+    width: 30%;
+
+}
+
+.flex-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 50%;
 }

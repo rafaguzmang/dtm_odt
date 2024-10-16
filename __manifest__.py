@@ -1,7 +1,7 @@
 {
     "name":"dtm_odt",
     "description":"Control ordenes de trabajo",
-    'depends': ['base', 'mail','dtm_servicios_externos'],
+    'depends': ['base', 'mail','dtm_servicios_externos','web'],
     # 'depends': ['base', 'mail'],
     "data":[
         #Security
@@ -18,4 +18,9 @@
         'reports/lista_materiales.xml'
         ],
     'license': 'LGPL-3',
+     'assets': {
+        'web.assets_backend': [
+            'dtm_odt/static/src/css/styles.css',
+            ],
+    },
 }
