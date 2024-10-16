@@ -91,6 +91,20 @@ class DtmOdt(models.Model):
                 self.firma = self.env.user.partner_id.name
             get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
             get_ventas.write({"firma": self.firma})
+            #Obtiene el id de la orden de compra
+            orden = list(set(get_ventas.mapped('model_id')))[0]
+            get_orden_compra = self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).descripcion_id.mapped('id')
+
+            list_items = [item for item in get_orden_compra if self.env['dtm.compras.items'].search([("id", "=", item)]).tipo_servicio == "servicio"]
+            list_orm = [self.env['dtm.compras.items'].search([("id", "=", item)]) for item in list_items]
+            lista = [f"|𝓐 {item.orden_trabajo}✔|" if item.firma_diseno == "orozco" and item.firma == "Andrés Alberto Orozco Martínez" else f"|𝓐 {item.orden_trabajo}❌| " if item.firma_diseno == "orozco" and not item.firma  else f"|𝓛 {item.orden_trabajo}✔|" if item.firma_diseno == "garcia" and item.firma == "Luís Donaldo García Rayos" else f"|𝓛 {item.orden_trabajo}❌|" if item.firma_diseno == "garcia" and not item.firma else f"|{item.orden_trabajo}❌|" for item in list_orm]
+            orden = list(set(get_ventas.mapped('model_id')))[0]
+            self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).write({
+                "ot_asignadas":" ".join(lista),
+            })
+
+
+
             if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
                 self.proceso(parcial)
 
