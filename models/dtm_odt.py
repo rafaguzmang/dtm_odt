@@ -105,7 +105,7 @@ class DtmOdt(models.Model):
         else:
 
             if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
-                self.proceso(parcelial)
+                self.proceso(parcial)
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
