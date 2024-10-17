@@ -86,8 +86,7 @@ class DtmOdt(models.Model):
         if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
             self.firma_ventas = self.env.user.partner_id.name
             self.proceso(parcial)
-        else:
-            if email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
+        elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
                 self.firma = self.env.user.partner_id.name
                 if self.tipe_order == "OT":
                     get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
@@ -103,9 +102,10 @@ class DtmOdt(models.Model):
                     self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).write({
                         "ot_asignadas":" ".join(lista),
                     })
+        else:
 
-                if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
-                    self.proceso(parcelial)
+            if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
+                self.proceso(parcelial)
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
