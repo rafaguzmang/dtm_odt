@@ -20,7 +20,10 @@
                     <field name="po_number"/>
                     <!-- Filtros por tipo de orden -->
                     <filter string="OT" name="ot" domain="[('tipe_order','=','OT')]"/>
+                    <filter string="NPI" name="npi" domain="[('tipe_order','=','NPI')]"/>
                     <filter string="SK" name="sk" domain="[('tipe_order','=','SK')]"/>
+                    <filter string="ODT-I" name="odt-i" domain="[('tipe_order','=','ODT-I')]"/>
+                    <filter string="PD" name="PD" domain="[('tipe_order','=','PD')]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
