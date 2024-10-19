@@ -221,21 +221,21 @@
                                                 <i class="fa fa-calendar"></i>
                                                 <div class="flex-content">
                                                     <field name="fecha_solicitud"/>
-                                                    <p>Solicitud</p>
+                                                    <p class="calendar-text">Solicitud</p>
                                                 </div>
                                             </div>
                                             <div class="flex-fecha">
                                                 <i class="fa fa-calendar"></i>
                                                     <div class="flex-content">
-                                                    <field name="fecha_compra"/>
-                                                    <p>Compra</p>
-                                                </div>
+                                                        <field name="fecha_compra"/>
+                                                        <p class="calendar-text">Compra</p>
+                                                    </div>
                                             </div>
                                             <div class="flex-fecha">
                                                 <i class="fa fa-calendar"></i>
                                                  <div class="flex-content">
-                                                    <field name="fecha_entrada"/>
-                                                    <p>Entrada</p>
+                                                    <field  name="fecha_entrada"/>
+                                                    <p class="calendar-text">Entrada</p>
                                                 </div>
                                             </div>
                                         </div>
