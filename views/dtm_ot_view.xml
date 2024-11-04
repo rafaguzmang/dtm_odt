@@ -48,6 +48,7 @@
                     <field name="disenador"/>
                     <field name="firma"/>
                     <field name="firma_ventas"/>
+                    <field name="notes"/>
                 </tree>
             </field>
         </record>

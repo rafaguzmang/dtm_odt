@@ -57,7 +57,7 @@ class DtmOdt(models.Model):
     description = fields.Text(string="DESCRIPCIÓN")
 
     #------------------------Notas---------------------------
-    notes = fields.Text(string="notes")
+    notes = fields.Text(string="Notas")
 
     liberado = fields.Char()
     retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
@@ -73,11 +73,7 @@ class DtmOdt(models.Model):
         for result in self:
             # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
-
-
-
     # ----------------------------------- Funciones ----------------------------------------------------------
-
     def action_firma_parcial(self):
         self.action_firma(parcial=True)
 
@@ -652,7 +648,6 @@ class DtmOdt(models.Model):
                     "materials_cuantity":item.cantidad,
                 }
                 get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
-
 
 # --------------------------------- Botones del header ----------------------------------------------
 
