@@ -713,7 +713,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
-            print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
+            # print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             if result.materials_cuantity <= get_almacen.disponible:
                 result.materials_availabe = result.materials_cuantity
@@ -732,8 +732,9 @@ class TestModelLine(models.Model):
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
-            get_proceso = self.env['dtm.proceso'].search(["|",("status","=","aprobacion"),("status","=","corte")]).mapped('ot_number')
-            get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number)]).id for number in get_proceso]
+            get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD'),('status', 'in', ['aprobacion', 'corte'])]).mapped('ot_number')
+            # print(get_proceso)
+            get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
             get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
