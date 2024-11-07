@@ -735,11 +735,11 @@ class TestModelLine(models.Model):
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
             get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD'),('status', 'in', ['aprobacion', 'corte'])]).mapped('ot_number')
-            print(get_proceso)
+            # print(get_proceso)
             get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
-            print(get_proceso_odt)
+            # print(get_proceso_odt)
             get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
-            print(get_proceso_codigo)
+            # print(get_proceso_codigo)
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
@@ -750,12 +750,12 @@ class TestModelLine(models.Model):
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
-            print(suma,apartado,disponible)
+            # print(suma,apartado,disponible)
             get_almacen.write({
                 "apartado": apartado,
                 "disponible": disponible if disponible > 0 else 0
             })
-            print("..........................................................")
+            # print("..........................................................")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
