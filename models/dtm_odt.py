@@ -660,34 +660,35 @@ class DtmOdt(models.Model):
 
 #--------------------------------------- Get View -----------------------------------------------------
 
-    # def get_view(self, view_id=None, view_type='form', **options):
-    #     res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-    #
-    #     get_self = self.env['dtm.odt'].search([])
-    #
-    #     for get in get_self:
-    #         get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
-    #         if get_po_file and get.tipe_order != "SK":
-    #             get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
-    #             get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
-    #
-    #             lines = []
-    #             if get_po_ir:#Agrega archivo pdf de la po
-    #                 lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id"))
-    #             if get_anex_ir:#Agrega archivos anexos
-    #                 for anexo in get_anex_ir:
-    #                     lines.append(anexo.id.id)
-    #             if lines:
-    #                 get.write({'orden_compra_pdf': [(5, 0, {})]})
-    #                 get.write({'orden_compra_pdf': [(6, 0, lines)]})
-    #
-    #             #Agrega fechas importantes de la PO
-    #             get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
-    #                        "po_fecha":get_po_file.fecha_po})
-    #
-    #
-    #
-    #     return res
+    def get_view(self, view_id=None, view_type='form', **options):
+        res = super(DtmOdt,self).get_view(view_id, view_type,**options)
+
+        # get_self = self.env['dtm.odt'].search([])
+        #
+        # for get in get_self:
+        #     get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
+        #     if get_po_file and get.tipe_order != "SK":
+        #         get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
+        #         get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
+        #
+        #         lines = []
+        #         if get_po_ir:#Agrega archivo pdf de la po
+        #             lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id"))
+        #         if get_anex_ir:#Agrega archivos anexos
+        #             for anexo in get_anex_ir:
+        #                 lines.append(anexo.id.id)
+        #         if lines:
+        #             get.write({'orden_compra_pdf': [(5, 0, {})]})
+        #             get.write({'orden_compra_pdf': [(6, 0, lines)]})
+        #
+        #         #Agrega fechas importantes de la PO
+        #         get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
+        #                    "po_fecha":get_po_file.fecha_po})
+
+        # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
+
+
+        return res
 
 
     #-----------------------Materiales----------------------
@@ -707,6 +708,7 @@ class TestModelLine(models.Model):
     materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     revicion = fields.Boolean(string="COMPRAR")
+    comprado = fields.Boolean(default=False)
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
@@ -733,31 +735,40 @@ class TestModelLine(models.Model):
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
             get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD'),('status', 'in', ['aprobacion', 'corte'])]).mapped('ot_number')
-            # print(get_proceso)
+            print(get_proceso)
             get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
+            print(get_proceso_odt)
             get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
+            print(get_proceso_codigo)
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
             list_search.extend(get_odt_codigo)
             list_search.extend(get_proceso_codigo)
             cont = 0
-            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",result.materials_list.id)],limit=1).materials_cuantity for item in list_search])
+            suma = sum([self.env['dtm.materials.line'].search([("model_id","=",item),("materials_list","=",result.materials_list.id)],limit=1).materials_availabe for item in list_search])
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
-            # print(suma,apartado,disponible)
+            print(suma,apartado,disponible)
             get_almacen.write({
                 "apartado": apartado,
                 "disponible": disponible if disponible > 0 else 0
             })
-
+            print("..........................................................")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
             result.nombre = result.materials_list.nombre
             result.medida = result.materials_list.medida
+
+    @api.model
+    def delete(self):
+        for record in self:
+            if record.comprado:  # O cualquier otra condición
+                raise UserError("No puedes eliminar esta línea porque ya ha sido procesada.")
+        return super(DtmMaterialsLine, self).unlink()
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"

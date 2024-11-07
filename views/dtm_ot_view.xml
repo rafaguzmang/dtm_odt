@@ -132,13 +132,15 @@
                             <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
-                                    <tree editable="bottom" >
-                                        <field name="materials_list"/>
-                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
+                                    <tree editable="bottom" decoration-success="comprado != False" decoration-bf="comprado != False">
+                                        <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
                                         <field name="materials_inventory"/>
-                                        <field name="materials_availabe"/>
+                                        <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
-                                        <field name="revicion"/>
+                                        <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="comprado" invisible="1"/>
+
                                     </tree>
                                 </field>
                             </page>
