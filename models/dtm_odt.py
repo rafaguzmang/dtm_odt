@@ -718,13 +718,13 @@ class TestModelLine(models.Model):
             print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             print(result.materials_cuantity,get_almacen.disponible)
-            if get_almacen.apartado < get_almacen.cantidad:
+            if get_almacen.apartado < get_almacen.cantidad or result.materials_cuantity <= result.materials_availabe :
                 print("1")
                 result.materials_availabe = result.materials_cuantity
                 result.materials_required = 0
-            else:
-                print("2")
-                result.materials_required = result.materials_cuantity - result.materials_availabe
+
+
+            result.materials_required = result.materials_cuantity - result.materials_availabe
             # Pone a cero cantidad y disponible si estos son menores a cero
             result.materials_cuantity = 0 if result.materials_cuantity < 0 else result.materials_cuantity
             result.materials_availabe = 0 if result.materials_availabe < 0 else result.materials_availabe
