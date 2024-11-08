@@ -548,7 +548,7 @@ class DtmOdt(models.Model):
             if codigo.revicion:
 
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
-                cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
+                cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number)),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
                 # cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
                 if ref == 2:
                     cantidad_item = self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required
