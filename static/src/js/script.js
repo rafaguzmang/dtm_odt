@@ -1,25 +1,17 @@
-odoo.define('dtm_odt.script_backend', function (require) {
+odoo.define('my_module.my_script', function (require) {
     "use strict";
 
-    const ListRenderer = require('web.ListRenderer');
 
-    ListRenderer.include({
-        _renderView: function () {
-            return this._super.apply(this, arguments).then(() => {
-                console.log("Checking rows to hide delete button...");
 
-                // Busca el botón delete en función de la condición de `comprado`
-                this.$el.find('tbody tr').each(function () {
-                    const $row = $(this);
-                    const comprado = $row.find('td[data-field="comprado"]').text().trim();
-                    if (comprado === 'True') {
-                        $row.find('button[name="delete"]').hide();
-                    }
-                });
-            });
-        },
-    });
+//    $(document).ready(function() {
+//        // Tu código aquí
+//        console.log('El DOM está listo');
+//
+//        // Ejemplo: obtener el texto de un elemento específico
+//        const ntext = await $("body > div.o_action_manager > div > div > div.o_control_panel > div > div.o_cp_top_left.d-flex.flex-grow-1.align-items-center > ol > li.breadcrumb-item.active.d-flex.align-items-center > span").text();
+//        console.log('Texto del breadcrumb:', ntext);
+//    });
+
+
+
 });
-
-
-

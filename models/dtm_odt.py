@@ -545,7 +545,10 @@ class DtmOdt(models.Model):
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Si el item no tiene marcado el check box hace los calculos para el área de compras
-            if codigo.revicion:
+            buscar = codigo.nombre
+            buscar = buscar.replace("Maquinado Externo", "")
+            # print(buscar,codigo.nombre)
+            if codigo.revicion and buscar.find('Maquinado') == -1:
 
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number)),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
@@ -629,17 +632,20 @@ class DtmOdt(models.Model):
                 }
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
                 self.compras_odt(servicio.material_id,2,True)
-
+# ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
         if self.maquinados_id:
             for item in self.maquinados_id:
-                nombre = f"Maquinado {item.nombre}"
+                tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else 'Maquinado Externo' if item.tipo_servicio == 'externo' else 'Sinquiado' if  item.tipo_servicio == 'sinquiado' else 'Estañado'
+                # print(tipo_servicio)
+                nombre = f"{tipo_servicio} {item.nombre}"
+                # print(nombre)
                 get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
-                get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre})
+                get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre,"medida": ''})
                 get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
 
-                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"Maquinado {item.nombre}")])
+                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"{tipo_servicio} {item.nombre}")])
                 vals = {
                     "model_id":self.id,
                     "nombre":nombre,
@@ -648,6 +654,7 @@ class DtmOdt(models.Model):
                     "materials_list":get_almacen.id,
                     "materials_cuantity":item.cantidad,
                 }
+                # print(vals)
                 get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
 
 # --------------------------------- Botones del header ----------------------------------------------
@@ -715,11 +722,11 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
-            print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
+            # print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
-            print(result.materials_cuantity,get_almacen.disponible)
+            # print(result.materials_cuantity,get_almacen.disponible)
             if get_almacen.apartado < get_almacen.cantidad or result.materials_cuantity <= result.materials_availabe :
-                print("1")
+                # print("1")
                 result.materials_availabe = result.materials_cuantity
                 result.materials_required = 0
 
@@ -740,11 +747,11 @@ class TestModelLine(models.Model):
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
             get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD'),('status', 'in', ['aprobacion', 'corte'])]).mapped('ot_number')
-            print(get_proceso)
+            # print(get_proceso)
             get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
-            print(get_proceso_odt)
+            # print(get_proceso_odt)
             get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
-            print(get_proceso_codigo)
+            # print(get_proceso_codigo)
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
@@ -755,25 +762,18 @@ class TestModelLine(models.Model):
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
-            print(get_almacen.cantidad,suma,apartado,disponible)
+            # print(get_almacen.cantidad,suma,apartado,disponible)
             get_almacen.write({
                 "apartado": apartado,
                 "disponible": disponible if disponible > 0 else 0
             })
-            print("..........................................................")
+            # print("..........................................................")
 
     @api.depends("materials_list")
     def _compute_material_list(self):
         for result in self:
             result.nombre = result.materials_list.nombre
-            result.medida = result.materials_list.medida
-
-    @api.model
-    def delete(self):
-        for record in self:
-            if record.comprado:  # O cualquier otra condición
-                raise UserError("No puedes eliminar esta línea porque ya ha sido procesada.")
-        return super(DtmMaterialsLine, self).unlink()
+            result.medida = result.materials_list.medida if result.materials_list.medida else ""
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
@@ -799,7 +799,7 @@ class Servicios(models.Model):
     extern_id = fields.Many2one("dtm.odt")
 
     nombre = fields.Char(string="Nombre del Servicio")
-    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("sinquiado","Sinquiado"),("estanado","Estañado")])
+    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado")])
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
