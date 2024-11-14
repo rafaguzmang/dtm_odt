@@ -635,6 +635,7 @@ class DtmOdt(models.Model):
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
+        print("maquinados")
         if self.maquinados_id:
             for item in self.maquinados_id:
                 tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else 'Maquinado Externo' if item.tipo_servicio == 'externo' else 'Sinquiado' if  item.tipo_servicio == 'sinquiado' else 'Estañado'
@@ -654,7 +655,7 @@ class DtmOdt(models.Model):
                     "materials_list":get_almacen.id,
                     "materials_cuantity":item.cantidad,
                 }
-                # print(vals)
+                print(vals)
                 get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
 
 # --------------------------------- Botones del header ----------------------------------------------

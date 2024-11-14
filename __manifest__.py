@@ -21,7 +21,7 @@
      'assets': {
         'web.assets_backend': [
             'dtm_odt/static/src/css/styles.css',
-            'dtm_odt/static/src/js/script.js',
+            # 'dtm_odt/static/src/js/script.js',
             ],
     },
 }

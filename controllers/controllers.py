@@ -7,13 +7,10 @@ class WebSiteDirections(http.Controller):
     def get_compras(self, **kw):
 
         ntext_value = kw.get('ntext')
-        print(ntext_value)
-        materiales = request.env['dtm.materials.line'].sudo().search([('model_id','=',int(ntext_value))]).materials_list.mapped('id')
-        print(materiales)
+        materiales = request.env['dtm.materials.line'].sudo().search([('model_id','=',int(ntext_value)),('comprado','=',True)]).materials_list.mapped('id')
         # Construye la respuesta como un diccionario de Python
         result = [{'codigo': material} for material in materiales]
         # result = [{'codigo': ntext_value}]
-        print(result)  # Para depuración en los logs
 
         # Convierte la respuesta a JSON y establece el encabezado de tipo de contenido
         return request.make_response(
