@@ -15,5 +15,7 @@ class WebSiteDirections(http.Controller):
         # Convierte la respuesta a JSON y establece el encabezado de tipo de contenido
         return request.make_response(
             json.dumps(result),  # Convierte a una cadena JSON
-            headers={'Content-Type': 'application/json'}
+            headers={'Content-Type': 'application/json',
+                      'Access-Control-Allow-Origin': '* ',
+                     }
         )

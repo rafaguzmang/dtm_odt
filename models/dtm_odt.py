@@ -74,8 +74,8 @@ class DtmOdt(models.Model):
             # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
-    def action_firma_parcial(self):
-        self.action_firma(parcial=True)
+    # def action_firma_parcial(self):
+    #     self.action_firma(parcial=True)
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
@@ -563,7 +563,7 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Codigo",codigo.materials_list.id)
                 list_reque_odt = list(set(",".join(get_compras_odt).replace(","," ").split()))
                 list_reque_odt = list(filter(lambda x: x!=str(self.ot_number),list_reque_odt))
-                total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
+                total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
                 if ref == 2:
                     total_reque = sum([self.env['dtm.materials.line'].search([("id","=",codigo.id)]).materials_required for item in list_reque_odt])
                 cantidad_reque = sum(get_compras_cantidad) - total_reque
@@ -635,7 +635,6 @@ class DtmOdt(models.Model):
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
-        print("maquinados")
         if self.maquinados_id:
             for item in self.maquinados_id:
                 tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else 'Maquinado Externo' if item.tipo_servicio == 'externo' else 'Sinquiado' if  item.tipo_servicio == 'sinquiado' else 'Estañado'
@@ -655,7 +654,6 @@ class DtmOdt(models.Model):
                     "materials_list":get_almacen.id,
                     "materials_cuantity":item.cantidad,
                 }
-                print(vals)
                 get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
 
 # --------------------------------- Botones del header ----------------------------------------------
@@ -717,6 +715,7 @@ class TestModelLine(models.Model):
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     revicion = fields.Boolean(string="COMPRAR")
     comprado = fields.Boolean(default=False)
+    entregado = fields.Boolean(default=False)
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
@@ -747,7 +746,7 @@ class TestModelLine(models.Model):
             #Se revisa el material en diseño únicamente en ordenes no autorizadas por el área de ventas
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
-            get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD'),('status', 'in', ['aprobacion', 'corte'])]).mapped('ot_number')
+            get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD')]).mapped('ot_number')
             # print(get_proceso)
             get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
             # print(get_proceso_odt)

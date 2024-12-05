@@ -132,7 +132,9 @@
                             <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
-                                    <tree editable="bottom" decoration-success="comprado != False" decoration-bf="comprado != False">
+                                    <tree editable="bottom" decoration-success="entregado"
+                                        decoration-info="comprado and not entregado"
+                                        decoration-bf="comprado or entregado" >
                                         <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
                                         <field name="materials_inventory"/>
@@ -140,6 +142,7 @@
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="comprado" invisible="1"/>
+                                        <field name="entregado" invisible="1"/>
 
                                     </tree>
                                 </field>
@@ -283,85 +286,7 @@
                         <field name="message_ids" widget="mail_thread"/>
                     </div>
                 </form>
-                <script>
-<!--                        setTimeout(() => {-->
-<!--                            let pestana = document.querySelector("body > div.o_action_manager > div > div > div.o_content > data > div > div.o_form_sheet_bg > div.o_form_sheet.position-relative.clearfix > div.o_notebook.d-flex.w-100.horizontal.flex-column > div.o_notebook_headers > ul > li:nth-child(2) > a");-->
-<!--                            let forward = document.querySelector("body > div.o_action_manager > div > div > div.o_control_panel > div > div.o_cp_bottom_right.w-auto.flex-shrink-0.justify-content-between.align-items-center > div.o_cp_pager > nav > span.btn-group > button.fa.fa-chevron-right.btn.btn-secondary.o_pager_next.px-2.rounded-end");-->
-<!--                            let back = document.querySelector("body > div.o_action_manager > div > div > div.o_control_panel > div > div.o_cp_bottom_right.w-auto.flex-shrink-0.justify-content-between.align-items-center > div.o_cp_pager > nav > span.btn-group > button.fa.fa-chevron-left.btn.btn-secondary.o_pager_previous.px-2.rounded-start");-->
 
-<!--&lt;!&ndash;                            if (pestana || forward || back) {&ndash;&gt;-->
-<!--&lt;!&ndash;                                getData();&ndash;&gt;-->
-<!--&lt;!&ndash;                                pestana.addEventListener('click', () => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                    console.log("Pestaña!!");&ndash;&gt;-->
-<!--&lt;!&ndash;                                    setTimeout(() => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                        getData();&ndash;&gt;-->
-<!--&lt;!&ndash;                                    }, 375);&ndash;&gt;-->
-
-<!--&lt;!&ndash;                                });&ndash;&gt;-->
-
-<!--&lt;!&ndash;                                forward.addEventListener('mouseup', () => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                    console.log("Forward!!");&ndash;&gt;-->
-<!--&lt;!&ndash;                                    setTimeout(() => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                        getData();&ndash;&gt;-->
-<!--&lt;!&ndash;                                    }, 375);&ndash;&gt;-->
-<!--&lt;!&ndash;                                });&ndash;&gt;-->
-
-<!--&lt;!&ndash;                                back.addEventListener('mouseup', () => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                    console.log("Back!!");&ndash;&gt;-->
-<!--&lt;!&ndash;                                    setTimeout(() => {&ndash;&gt;-->
-<!--&lt;!&ndash;                                        getData();&ndash;&gt;-->
-<!--&lt;!&ndash;                                    }, 375);&ndash;&gt;-->
-
-<!--&lt;!&ndash;                                });&ndash;&gt;-->
-
-<!--&lt;!&ndash;                            } else {&ndash;&gt;-->
-<!--&lt;!&ndash;                                console.error("El elemento 'pestana' no fue encontrado en el DOM.");&ndash;&gt;-->
-<!--&lt;!&ndash;                            }&ndash;&gt;-->
-<!--                        }, 1000);-->
-
-<!--                        function getData() {-->
-<!--                            try {-->
-<!--                                let currentUrl = window.location.href;-->
-<!--                                let ip = window.location.origin;-->
-<!--                                const idNo = 'web#id=';-->
-<!--                                currentUrl = currentUrl.substring(currentUrl.indexOf(ip) + ip.length,currentUrl.length);-->
-<!--                                currentUrl = currentUrl.substring(currentUrl.indexOf(idNo) + idNo.length,currentUrl.indexOf('&amp;'));-->
-<!--                                if (currentUrl != -1){-->
-<!--                                    console.log('http://localhost:8069/dtm_odt/get_data?ntext='+currentUrl);-->
-<!--                                    fetchData('http://localhost:8069/dtm_odt/get_data?ntext='+currentUrl);-->
-<!--                                }-->
-<!--                            }catch (error){-->
-<!--                                console.log('Falso');-->
-<!--                            }-->
-<!--                        }-->
-
-<!--                        async function fetchData(urlString) {-->
-<!--                              try {-->
-<!--                                const response = await fetch(urlString);-->
-
-<!--                                if (!response.ok) {-->
-<!--                                  throw new Error('Error en la respuesta de la red');-->
-<!--                                }-->
-
-<!--                                let data = await response.json();-->
-<!--                                console.log('Data recibida:', data);-->
-<!--                                let element = document.querySelector('.ui-sortable');-->
-<!--                                for (let x of  element.children) {-->
-<!--                                    x.children[6].style.display = 'table-cell';-->
-<!--                                    for(let y in data) {-->
-<!--                                        if(x.children[0].innerText.search(data[y].codigo.toString()) == 0){-->
-<!--                                            console.log(data[y].codigo);-->
-<!--                                            console.log(x.children[0].innerText);-->
-<!--                                            x.children[6].style.display = 'none';-->
-<!--                                        }-->
-<!--                                    }-->
-<!--                                }-->
-<!--                              } catch (error) {-->
-<!--                                console.error('Hubo un problema con la solicitud Fetch:', error);-->
-<!--                              }-->
-<!--                        }-->
-
-                </script>
             </field>
         </record>
 
