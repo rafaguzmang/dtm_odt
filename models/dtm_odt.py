@@ -716,6 +716,7 @@ class TestModelLine(models.Model):
     revicion = fields.Boolean(string="COMPRAR")
     comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
+    recibe = fields.Char()
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):

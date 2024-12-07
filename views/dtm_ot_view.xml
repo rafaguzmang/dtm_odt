@@ -143,6 +143,8 @@
                                         <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
+                                        <field name="recibe" invisible="1"/>
+
 
                                     </tree>
                                 </field>
