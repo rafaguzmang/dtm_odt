@@ -3,7 +3,7 @@
     <data>
 
         <record id="dtm_odt.dtm_ot_action" model="ir.actions.act_window">
-            <field name="name">ORDEN DE DISEÑO</field>
+            <field name="name">Diseño</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
             <field name="context">{'search_default_diseno': True}</field>
@@ -144,8 +144,6 @@
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
-
-
                                     </tree>
                                 </field>
                             </page>
@@ -292,6 +290,6 @@
             </field>
         </record>
 
-<!--        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>-->
+        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
     </data>
 </odoo>

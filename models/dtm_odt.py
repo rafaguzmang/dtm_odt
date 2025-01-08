@@ -74,8 +74,6 @@ class DtmOdt(models.Model):
             # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
-    # def action_firma_parcial(self):
-    #     self.action_firma(parcial=True)
 
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
@@ -99,7 +97,6 @@ class DtmOdt(models.Model):
                         "ot_asignadas":" ".join(lista),
                     })
         else:
-
             if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
                 self.proceso(parcial)
 
@@ -635,26 +632,68 @@ class DtmOdt(models.Model):
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
+        # print(self.maquinados_id)
+
+        #Actualiza el primary_key a un ID libre
+        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+1):
+                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+                    self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
+                    break
+        tabla_list = []
         if self.maquinados_id:
             for item in self.maquinados_id:
                 tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else 'Maquinado Externo' if item.tipo_servicio == 'externo' else 'Sinquiado' if  item.tipo_servicio == 'sinquiado' else 'Estañado'
                 # print(tipo_servicio)
                 nombre = f"{tipo_servicio} {item.nombre}"
                 # print(nombre)
+                #Busca si el servicio/item existe y si no lo crea si existe lo actualiza y si lo crea lo busca para trabajar con el
                 get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
                 get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre,"medida": ''})
                 get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
 
-                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self.id),("nombre","=",f"{tipo_servicio} {item.nombre}")])
+                # Pone el servicio en la lista de materiales de la orden
+                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self._origin.id),("materials_list","=",get_almacen.id)])
+                # print(get_almacen.id,get_materials)
                 vals = {
-                    "model_id":self.id,
+                    "model_id":self._origin.id,
                     "nombre":nombre,
                     "medida": "",
                     "materials_list":get_almacen.id,
                     "materials_list":get_almacen.id,
                     "materials_cuantity":item.cantidad,
                 }
-                get_materials.write(vals) if f"Maquinado {item.nombre}" in self.materials_ids.mapped('nombre') else get_materials.create(vals)
+                get_materials.write(vals) if get_materials else get_materials.create(vals)
+                get_materials = self.env['dtm.materials.line'].search([("model_id","=",self._origin.id),("materials_list","=",get_almacen.id)])
+                tabla_list.append(get_materials.id)
+        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+2):
+                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+                    self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
+                    break
+
+        #Borra todos los servicios que no esten en el modelo de servicios
+        servicios_exist = []
+        for servicio in self.env['dtm.materials.line'].search([("model_id","=",self._origin.id)]):
+            if servicio.nombre.split(' ')[0] in ['Maquinado','Externo','Sinquiado','Estañado']:
+                servicios_exist.append(servicio)
+            else:
+                tabla_list.append(servicio.id)
+        servicios_comp = []
+        #Obtiene el nombre del servicio del modelo maquinados_id para despues comparar
+        for servicio in self.maquinados_id:
+            servicios_comp.append(f"{servicio.tipo_servicio.capitalize()} {servicio.nombre}")
+        delete_list = []
+        #Compara el servicio en materials_id vs maquinados_id
+        for servicio in servicios_exist:
+            if servicio.nombre in servicios_comp:
+                tabla_list.append(servicio._origin.id)
+        self.materials_ids = [(5, 0, {})]
+        # print(tabla_list)
+        self.materials_ids = [(6, 0, list(set(tabla_list)))]
+
+
+
+
+
 
 # --------------------------------- Botones del header ----------------------------------------------
 
@@ -800,7 +839,7 @@ class Servicios(models.Model):
     extern_id = fields.Many2one("dtm.odt")
 
     nombre = fields.Char(string="Nombre del Servicio")
-    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado")])
+    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado")],required=True)
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
@@ -810,6 +849,7 @@ class Servicios(models.Model):
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
     material_id = fields.One2many("dtm.materials.line","servicio_id")
     anexos_id = fields.Many2many("ir.attachment")
+
 
     def action_pasive(self):
         pass
