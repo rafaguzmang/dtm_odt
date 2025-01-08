@@ -676,7 +676,7 @@ class DtmOdt(models.Model):
         #Borra todos los servicios que no esten en el modelo de servicios
         servicios_exist = []
         for servicio in self.env['dtm.materials.line'].search([("model_id","=",self._origin.id)]):
-            if servicio.nombre.split(' ')[0] in ['Maquinado','Externo','Sinquiado','Estañado']:
+            if servicio.nombre.split(' ')[0] in ['Maquinado','Externo','Sinquiado','Estañado','Pavoneado']:
                 servicios_exist.append(servicio)
             else:
                 tabla_list.append(servicio.id)
