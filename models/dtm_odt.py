@@ -642,8 +642,11 @@ class DtmOdt(models.Model):
         tabla_list = []
         if self.maquinados_id:
             for item in self.maquinados_id:
-                tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else 'Maquinado Externo' if item.tipo_servicio == 'externo' else 'Sinquiado' if  item.tipo_servicio == 'sinquiado' else 'Estañado'
-                # print(tipo_servicio)
+                tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else\
+                    'Maquinado Externo' if item.tipo_servicio == 'externo' else\
+                    'Sinquiado' if  item.tipo_servicio == 'sinquiado' else\
+                    'Estañado' if item.tipo_servicio == 'estañado' else 'Pavoneado'
+                # print(tipo_servicio)Pavoneado
                 nombre = f"{tipo_servicio} {item.nombre}"
                 # print(nombre)
                 #Busca si el servicio/item existe y si no lo crea si existe lo actualiza y si lo crea lo busca para trabajar con el
@@ -691,10 +694,6 @@ class DtmOdt(models.Model):
         self.materials_ids = [(6, 0, list(set(tabla_list)))]
 
 
-
-
-
-
 # --------------------------------- Botones del header ----------------------------------------------
 
     def action_imprimir_formato(self): # Imprime según el formato que se esté llenando
@@ -708,27 +707,9 @@ class DtmOdt(models.Model):
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(DtmOdt,self).get_view(view_id, view_type,**options)
 
-        # get_self = self.env['dtm.odt'].search([])
-        #
-        # for get in get_self:
-        #     get_po_file = self.env['dtm.ordenes.compra'].search([('orden_compra','=',get.po_number)])
-        #     if get_po_file and get.tipe_order != "SK":
-        #         get_po_ir = self.env['ir.attachment'].browse(get_po_file.archivos_id.id)
-        #         get_anex_ir = self.env['ir.attachment'].browse(get_po_file.anexos_id)
-        #
-        #         lines = []
-        #         if get_po_ir:#Agrega archivo pdf de la po
-        #             lines.extend(self.env['ir.attachment'].browse(get_po_file.archivos_id.id).mapped("id"))
-        #         if get_anex_ir:#Agrega archivos anexos
-        #             for anexo in get_anex_ir:
-        #                 lines.append(anexo.id.id)
-        #         if lines:
-        #             get.write({'orden_compra_pdf': [(5, 0, {})]})
-        #             get.write({'orden_compra_pdf': [(6, 0, lines)]})
-        #
-        #         #Agrega fechas importantes de la PO
-        #         get.write({"po_fecha_creacion":get_po_file.fecha_captura_po,
-        #                    "po_fecha":get_po_file.fecha_po})
+        get_self = self.env['dtm.odt'].search([])
+
+
 
         # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
 
@@ -839,7 +820,7 @@ class Servicios(models.Model):
     extern_id = fields.Many2one("dtm.odt")
 
     nombre = fields.Char(string="Nombre del Servicio")
-    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado")],required=True)
+    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado"),("pavoneado","Pavoneado")],required=True)
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
