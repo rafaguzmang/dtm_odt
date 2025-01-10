@@ -163,7 +163,7 @@ class DtmOdt(models.Model):
                 "materials_ids":self.materials_ids,
             })
         get_ot.materials_ids = self.materials_ids
-        get_ot.rechazo_id = self.rechazo_id
+        # get_ot.rechazo_id = self.rechazo_id
         get_ot.write({'anexos_id': [(5, 0, {})]})
         lines = []
         for anexo in self.anexos_id:
@@ -727,6 +727,7 @@ class TestModelLine(models.Model):
     servicio_id = fields.Many2one("dtm.odt.servicios")
     nombre = fields.Char(compute="_compute_material_list",store=True)
     medida = fields.Char(store=True)
+    notas = fields.Char(string="Notas")
 
     materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")

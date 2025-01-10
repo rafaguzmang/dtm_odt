@@ -136,6 +136,7 @@
                                         decoration-info="comprado and not entregado"
                                         decoration-bf="comprado or entregado" >
                                         <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="notas"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
@@ -262,6 +263,7 @@
                                                 <field name="material_id">
                                                       <tree editable="bottom" >
                                                         <field name="materials_list"/>
+                                                        <field name="notas"/>
                                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                                         <field name="materials_inventory"/>
                                                         <field name="materials_availabe"/>
