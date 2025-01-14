@@ -19,7 +19,8 @@ class DtmOdt(models.Model):
         get_npi = self.env['dtm.odt'].search([("tipe_order","=","NPI")],order='ot_number desc', limit=1)
         return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
 
-    ot_number = fields.Integer(string="NO.",default=action_autoNum,readonly=True)
+    od_number = fields.Integer(string="No",readonly=True)
+    ot_number = fields.Integer(string="ORDEN",default=action_autoNum,readonly=True)
     tipe_order = fields.Char(string=" ",readonly=True, default='NPI')
     name_client = fields.Char(string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
@@ -96,6 +97,7 @@ class DtmOdt(models.Model):
                     self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).write({
                         "ot_asignadas":" ".join(lista),
                     })
+                self.proceso(parcial)
         else:
             if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
                 self.proceso(parcial)

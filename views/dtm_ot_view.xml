@@ -37,6 +37,7 @@
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
                 <tree  >
+                    <field name="od_number"/>
                     <field name="ot_number"/>
                     <field name="tipe_order"/>
                     <field name="po_number"/>
