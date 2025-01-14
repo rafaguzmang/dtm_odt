@@ -18,7 +18,7 @@ class DtmOdt(models.Model):
         get_terminado = self.env['dtm.facturado.npi'].search([],order='ot_number desc',limit=1)
         get_npi = self.env['dtm.odt'].search([("tipe_order","=","NPI")],order='ot_number desc', limit=1)
         return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
-
+    # Campo para llevar el conteo exclusivo de diseño
     od_number = fields.Integer(string="No",readonly=True)
     ot_number = fields.Integer(string="ORDEN",default=action_autoNum,readonly=True)
     tipe_order = fields.Char(string=" ",readonly=True, default='NPI')
