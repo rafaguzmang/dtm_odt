@@ -45,6 +45,7 @@ class DtmOdt(models.Model):
     nesteos = fields.Boolean(string="Nesteos",default=False)
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
+    anexos_ventas_id = fields.Many2many("ir.attachment" ,"anexos_ventas_id",string="Archivos")
     anexos_id = fields.Many2many("ir.attachment" ,"anexos_id",string="Archivos")
     cortadora_id = fields.Many2many("ir.attachment", "cortadora_id",string="Segundas piezas")
     primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
@@ -82,22 +83,18 @@ class DtmOdt(models.Model):
             self.firma_ventas = self.env.user.partner_id.name
             self.proceso(parcial)
         elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
+                # Pone el nombre de usuario
                 self.firma = self.env.user.partner_id.name
                 if self.tipe_order == "OT":
-                    get_ventas = self.env['dtm.compras.items'].search([("orden_trabajo","=",self.ot_number)])
-                    get_ventas.write({"firma": self.firma})
-                    #Obtiene el id de la orden de compra
-                    orden = list(set(get_ventas.mapped('model_id')))[0]
-                    get_orden_compra = self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).descripcion_id.mapped('id')
-
-                    list_items = [item for item in get_orden_compra if self.env['dtm.compras.items'].search([("id", "=", item)]).tipo_servicio == "servicio"]
-                    list_orm = [self.env['dtm.compras.items'].search([("id", "=", item)]) for item in list_items]
-                    lista = [f"|𝓐 {item.orden_trabajo}✔|" if item.firma_diseno == "orozco" and item.firma == "Andrés Alberto Orozco Martínez" else f"|𝓐 {item.orden_trabajo}❌| " if item.firma_diseno == "orozco" and not item.firma  else f"|𝓛 {item.orden_trabajo}✔|" if item.firma_diseno == "garcia" and item.firma == "Luís Donaldo García Rayos" else f"|𝓛 {item.orden_trabajo}❌|" if item.firma_diseno == "garcia" and not item.firma else f"|{item.orden_trabajo}❌|" for item in list_orm]
-                    orden = list(set(get_ventas.mapped('model_id')))[0]
-                    self.env['dtm.ordenes.compra'].search([("id", "=", orden['id'])]).write({
-                        "ot_asignadas":" ".join(lista),
-                    })
-                self.proceso(parcial)
+                    if not self.ot_number:
+                        get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1)
+                        get_facturado = self.env['dtm.facturado.odt'].search([],order="ot_number desc",limit= 1)
+                        self.ot_number = max(get_this.ot_number,get_facturado.ot_number)
+                    #Pone el número de la orden de trabajo en ventas
+                    get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
+                    get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
+                    if self.firma_ventas:
+                        self.proceso(parcial)
         else:
             if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
                 self.proceso(parcial)
