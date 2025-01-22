@@ -89,7 +89,7 @@ class DtmOdt(models.Model):
                     if not self.ot_number:
                         get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1)
                         get_facturado = self.env['dtm.facturado.odt'].search([],order="ot_number desc",limit= 1)
-                        self.ot_number = max(get_this.ot_number,get_facturado.ot_number)
+                        self.ot_number = max(get_this.ot_number,get_facturado.ot_number) + 1
                     #Pone el número de la orden de trabajo en ventas
                     get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
