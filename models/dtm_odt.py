@@ -708,6 +708,12 @@ class DtmOdt(models.Model):
 
         get_self = self.env['dtm.odt'].search([])
 
+        # Busca ids vacios y actualiza la PK
+        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+1):
+                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+                    self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
+                    break
+
 
 
         # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
