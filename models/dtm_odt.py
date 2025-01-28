@@ -54,6 +54,7 @@ class DtmOdt(models.Model):
     orden_compra_pdf = fields.Many2many("ir.attachment",string='File', readonly =True)
     ligas_id = fields.One2many("dtm.odt.ligas","model_id")
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
+    archivos_id = fields.Many2many('dtm.documentos.anexos')
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -743,6 +744,7 @@ class TestModelLine(models.Model):
     comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
+
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):

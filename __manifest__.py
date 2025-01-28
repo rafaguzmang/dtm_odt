@@ -1,7 +1,7 @@
 {
     "name":"dtm_odt",
     "description":"Control ordenes de trabajo",
-    'depends': ['base', 'mail','dtm_servicios_externos','web'],
+    'depends': ['base', 'mail','dtm_servicios_externos','web','dtm_cotizaciones'],
     # 'depends': ['base', 'mail'],
     "data":[
         #Security
