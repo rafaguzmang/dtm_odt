@@ -43,7 +43,7 @@
                     <field name="po_number"/>
                     <field name="po_fecha"/>
                     <field name="po_fecha_creacion"/>
-                    <field name="date_rel" widget="date"/>
+                    <field name="date_disign_finish" widget="date"/>
                     <field name="name_client"/>
                     <field name="product_name"/>
                     <field name="disenador"/>

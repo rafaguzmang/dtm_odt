@@ -55,6 +55,7 @@ class DtmOdt(models.Model):
     ligas_id = fields.One2many("dtm.odt.ligas","model_id")
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
+    date_disign_finish = fields.Date(string="Fecha Promesa",readonly =True)
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -107,7 +108,6 @@ class DtmOdt(models.Model):
             "firma_ventas_kanba":"Ventas"
         })
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
-        get_almacen = self.env['dtm.almacen.odt'].search([("ot_number","=",self.ot_number)])
         vals = {
                 "ot_number":self.ot_number,
                 "tipe_order":self.tipe_order,
@@ -147,21 +147,7 @@ class DtmOdt(models.Model):
                     "firma_diseno":self.firma,
                     "status":status
                 })
-        if get_almacen:
-             get_almacen.write({
-                "date_in":self.date_in,
-                "date_rel":self.date_rel,
-                "materials_ids":self.materials_ids
-            })
-        else:
-             # print(self.materials_ids)
-             get_almacen.create({
-                "ot_number":self.ot_number,
-                "tipe_order":self.tipe_order,
-                "date_in":self.date_in,
-                "date_rel":self.date_rel,
-                "materials_ids":self.materials_ids,
-            })
+
         get_ot.materials_ids = self.materials_ids
         # get_ot.rechazo_id = self.rechazo_id
         get_ot.write({'anexos_id': [(5, 0, {})]})
@@ -636,16 +622,16 @@ class DtmOdt(models.Model):
 
         #Actualiza el primary_key a un ID libre
         for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+1):
-                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
-                    self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
-                    break
+            if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+                self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
+                break
         tabla_list = []
         if self.maquinados_id:
             for item in self.maquinados_id:
                 tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else\
                     'Maquinado Externo' if item.tipo_servicio == 'externo' else\
                     'Sinquiado' if  item.tipo_servicio == 'sinquiado' else\
-                    'Estañado' if item.tipo_servicio == 'estañado' else 'Pavoneado'
+                    'Estañado' if item.tipo_servicio == 'estanado' else 'Pavoneado'
                 # print(tipo_servicio)Pavoneado
                 nombre = f"{tipo_servicio} {item.nombre}"
                 # print(nombre)
@@ -706,7 +692,6 @@ class DtmOdt(models.Model):
 
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-
         get_self = self.env['dtm.odt'].search([])
 
         # Busca ids vacios y actualiza la PK
