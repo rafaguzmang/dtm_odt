@@ -244,12 +244,16 @@ class DtmOdt(models.Model):
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
             # print("email",email)
-            self.firma_ingenieria = self.env.user.partner_id.name
-            self.cortadora_laser()
-            self.cortadora_tubos()
-
-            # if not parcial:
-            #     self.retrabajo = True
+            if self.cuantity < 5:
+                self.firma_ingenieria = self.env.user.partner_id.name
+                self.cortadora_laser()
+                self.cortadora_tubos()
+            elif self.cuantity > 5 and self.primera_pieza_id:
+                self.firma_ingenieria = self.env.user.partner_id.name
+                self.cortadora_laser()
+                self.cortadora_tubos()
+            else:
+                 raise ValidationError("Ordenes con cantidad de mas de 4 debe llevar primera pieza.")
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
