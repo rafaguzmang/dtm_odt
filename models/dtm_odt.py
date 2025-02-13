@@ -84,10 +84,10 @@ class DtmOdt(models.Model):
         if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
             self.firma_ventas = self.env.user.partner_id.name
             self.proceso(parcial)
-        elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com"]:
+        elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com",'ingenieria1@dtmindustry.com']:
                 # Pone el nombre de usuario
                 self.firma = self.env.user.partner_id.name
-                if self.tipe_order == "OT":
+                if self.tipe_order == "OT" or self.tipe_order == "NPI":
                     if not self.ot_number:
                         get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1)
                         get_facturado = self.env['dtm.facturado.odt'].search([],order="ot_number desc",limit= 1)
@@ -97,9 +97,7 @@ class DtmOdt(models.Model):
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
                     if self.firma_ventas:
                         self.proceso(parcial)
-        else:
-            if self.firma_ventas and self.tipe_order != "SK" and self.tipe_order != "PD":
-                self.proceso(parcial)
+
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -243,17 +241,15 @@ class DtmOdt(models.Model):
         self.compras_odt(self.materials_ids,1)
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
-            print("cantidad",self.cuantity,self.primera_pieza_id)
-            if self.cuantity < 5 and not self.primera_pieza_id:
-                self.firma_ingenieria = self.env.user.partner_id.name
+            if self.cuantity < 5 and not self.primera_pieza_id and self.firma_ingenieria:
                 self.cortadora_laser()
                 self.cortadora_tubos()
-            elif self.cuantity > 4 and self.primera_pieza_id:
-                self.firma_ingenieria = self.env.user.partner_id.name
+            elif self.cuantity > 4 and self.primera_pieza_id and self.firma_ingenieria:
                 self.cortadora_laser()
                 self.cortadora_tubos()
             else:
                  raise ValidationError("Ordenes con cantidad de mas de 4 debe llevar primera pieza.")
+            self.firma_ingenieria = self.env.user.partner_id.name
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
