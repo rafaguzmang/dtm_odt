@@ -243,12 +243,12 @@ class DtmOdt(models.Model):
         self.compras_odt(self.materials_ids,1)
         self.compras_servicios()
         if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
-            # print("email",email)
-            if self.cuantity < 5:
+            print("cantidad",self.cuantity,self.primera_pieza_id)
+            if self.cuantity < 5 and not self.primera_pieza_id:
                 self.firma_ingenieria = self.env.user.partner_id.name
                 self.cortadora_laser()
                 self.cortadora_tubos()
-            elif self.cuantity > 5 and self.primera_pieza_id:
+            elif self.cuantity > 4 and self.primera_pieza_id:
                 self.firma_ingenieria = self.env.user.partner_id.name
                 self.cortadora_laser()
                 self.cortadora_tubos()
