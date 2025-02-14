@@ -572,13 +572,14 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Comprado",cantidad_comprado)
                 # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-                # print(codigo.nombre,codigo.materials_list.id,servicio,)
+                codigo.materials_list.id == 1804 and print(self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).nombre)
                 # print(get_compras.disenador)
                 # print(self.firma if not get_compras.disenador else "")
+                medida = self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).medida
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
-                        'nombre':f"{codigo.nombre} {codigo.medida if codigo.medida else ''}",
+                        'nombre':f"{self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
                         'disenador':self.env.user.partner_id.name if not self.env.user.partner_id.name in ["Alejandro Erives Chavez","Hugo Chacon","Administrator"] else self.firma,
                         'servicio':servicio,
