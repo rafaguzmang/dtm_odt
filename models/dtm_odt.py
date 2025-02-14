@@ -572,7 +572,6 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("Comprado",cantidad_comprado)
                 # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-                codigo.materials_list.id == 1804 and print(self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).nombre)
                 # print(get_compras.disenador)
                 # print(self.firma if not get_compras.disenador else "")
                 medida = self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).medida

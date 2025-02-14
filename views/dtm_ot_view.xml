@@ -15,6 +15,7 @@
             <field name="arch" type="xml">
                <search>
                     <field name="ot_number"/>
+                    <field name="od_number"/>
                     <field name="name_client"/>
                     <field name="disenador"/>
                     <field name="po_number"/>
@@ -24,6 +25,7 @@
                     <filter string="SK" name="sk" domain="[('tipe_order','=','SK')]"/>
                     <filter string="ODT-I" name="odt-i" domain="[('tipe_order','=','ODT-I')]"/>
                     <filter string="PD" name="PD" domain="[('tipe_order','=','PD')]"/>
+                    <filter string="Versión" name="PD" domain="[('version_ot','>',1)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
@@ -39,6 +41,7 @@
                 <tree  >
                     <field name="od_number"/>
                     <field name="ot_number"/>
+                    <field name="version_ot"/>
                     <field name="tipe_order"/>
                     <field name="po_number"/>
                     <field name="po_fecha"/>
