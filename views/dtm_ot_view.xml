@@ -6,7 +6,7 @@
             <field name="name">Diseño</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_diseno': True}</field>
+            <field name="context">{'search_default_disenoversion': True}</field>
         </record>
 
         <record id="dtm_ot_search" model="ir.ui.view">
@@ -30,6 +30,7 @@
                     <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[('firma_ventas','=',False)]"/>
                     <filter string="En produccion" name="produccion" domain="[('firma_ventas','!=',False)]"/>
+                    <filter string="Diseño - Versión" name="disenoversion" domain="['|',('firma_ventas','=',False),('version_ot','>',1)]"/>
                </search>
             </field>
         </record>
