@@ -56,6 +56,7 @@ class DtmOdt(models.Model):
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
     date_disign_finish = fields.Date(string="Fecha Promesa",readonly =True)
+    manufactura = fields.Boolean(default=False)
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -69,6 +70,8 @@ class DtmOdt(models.Model):
     maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
+
+
 
     def action_pasive(self):
         pass
@@ -97,7 +100,6 @@ class DtmOdt(models.Model):
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
                     if self.firma_ventas:
                         self.proceso(parcial)
-
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -702,6 +704,12 @@ class DtmOdt(models.Model):
                 if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
                     self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
                     break
+
+        get_this = self.env['dtm.odt'].search([])
+
+        for odt in get_this:
+            if str(odt.ot_number) in self.env['dtm.proceso'].search([]).mapped('ot_number'):
+                odt.manufactura = True
 
 
 
