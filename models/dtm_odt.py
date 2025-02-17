@@ -711,10 +711,7 @@ class DtmOdt(models.Model):
             if str(odt.ot_number) in self.env['dtm.proceso'].search([]).mapped('ot_number'):
                 odt.manufactura = True
 
-
-
         # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
-
 
         return res
 
@@ -740,6 +737,7 @@ class TestModelLine(models.Model):
     comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
+    almacen = fields.Boolean(string="Almacén",default=False,readonly=True)
 
 
     @api.depends("materials_cuantity")
@@ -754,7 +752,6 @@ class TestModelLine(models.Model):
                 # print("1")
                 result.materials_availabe = result.materials_cuantity
                 result.materials_required = 0
-
 
             result.materials_required = result.materials_cuantity - result.materials_availabe
             # Pone a cero cantidad y disponible si estos son menores a cero

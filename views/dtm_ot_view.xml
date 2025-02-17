@@ -146,6 +146,7 @@
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
+                                        <field name="almacen"/>
                                         <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
