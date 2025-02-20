@@ -72,7 +72,6 @@ class DtmOdt(models.Model):
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
 
 
-
     def action_pasive(self):
         pass
 
@@ -738,6 +737,16 @@ class TestModelLine(models.Model):
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
     almacen = fields.Boolean(string="Almacén",default=False,readonly=True)
+
+    @api.onchange("revicion")
+    def onchange_revicion(self):
+        if self.revicion:
+            if self.nombre.find("Lámina") != -1:
+                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
+                self.revicion = True
+                if not any(medida in self.medida for medida in medidas_validas):
+                    self.revicion = False
+
 
 
     @api.depends("materials_cuantity")
