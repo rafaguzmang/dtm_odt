@@ -35,7 +35,7 @@ class DtmOdt(models.Model):
     firma = fields.Char(string="Firma", readonly = True)
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
-    firma_almacen = fields.Char()
+    firma_almacen = fields.Char(string="Firma Almacén",readonly = True,default=False)
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
     firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
@@ -55,8 +55,9 @@ class DtmOdt(models.Model):
     ligas_id = fields.One2many("dtm.odt.ligas","model_id")
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
-    date_disign_finish = fields.Date(string="Fecha Promesa",readonly =True)
+    date_disign_finish = fields.Date(string="Fecha Diseño",readonly =True)
     manufactura = fields.Boolean(default=False)
+    almacen_rev = fields.Boolean(default=False)
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -72,6 +73,15 @@ class DtmOdt(models.Model):
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
 
 
+    def action_almacen(self):
+        # print(self.materials_ids.mapped('materials_cuantity'))
+        if not 0 in self.materials_ids.mapped('materials_cuantity'):
+            self.almacen_rev = False if self.almacen_rev else True
+            self.firma_almacen = 'Pendientes' if self.almacen_rev else ''
+        else:
+            raise ValidationError('No debe de haber cantidades en cero')
+
+
     def action_pasive(self):
         pass
 
@@ -85,7 +95,12 @@ class DtmOdt(models.Model):
         email = self.env.user.partner_id.email
         if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
             self.firma_ventas = self.env.user.partner_id.name
-            self.proceso(parcial)
+            if self.materials_ids:
+                if self.firma_almacen in ['almacen@dtmindustry.com']:
+                    self.proceso(parcial)
+                else:
+                    raise ValidationError('Favor de validar lista de Materiales')
+
         elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com",'ingenieria1@dtmindustry.com']:
                 # Pone el nombre de usuario
                 self.firma = self.env.user.partner_id.name
@@ -97,8 +112,10 @@ class DtmOdt(models.Model):
                     #Pone el número de la orden de trabajo en ventas
                     get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
-                    if self.firma_ventas:
+                    if self.firma_ventas and  self.firma_almacen in ['almacen@dtmindustry.com'] and  self.materials_ids:
                         self.proceso(parcial)
+                    else:
+                        raise ValidationError('Favor de validar lista de Materiales')
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -736,21 +753,25 @@ class TestModelLine(models.Model):
     comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
-    almacen = fields.Boolean(string="Almacén",default=False,readonly=True)
+    almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
 
     @api.onchange("revicion")
     def onchange_revicion(self):
         if self.revicion:
-            if self.nombre.find("Lámina") != -1:
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
-                self.revicion = True
-                if not any(medida in self.medida for medida in medidas_validas):
-                    self.revicion = False
-
+            if self.env['dtm.odt'].search([('id','=',self.model_id._origin.id)]).firma_almacen in ['almacen@dtmindustry.com']:
+                if self.nombre.find("Lámina") != -1:
+                    medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
+                    self.revicion = True
+                    if not any(medida in self.medida for medida in medidas_validas):
+                        self.revicion = False
+                        raise ValidationError("Solo Láminas completas!!")
+            else:
+                raise ValidationError("Lista de materiales no verificada")
 
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
+        self.env['dtm.odt'].search([('id','=',self.model_id._origin.id)]).firma_almacen = ''
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
@@ -820,7 +841,6 @@ class Rechazo(models.Model):
     @api.onchange("fecha")
     def _action_fecha(self):
         self.fecha = datetime.now()
-
         self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
 
 class Servicios(models.Model):

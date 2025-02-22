@@ -117,6 +117,7 @@
                                 <field name="version_ot"  options='{"type": "number"}'/>
                                 <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
                                 <field name="color"/>
+                                <field name="firma_almacen"/>
                         </group>
 
                                 <field name="po_number" invisible="1"/>
@@ -153,6 +154,7 @@
                                         <field name="recibe" invisible="1"/>
                                     </tree>
                                 </field>
+                                <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
                             </page>
                             <page string="RECHAZO" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
