@@ -35,7 +35,7 @@ class DtmOdt(models.Model):
     firma = fields.Char(string="Firma", readonly = True)
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
-    firma_almacen = fields.Char(string="Firma Almacén",readonly = True,default=False)
+    firma_almacen = fields.Char(string="Firma Almacén",readonly = False,default='almacen@dtmindustry.com')
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char()
     firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
@@ -112,10 +112,11 @@ class DtmOdt(models.Model):
                     #Pone el número de la orden de trabajo en ventas
                     get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
-                    if self.firma_ventas and  self.firma_almacen in ['almacen@dtmindustry.com'] and  self.materials_ids:
-                        self.proceso(parcial)
-                    else:
-                        raise ValidationError('Favor de validar lista de Materiales')
+                    if self.firma_ventas:
+                        if self.firma_almacen in ['almacen@dtmindustry.com'] and  self.materials_ids:
+                            self.proceso(parcial)
+                        else:
+                            raise ValidationError('Favor de validar lista de Materiales')
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
