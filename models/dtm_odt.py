@@ -95,11 +95,8 @@ class DtmOdt(models.Model):
         email = self.env.user.partner_id.email
         if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
             self.firma_ventas = self.env.user.partner_id.name
-            if self.materials_ids:
-                if self.firma_almacen in ['almacen@dtmindustry.com']:
-                    self.proceso(parcial)
-                else:
-                    raise ValidationError('Favor de validar lista de Materiales')
+            self.proceso(parcial)
+
 
         elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com",'ingenieria1@dtmindustry.com']:
                 # Pone el nombre de usuario
