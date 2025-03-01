@@ -71,6 +71,7 @@ class DtmOdt(models.Model):
     maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
+    costo_material = fields.Float(string="Costo",readonly = True)
 
 
     def action_almacen(self):
@@ -725,6 +726,18 @@ class DtmOdt(models.Model):
             if str(odt.ot_number) in self.env['dtm.proceso'].search([]).mapped('ot_number'):
                 odt.manufactura = True
 
+
+        # Pone precio a los materiales
+        for item in self.env['dtm.materials.line'].search([]):
+            # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
+            # print(item.model_id.id)
+            if self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]):
+                item.write({'costo':self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario})
+
+        # Suma el total del costo de los materiales
+        for materiales in get_this:
+            materiales.write({'costo_material':sum(materiales.materials_ids.mapped('costo'))})
+
         # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
 
         return res
@@ -752,6 +765,9 @@ class TestModelLine(models.Model):
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
+    costo = fields.Float(string="Precio",readonly=True)
+
+
 
     @api.onchange("revicion")
     def onchange_revicion(self):

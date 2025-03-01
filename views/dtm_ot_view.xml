@@ -148,13 +148,17 @@
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="almacen"/>
+                                        <field name="costo"/>
                                         <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                     </tree>
                                 </field>
-                                <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
+                                <div class="d-flex justify-content-between">
+                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
+                                    <field name="costo_material"/>
+                                </div>
                             </page>
                             <page string="RECHAZO" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
