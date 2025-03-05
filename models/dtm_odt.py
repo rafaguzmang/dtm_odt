@@ -19,8 +19,8 @@ class DtmOdt(models.Model):
         get_npi = self.env['dtm.odt'].search([("tipe_order","=","NPI")],order='ot_number desc', limit=1)
         return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
     # Campo para llevar el conteo exclusivo de diseño
-    od_number = fields.Integer(string="No",readonly=True)
-    ot_number = fields.Integer(string="ORDEN",default=action_autoNum,readonly=True)
+    od_number = fields.Integer(string="OD",readonly=True)
+    ot_number = fields.Integer(string="OT",default=action_autoNum,readonly=True)
     tipe_order = fields.Char(string=" ",readonly=True, default='NPI')
     name_client = fields.Char(string="CLIENTE")
     product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
@@ -111,7 +111,8 @@ class DtmOdt(models.Model):
                     get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
                     if self.firma_ventas:
-                        if self.firma_almacen in ['almacen@dtmindustry.com'] and  self.materials_ids:
+                        print("Almacén",len(list(set(self.materials_ids.mapped('almacen')))), list(set(self.materials_ids.mapped('almacen'))))
+                        if (len(list(set(self.materials_ids.mapped('almacen'))))==1 and True in list(set(self.materials_ids.mapped('almacen')))) and  self.materials_ids:
                             self.proceso(parcial)
                         else:
                             raise ValidationError('Favor de validar lista de Materiales')
@@ -732,7 +733,7 @@ class DtmOdt(models.Model):
             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
             # print(item.model_id.id)
             if self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]):
-                item.write({'costo':self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario})
+                item.write({'costo':item.materials_cuantity*self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario})
 
         # Suma el total del costo de los materiales
         for materiales in get_this:
@@ -785,7 +786,6 @@ class TestModelLine(models.Model):
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):
-        self.env['dtm.odt'].search([('id','=',self.model_id._origin.id)]).firma_almacen = ''
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
