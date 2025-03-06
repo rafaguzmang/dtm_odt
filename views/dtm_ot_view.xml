@@ -149,7 +149,7 @@
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="almacen"/>
                                         <field name="costo"/>
-                                        <field name="revicion" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="revision" attrs="{'readonly': [('comprado', '=', True)]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
@@ -296,7 +296,7 @@
                                                         <field name="materials_inventory"/>
                                                         <field name="materials_availabe"/>
                                                         <field name="materials_required" options='{"type": "number"}'/>
-                                                        <field name="revicion"/>
+                                                        <field name="revision"/>
                                                     </tree>
                                                 </field>
                                             </page>

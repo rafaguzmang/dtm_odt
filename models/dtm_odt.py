@@ -111,8 +111,10 @@ class DtmOdt(models.Model):
                     get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
                     get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
                     if self.firma_ventas:
-                        print("Almacén",len(list(set(self.materials_ids.mapped('almacen')))), list(set(self.materials_ids.mapped('almacen'))))
+                        # print("Almacén",len(list(set(self.materials_ids.mapped('almacen')))), list(set(self.materials_ids.mapped('almacen'))))
                         if (len(list(set(self.materials_ids.mapped('almacen'))))==1 and True in list(set(self.materials_ids.mapped('almacen')))) and  self.materials_ids:
+                            for material in self.materials_ids.filtered(lambda item: item.revision):
+                                material.write({'comprado':True})
                             self.proceso(parcial)
                         else:
                             raise ValidationError('Favor de validar lista de Materiales')
@@ -552,7 +554,7 @@ class DtmOdt(models.Model):
             buscar = codigo.nombre
             buscar = buscar.replace("Maquinado Externo", "")
             # print(buscar,codigo.nombre)
-            if codigo.revicion and buscar.find('Maquinado') == -1:
+            if codigo.revision and buscar.find('Maquinado') == -1:
 
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number)),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
@@ -732,8 +734,8 @@ class DtmOdt(models.Model):
         for item in self.env['dtm.materials.line'].search([]):
             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
             # print(item.model_id.id)
-            if self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]):
-                item.write({'costo':item.materials_cuantity*self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario})
+            if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
+                item.write({'costo':item.materials_cuantity*self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
 
         # Suma el total del costo de los materiales
         for materiales in get_this:
@@ -761,7 +763,7 @@ class TestModelLine(models.Model):
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("APARTADO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
-    revicion = fields.Boolean(string="COMPRAR")
+    revision = fields.Boolean(string="COMPRAR")
     comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
@@ -770,15 +772,15 @@ class TestModelLine(models.Model):
 
 
 
-    @api.onchange("revicion")
-    def onchange_revicion(self):
-        if self.revicion:
+    @api.onchange("revision")
+    def onchange_revision(self):
+        if self.revision:
             if self.env['dtm.odt'].search([('id','=',self.model_id._origin.id)]).firma_almacen in ['almacen@dtmindustry.com']:
                 if self.nombre.find("Lámina") != -1:
                     medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
-                    self.revicion = True
+                    self.revision = True
                     if not any(medida in self.medida for medida in medidas_validas):
-                        self.revicion = False
+                        self.revision = False
                         raise ValidationError("Solo Láminas completas!!")
             else:
                 raise ValidationError("Lista de materiales no verificada")
