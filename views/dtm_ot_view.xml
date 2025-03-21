@@ -154,16 +154,17 @@
                                         <field name="materials_inventory"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
-                                        <field name="almacen"/>
+                                        <field name="almacen" attrs="{'readonly': [('comprado', '=', True)],'invisible': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                         <field name="costo"/>
-                                        <field name="revision" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="revision" attrs="{'readonly': [('comprado', '=', True)],'invisible': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
+                                        <field name="usuario" invisible="1"/>
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">
-                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
+                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible':  [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}" />
                                     <field name="costo_material"/>
                                 </div>
                             </page>

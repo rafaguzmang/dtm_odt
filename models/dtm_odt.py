@@ -83,7 +83,6 @@ class DtmOdt(models.Model):
         else:
             raise ValidationError('No debe de haber cantidades en cero')
 
-
     def action_pasive(self):
         pass
 
@@ -112,7 +111,6 @@ class DtmOdt(models.Model):
                             self.proceso(parcial)
                         else:
                             raise ValidationError('Favor de validar lista de Materiales')
-
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
         email = self.env.user.partner_id.email
@@ -136,7 +134,6 @@ class DtmOdt(models.Model):
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
                        'ingenieria1@dtmindustry.com']:
             self.firma_diseno(email)
-
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -788,6 +785,11 @@ class TestModelLine(models.Model):
     recibe = fields.Char()
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True)
+    usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+
+    def _compute_usuario(self):
+        for result in self:
+            result.usuario = self.env.user.partner_id.email
 
     @api.onchange("revision")
     def onchange_revision(self):
