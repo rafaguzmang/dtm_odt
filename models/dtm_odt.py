@@ -37,7 +37,7 @@ class DtmOdt(models.Model):
     firma_produccion = fields.Char()
     firma_almacen = fields.Char(string="Firma Almacén",readonly = False,default='almacen@dtmindustry.com')
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
-    firma_calidad = fields.Char()
+    firma_calidad = fields.Char(string='Revisado',readonly=True)
     firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
     po_fecha_creacion = fields.Date(string="Creación PO", readonly=True)
     po_fecha = fields.Date(string="Fecha PO", readonly=True)
@@ -58,6 +58,7 @@ class DtmOdt(models.Model):
     date_disign_finish = fields.Date(string="Fecha Diseño",readonly =True)
     manufactura = fields.Boolean(default=False)
     almacen_rev = fields.Boolean(default=False)
+    intervencion_calidad =  fields.Boolean(string='Revisión Calidad',default=False,readonly=True)
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -91,15 +92,8 @@ class DtmOdt(models.Model):
             # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
+    def firma_diseno(self,email):
 
-    def action_firma(self,parcial=False):
-        email = self.env.user.partner_id.email
-        if email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
-            self.firma_ventas = self.env.user.partner_id.name
-            self.proceso(parcial)
-
-
-        elif email in ['ingenieria@dtmindustry.com','ingenieria2@dtmindustry.com',"rafaguzmang@hotmail.com",'ingenieria1@dtmindustry.com']:
                 # Pone el nombre de usuario
                 self.firma = self.env.user.partner_id.name
                 if self.tipe_order == "OT" or self.tipe_order == "NPI":
@@ -118,6 +112,31 @@ class DtmOdt(models.Model):
                             self.proceso(parcial)
                         else:
                             raise ValidationError('Favor de validar lista de Materiales')
+
+    # Metodo para controlar el paso a proceso
+    def action_firma(self,parcial=False):
+        email = self.env.user.partner_id.email
+        if self.intervencion_calidad:
+            if email in ['calidad@dtmindustry.com', 'calidad2@dtmindustry.com']:
+                self.firma_calidad = self.env.user.partner_id.name
+
+            elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order != "SK" and self.tipe_order != "PD" and self.firma_calidad:
+                self.firma_ventas = self.env.user.partner_id.name
+                self.proceso(parcial)
+            elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
+                         'ingenieria1@dtmindustry.com']:
+                self.firma_diseno(email)
+            else:
+                raise ValidationError('Se requiere revisión de calidad')
+
+        elif email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
+            self.firma_ventas = self.env.user.partner_id.name
+            self.proceso(parcial)
+
+        elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
+                       'ingenieria1@dtmindustry.com']:
+            self.firma_diseno(email)
+
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -770,8 +789,6 @@ class TestModelLine(models.Model):
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True)
 
-
-
     @api.onchange("revision")
     def onchange_revision(self):
         if self.revision:
@@ -791,9 +808,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.materials_required = 0
             get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
-            # print(get_almacen.cantidad,get_almacen.apartado,get_almacen.disponible)
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
-            # print(result.materials_cuantity,get_almacen.disponible)
             if get_almacen.apartado < get_almacen.cantidad or result.materials_cuantity <= result.materials_availabe :
                 # print("1")
                 result.materials_availabe = result.materials_cuantity
@@ -815,11 +830,9 @@ class TestModelLine(models.Model):
             get_odt = self.env['dtm.odt'].search([("firma_ventas","=",False)]).mapped('id')
             get_odt_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_odt))
             get_proceso = self.env['dtm.proceso'].search([('tipe_order', '!=', 'PD')]).mapped('ot_number')
-            # print(get_proceso)
-            get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number),('tipe_order', '!=', 'PD')]).id for number in get_proceso]
-            # print(get_proceso_odt)
+            get_proceso_odt = [self.env['dtm.odt'].search([("ot_number","=",number)],limit=1).id for number in get_proceso]
+
             get_proceso_codigo = list(filter(lambda id: self.env['dtm.materials.line'].search([("model_id","=",id),("materials_list","=",result.materials_list.id)]),get_proceso_odt))
-            # print(get_proceso_codigo)
             # Es la suma de todas las ordenes donde se encuentra este item
             list_search = []
             # Guarda el id de las ordenes que contiene el item
@@ -830,7 +843,6 @@ class TestModelLine(models.Model):
             apartado = 0 if not suma  else suma if suma <= get_almacen.cantidad else get_almacen.cantidad if suma > get_almacen.cantidad else get_almacen.cantidad - suma
             apartado = 0 if apartado < 0 else apartado
             disponible = get_almacen.cantidad - apartado if suma > 0 else get_almacen.cantidad
-            # print(get_almacen.cantidad,suma,apartado,disponible)
             get_almacen.write({
                 "apartado": apartado,
                 "disponible": disponible if disponible > 0 else 0
