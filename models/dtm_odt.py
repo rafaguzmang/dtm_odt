@@ -91,7 +91,7 @@ class DtmOdt(models.Model):
             # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
-    def firma_diseno(self,email):
+    def firma_diseno(self,email,parcial):
 
                 # Pone el nombre de usuario
                 self.firma = self.env.user.partner_id.name
@@ -123,7 +123,7 @@ class DtmOdt(models.Model):
                 self.proceso(parcial)
             elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
                          'ingenieria1@dtmindustry.com']:
-                self.firma_diseno(email)
+                self.firma_diseno(email,parcial)
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
@@ -133,7 +133,7 @@ class DtmOdt(models.Model):
 
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
                        'ingenieria1@dtmindustry.com']:
-            self.firma_diseno(email)
+            self.firma_diseno(email,parcial)
 
     def proceso(self,parcial=False):
         get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
@@ -717,7 +717,6 @@ class DtmOdt(models.Model):
         self.materials_ids = [(5, 0, {})]
         # print(tabla_list)
         self.materials_ids = [(6, 0, list(set(tabla_list)))]
-
 
 # --------------------------------- Botones del header ----------------------------------------------
 
