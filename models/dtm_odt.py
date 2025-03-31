@@ -773,7 +773,7 @@ class TestModelLine(models.Model):
     medida = fields.Char(store=True)
     notas = fields.Char(string="Notas")
 
-    materials_list = fields.Many2one("dtm.diseno.almacen", string="LISTADO DE MATERIALES",required=True)
+    materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True, readonly=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("APARTADO", readonly=True)

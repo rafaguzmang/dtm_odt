@@ -148,7 +148,7 @@
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="comprado and not entregado"
                                         decoration-bf="comprado or entregado" >
-                                        <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]}"/>
+                                        <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
                                         <field name="materials_inventory"/>
