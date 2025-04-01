@@ -717,20 +717,15 @@ class DtmOdt(models.Model):
 
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(DtmOdt,self).get_view(view_id, view_type,**options)
-        get_self = self.env['dtm.odt'].search([])
 
-        # Busca ids vacios y actualiza la PK
-        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+1):
-                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
-                    self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
-                    break
+        # get_materials_line = self.env['dtm.materials.line'].search([])
+        # for material in get_materials_line:
+        #     print(material.id)
 
         get_this = self.env['dtm.odt'].search([])
-
         for odt in get_this:
             if str(odt.ot_number) in self.env['dtm.proceso'].search([]).mapped('ot_number'):
                 odt.manufactura = True
-
 
         # Pone precio a los materiales
         for item in self.env['dtm.materials.line'].search([]):
@@ -795,7 +790,7 @@ class TestModelLine(models.Model):
     def _compute_materials_inventory(self):
         for result in self:
             result.materials_required = 0
-            get_almacen = result.env['dtm.diseno.almacen'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
+            get_almacen = result.env['dtm.materiales'].search([("id","=",result.materials_list.id)])#Obtiene la información por medio del id del item seleccionado
             result.materials_inventory = get_almacen.cantidad# Siempre será el valor dado por la consulta de almacén
             if get_almacen.apartado < get_almacen.cantidad or result.materials_cuantity <= result.materials_availabe :
                 # print("1")
