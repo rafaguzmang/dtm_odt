@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="dtm_revisiones_action" model="ir.actions.act_window">
+            <field name="name">Revisiones</field>
+            <field name="res_model">dtm.odt.revisiones</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="dtm_odt_revisiones_tree" model="ir.ui.view">
+            <field name="name">dtm.odt.revisiones.tree</field>
+            <field name="model">dtm.odt.revisiones</field>
+            <field name="arch" type="xml">
+                <tree  >
+                    <field name="ot_number"/>
+                    <field name="version_ot"/>
+                    <field name="tipe_order"/>
+                    <field name="po_number"/>
+                    <field name="name_client"/>
+                    <field name="product_name"/>
+                    <field name="disenador"/>
+                    <field name="status"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="dtm_odt_revisiones_form" model="ir.ui.view">
+            <field name="name">dtm.odt.revisiones.form</field>
+            <field name="model">dtm.odt.revisiones</field>
+            <field name="arch" type="xml">
+                <form>
+                   <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
+                                <field name="date_rel"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="Cliente" class="oe_stat_button" icon="fa-user">
+                                <field name="name_client"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-paperclip">
+                                <field name="orden_compra_pdf"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-certificate">
+                                <field name="firma_ventas"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-pencil">
+                                <field name="firma"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield">
+                                <field name="firma_ingenieria"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-clipboard">
+                                <field name="tipe_order"  string="" widget="statinfo"/>
+                            </button>
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-envelope">
+                                <field name="po_number"  string="" widget="statinfo"/>
+                            </button>
+                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
+                                <field name="date_in"  string="" widget="statinfo"/>
+                            </button>
+                        </div>
+                            <div class="row" style="padding-bottom: 15px;">
+                                <div class="col-6">
+                                    <h1>
+                                        <field name="product_name" attrs="{'readonly': [('tipe_order', '=', 'OT')]}" />
+                                    </h1>
+                                </div>
+                                 <div class="col-6">
+                                    <h1>
+                                        <field name="name_client" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}" />
+                                    </h1>
+                                </div>
+                            </div>
+                        <div class="row d-flex justify-content-between">
+                            <group class="col-4">
+                                    <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
+                                    <field name="version_ot"  options='{"type": "number"}'/>
+                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
+                                    <field name="color"/>
+                            </group>
+
+                        </div>
+                                <field name="po_number" invisible="1"/>
+                                <field name="firma_ventas" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
+                                <field name="firma_ingenieria" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
+                                <field name="tipe_order" invisible="1"/>
+                                <field name="ot_number" invisible="1"/>
+                                <field name="firma" invisible="1"/>
+
+                       <notebook>
+                           <page string="RESUMEN">
+                               <field name="description"/>
+                           </page>
+<!--                           <page string="MATERIALES">-->
+<!--                               <field name="materials_ids">-->
+<!--                                   <tree editable="bottom" decoration-success="entregado"-->
+<!--                                        decoration-info="comprado and not entregado"-->
+<!--                                        decoration-bf="comprado or entregado" >-->
+<!--                                        <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]} " create="false" delete="false"/>-->
+<!--                                        <field name="notas"/>-->
+<!--                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />-->
+<!--                                        <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>-->
+<!--                                        <field name="materials_required" options='{"type": "number"}'/>-->
+<!--                                        <field name="costo"/>-->
+<!--                                        <field name="almacen"  attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+<!--                                        <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+<!--                                        <field name="comprado" invisible="1"/>-->
+<!--                                        <field name="entregado" invisible="1"/>-->
+<!--                                        <field name="recibe" invisible="1"/>-->
+<!--                                        <field name="usuario" invisible="1"/>-->
+<!--                                    </tree>-->
+<!--                               </field>-->
+<!--                           </page>-->
+                           <page string="PLANOS">
+                               <field name="anexos_id"/>
+                           </page>
+                           <page string="MITSUBISHI">
+                               <div style="display:flex;">
+                                    <div style="display:flex;width: 50%">
+                                        <field name="primera_pieza_id" widget="many2many_binary"/>
+                                        <field name="cortadora_id" widget="many2many_binary"/>
+                                    </div>
+                                    <div style="width: 50%">
+                                        <field name="ligas_id"  >
+                                            <tree editable="bottom">
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
+                                </div>
+                           </page>
+                           <page string="LTP 6032">
+                                 <div style="display:flex;">
+                                    <div style="display:flex;width: 50%">
+                                        <field name="tubos_id" widget="many2many_binary"  />
+                                    </div>
+                                    <div style="width: 50%">
+                                        <field name="ligas_tubos_id"  >
+                                            <tree editable="bottom">
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
+                                </div>
+                           </page>
+                            <page string="NOTAS">
+                               <field name="notes"/>
+                           </page>
+                           <page string="PO">
+                              <field name="orden_compra_pdf"/>
+                           </page>
+                           <page string="ARCHIVOS">
+                                <field name="anexos_ventas_id" >
+                                     <tree>
+                                            <field name="name" invisible="0"></field>
+                                     </tree>
+                                     <form>
+                                        <group >
+                                            <field name="datas" filename="nombre" widget="pdf_viewer"></field>
+                                            <field name="name" invisible="1"></field>
+                                        </group>
+                                     </form>
+                                </field>
+                           </page>
+                           <page string="ANEXOS">
+                               <field name="archivos_id"/>
+                           </page>
+                       </notebook>
+                   </sheet>
+
+
+
+                </form>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

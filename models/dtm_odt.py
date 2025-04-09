@@ -758,7 +758,7 @@ class TestModelLine(models.Model):
     materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True, readonly=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
-    materials_availabe = fields.Integer("APARTADO", readonly=True)
+    materials_availabe = fields.Integer("INVENTARIO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     revision = fields.Boolean(string="COMPRAR")
     comprado = fields.Boolean(default=False)
@@ -784,7 +784,6 @@ class TestModelLine(models.Model):
                         raise ValidationError("Solo Láminas completas!!")
             else:
                 raise ValidationError("Lista de materiales no verificada")
-
 
     @api.depends("materials_cuantity")
     def _compute_materials_inventory(self):

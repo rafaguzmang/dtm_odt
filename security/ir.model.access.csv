@@ -5,3 +5,6 @@ access_dtm_odt_rechazo,access.dtm.odt.rechazo,model_dtm_odt_rechazo,base.group_u
 access_dtm_documentos_tubos,access.dtm.documentos.tubos,model_dtm_documentos_tubos,base.group_user,1,1,1,1
 access_dtm_odt_servicios,access.dtm.odt.servicios,model_dtm_odt_servicios,base.group_user,1,1,1,1
 access_dtm_odt_ligas,access.dtm.odt.ligas,model_dtm_odt_ligas,base.group_user,1,1,1,1
+
+access_dtm_odt_revisiones,access.dtm.odt.revisiones,model_dtm_odt_revisiones,base.group_user,1,1,1,1
+

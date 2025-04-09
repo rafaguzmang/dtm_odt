@@ -71,7 +71,7 @@
                     </header>
 
                     <sheet>
-                         <div class="oe_button_box" name="button_box">
+                        <div class="oe_button_box" name="button_box">
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
                                 <field name="date_rel"  string="" widget="statinfo"/>
                             </button>
@@ -126,7 +126,6 @@
                             </group>
 
                         </div>
-
                                 <field name="po_number" invisible="1"/>
                                 <field name="firma_ventas" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
                                 <field name="firma_ingenieria" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}" invisible="1"/>
@@ -134,7 +133,6 @@
                                 <field name="ot_number" invisible="1"/>
                                 <field name="retrabajo" invisible="1"/>
                                 <field name="firma" invisible="1"/>
-
                         <notebook>
                             <page  string="RESUMEN">
                                 <group>
@@ -151,12 +149,11 @@
                                         <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
-                                        <field name="materials_inventory"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
-                                        <field name="almacen" attrs="{'readonly': [('comprado', '=', True)],'invisible': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                         <field name="costo"/>
-                                        <field name="revision" attrs="{'readonly': [('comprado', '=', True)],'invisible': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="almacen"  attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                         <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
@@ -179,7 +176,7 @@
                                 </field>
                             </page>
                             <page string="PLANOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
-                                <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+<!--                                <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>-->
 
                             </page>
                             <page string="MITSUBISHI" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
@@ -301,7 +298,6 @@
                                                         <field name="materials_list"/>
                                                         <field name="notas"/>
                                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
-                                                        <field name="materials_inventory"/>
                                                         <field name="materials_availabe"/>
                                                         <field name="materials_required" options='{"type": "number"}'/>
                                                         <field name="revision"/>
@@ -331,6 +327,5 @@
             </field>
         </record>
 
-        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
     </data>
 </odoo>

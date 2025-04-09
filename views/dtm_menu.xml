@@ -2,6 +2,6 @@
 <odoo>
      <menuitem name="Diseño" id="menu_root_dtm_diseno">
         <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
-        <menuitem id="dtm_npi_menu_action" action="dtm_odt.dtm_npi_action"/>
+        <menuitem id="odt_revisiones_action_menu" action="dtm_odt.dtm_revisiones_action"/>
      </menuitem>
 </odoo>
