@@ -176,7 +176,7 @@
                                 </field>
                             </page>
                             <page string="PLANOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
-<!--                                <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>-->
+                                <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
 
                             </page>
                             <page string="MITSUBISHI" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">

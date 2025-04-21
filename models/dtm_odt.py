@@ -92,32 +92,37 @@ class DtmOdt(models.Model):
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
+        # Pone el nombre de usuario
+        self.firma = self.env.user.partner_id.name
+        if self.tipe_order in ["OT","NPI"]:
+            if not self.ot_number:
+                get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1) #Obtiene el último número de orden
+                get_facturado = self.env['dtm.facturado.odt'].search([],order="ot_number desc",limit= 1) #Obtiene el último número de las ordenes facturado
+                self.ot_number = max(get_this.ot_number,get_facturado.ot_number) + 1 #Obtiene el último número de orden
+            get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
+            get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})#Pone el número de la orden de trabajo en ventas
+            if self.firma_ventas:
+                self.proceso(parcial)
 
-                # Pone el nombre de usuario
-                self.firma = self.env.user.partner_id.name
-                if self.tipe_order == "OT" or self.tipe_order == "NPI":
-                    if not self.ot_number:
-                        get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1)
-                        get_facturado = self.env['dtm.facturado.odt'].search([],order="ot_number desc",limit= 1)
-                        self.ot_number = max(get_this.ot_number,get_facturado.ot_number) + 1
-                    #Pone el número de la orden de trabajo en ventas
-                    get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
-                    get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})
-                    if self.firma_ventas:
-                        # print("Almacén",len(list(set(self.materials_ids.mapped('almacen')))), list(set(self.materials_ids.mapped('almacen'))))
-                        if (len(list(set(self.materials_ids.mapped('almacen'))))==1 and True in list(set(self.materials_ids.mapped('almacen')))) and  self.materials_ids:
-                            for material in self.materials_ids.filtered(lambda item: item.revision):
-                                material.write({'comprado':True})
-                            self.proceso(parcial)
-                        else:
-                            raise ValidationError('Favor de validar lista de Materiales')
+    #Revisión de la lista de materiales antes de mandarse a compras
+    def materiales_check(self):
+        for row in self.materials_ids: # Se mandan comprar los items con cantidad mayor a cero y revisado por almacén
+            #Se manda comprar el item si es mayor a cero y esta revisado por almacén
+            row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
+            # Se verifica si es una lámina
+            if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
+                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
+                if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
+                    row.write({'revision':False})
+
+
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
+        self.materiales_check()
         email = self.env.user.partner_id.email
         if self.intervencion_calidad:
             if email in ['calidad@dtmindustry.com', 'calidad2@dtmindustry.com']:
                 self.firma_calidad = self.env.user.partner_id.name
-
             elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order != "SK" and self.tipe_order != "PD" and self.firma_calidad:
                 self.firma_ventas = self.env.user.partner_id.name
                 self.proceso(parcial)
@@ -136,13 +141,12 @@ class DtmOdt(models.Model):
             self.firma_diseno(email,parcial)
 
     def proceso(self,parcial=False):
-        get_procesos = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
-        get_procesos.write({
+        get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
+        get_ot.write({ #Pone firma de ventas en la orden en el modulo de procesos
             "firma_ventas": self.firma_ventas,
             "firma_ventas_kanba":"Ventas"
         })
-        get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
-        vals = {
+        vals = { #Valores a crear o cambiar
                 "ot_number":self.ot_number,
                 "tipe_order":self.tipe_order,
                 "name_client":self.name_client,
@@ -154,39 +158,27 @@ class DtmOdt(models.Model):
                 "po_number":self.po_number,
                 "description":self.description,
                 "notes":self.notes,
-                "color":self.color
+                "color":self.color,
+                "nesteos":True if self.cortadora_id or self.primera_pieza_id else False,
+                "planos": True if self.anexos_id else False,
+                "firma_diseno":self.firma
         }
-        # Pone en veradero los campos boolean para planos y nesteos
-        self.planos = True if self.anexos_id else False
-        self.nesteos = True if self.cortadora_id or self.primera_pieza_id else False
-
-        vals["nesteos"] = self.nesteos
-        vals["planos"] = self.planos
         vals["firma_parcial"] = parcial
-        if get_ot:
+        if get_ot:#Actualiza la orden en procesos
             get_ot.write(vals)
-            get_ot.write(
-                {
-                    "firma_diseno":self.firma
-                })
         else:
-            if not get_ot.status:
+            if not get_ot.status:#Se pone el status en aprobación o en nesteos si hay archivos en las máquinas cortadoras
                 status = "aprobacion"
                 if self.cortadora_id or self.primera_pieza_id:
                     status = "corte"
-            get_ot.create(vals)
-            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])
-            get_ot.write(
-                {
-                    "firma_diseno":self.firma,
-                    "status":status
-                })
+            vals["status"] = status
+            get_ot.create(vals)#Crea la orden en procesos
+            get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])#Carga la orden de procesos
 
-        get_ot.materials_ids = self.materials_ids
-        # get_ot.rechazo_id = self.rechazo_id
-        get_ot.write({'anexos_id': [(5, 0, {})]})
+        get_ot.materials_ids = self.materials_ids #Carga la lista de materiales de la orden de diseño (dtm.odt) en la orden de trabajo (dtm.proceso)
+        get_ot.write({'anexos_id': [(5, 0, {})]}) #Limpia los anexos para cargar los nuevos (Actualizar)
         lines = []
-        for anexo in self.anexos_id:
+        for anexo in self.anexos_id:#Busca los archivos anexos en el ir.attachment
             attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
                 "documentos":attachment.datas,
@@ -203,7 +195,7 @@ class DtmOdt(models.Model):
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
-        if self.primera_pieza_id:
+        if self.primera_pieza_id: #Busca los archivos de corte cuando hay primera pieza
             for anexo in self.primera_pieza_id:
                 attachment = self.env['ir.attachment'].browse(anexo.id)
                 vals = {
@@ -219,46 +211,29 @@ class DtmOdt(models.Model):
                     get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
                     lines.append(get_anexos.id)
             get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
-            lines = []
-            get_ot.write({'cortadora_id': [(5, 0, {})]})
-            for anexo in self.cortadora_id:
-                attachment = self.env['ir.attachment'].browse(anexo.id)
-                vals = {
-                    "documentos":attachment.datas,
-                    "nombre":attachment.name
-                }
+        lines = []
+        get_ot.write({'cortadora_id': [(5, 0, {})]})
+        for anexo in self.cortadora_id:
+            attachment = self.env['ir.attachment'].browse(anexo.id)
+            vals = {
+                "documentos":attachment.datas,
+                "nombre":attachment.name
+            }
+            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
+            if get_anexos:
+                get_anexos.write(vals)
+                lines.append(get_anexos.id)
+            else:
+                get_anexos.create(vals)
                 get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                if get_anexos:
-                    get_anexos.write(vals)
-                    lines.append(get_anexos.id)
-                else:
-                    get_anexos.create(vals)
-                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                    lines.append(get_anexos.id)
-            get_ot.write({'cortadora_id': [(6, 0, lines)]})
-        else:
-            lines = []
-            get_ot.write({'cortadora_id': [(5, 0, {})]})
-            for anexo in self.cortadora_id:
-                attachment = self.env['ir.attachment'].browse(anexo.id)
-                vals = {
-                    "documentos":attachment.datas,
-                    "nombre":attachment.name
-                }
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                if get_anexos:
-                    get_anexos.write(vals)
-                    lines.append(get_anexos.id)
-                else:
-                    get_anexos.create(vals)
-                    get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                    lines.append(get_anexos.id)
-            get_ot.write({'cortadora_id': [(6, 0, lines)]})
+                lines.append(get_anexos.id)
+        get_ot.write({'cortadora_id': [(6, 0, lines)]})
+
         # Cortadora laser al modulo proceso
         # Cortadora de tubos al modulo proceso
         get_ot.write({'tubos_id': [(5, 0, {})]})
         lines = []
-        for anexo in self.tubos_id:
+        for anexo in self.tubos_id: #Carga los archivos para corte de tubos en procesos
             attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
                 "documentos":attachment.datas,
@@ -273,14 +248,15 @@ class DtmOdt(models.Model):
                 get_anexos = self.env['dtm.proceso.tubos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
-        email = self.env.user.partner_id.email
-        self.compras_odt(self.materials_ids,1)
+
+        self.compras_odt(self.materials_ids,1) # Se manda el material a compras
         self.compras_servicios()
-        if email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
-                if self.firma_ingenieria:
-                    self.cortadora_laser()
-                    self.cortadora_tubos()
-                self.firma_ingenieria = self.env.user.partner_id.name
+        #Revisa si la firma es de nesteo para mandar las ordenes a corte
+        if self.env.user.partner_id.email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
+            if self.firma_ingenieria:
+                self.cortadora_laser()#Se manda cortar lámina
+                self.cortadora_tubos()#Se manda cortar Perfilería
+            self.firma_ingenieria = self.env.user.partner_id.name
 
 
 
@@ -554,7 +530,7 @@ class DtmOdt(models.Model):
         # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Si el item no tiene marcado el check box hace los calculos para el área de compras
-            buscar = codigo.nombre
+            buscar = codigo.nombre # Se quita la leyenda Maquinado Externo
             buscar = buscar.replace("Maquinado Externo", "")
             # print(buscar,codigo.nombre)
             if codigo.revision and buscar.find('Maquinado') == -1:
