@@ -404,10 +404,10 @@ class DtmOdt(models.Model):
             get_corte.write({"materiales_id":[(5, 0, {})]})#Pasa los materiales correspondientes de la orden
             for lamina in self.materials_ids:
                 if re.match("Lámina",lamina.nombre): # Revisa si el material tiene la palabra lámina de no ser así lo descarta
-                    get_almacen = self.env['dtm.diseno.almacen'].search([("id","=",lamina.materials_list.id)]) # Busca el material en el almacén por codigo
+                    get_almacen = self.env['dtm.materiales'].search([("id","=",lamina.materials_list.id)]) # Busca el material en el almacén por codigo
                     localizacion = ""
-                    if get_almacen.localizacion:  # Si tiene localización la asigna
-                        localizacion = get_almacen.localizacion
+                    # if get_almacen.localizacion:  # Si tiene localización la asigna
+                    #     localizacion = get_almacen.localizacion
                     content = { # Valores a sobreescribir o a crear
                         "identificador": lamina.materials_list.id,
                         "nombre": lamina.nombre,
@@ -573,11 +573,11 @@ class DtmOdt(models.Model):
                 # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 # print(get_compras.disenador)
                 # print(self.firma if not get_compras.disenador else "")
-                medida = self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).medida
+                medida = self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).medida
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
-                        'nombre':f"{self.env['dtm.diseno.almacen'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
+                        'nombre':f"{self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
                         'disenador':self.env.user.partner_id.name if not self.env.user.partner_id.name in ["Alejandro Erives Chavez","Hugo Chacon","Administrator"] else self.firma,
                         'servicio':servicio,
@@ -623,8 +623,8 @@ class DtmOdt(models.Model):
         # print(self.maquinados_id)
 
         #Actualiza el primary_key a un ID libre
-        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+1):
-            if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+        for find_id in range(1,self.env['dtm.materiales'].search([], order='id desc', limit=1).id+1):
+            if not self.env['dtm.materiales'].search([("id","=",find_id)]):
                 self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
                 break
         tabla_list = []
@@ -638,9 +638,9 @@ class DtmOdt(models.Model):
                 nombre = f"{tipo_servicio} {item.nombre}"
                 # print(nombre)
                 #Busca si el servicio/item existe y si no lo crea si existe lo actualiza y si lo crea lo busca para trabajar con el
-                get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+                get_almacen = self.env['dtm.materiales'].search([("nombre","=",nombre)],limit=1)
                 get_almacen.write({"nombre": nombre}) if get_almacen else get_almacen.create({"nombre": nombre,"medida": ''})
-                get_almacen = self.env['dtm.diseno.almacen'].search([("nombre","=",nombre)],limit=1)
+                get_almacen = self.env['dtm.materiales'].search([("nombre","=",nombre)],limit=1)
 
                 # Pone el servicio en la lista de materiales de la orden
                 get_materials = self.env['dtm.materials.line'].search([("model_id","=",self._origin.id),("materials_list","=",get_almacen.id)])
@@ -656,8 +656,8 @@ class DtmOdt(models.Model):
                 get_materials.write(vals) if get_materials else get_materials.create(vals)
                 get_materials = self.env['dtm.materials.line'].search([("model_id","=",self._origin.id),("materials_list","=",get_almacen.id)])
                 tabla_list.append(get_materials.id)
-        for find_id in range(1,self.env['dtm.diseno.almacen'].search([], order='id desc', limit=1).id+2):
-                if not self.env['dtm.diseno.almacen'].search([("id","=",find_id)]):
+        for find_id in range(1,self.env['dtm.materiales'].search([], order='id desc', limit=1).id+2):
+                if not self.env['dtm.materiales'].search([("id","=",find_id)]):
                     self.env.cr.execute(f"SELECT setval('dtm_diseno_almacen_id_seq', {find_id}, false);")
                     break
 
