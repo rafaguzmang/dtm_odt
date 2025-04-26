@@ -731,7 +731,7 @@ class TestModelLine(models.Model):
     medida = fields.Char(store=True)
     notas = fields.Char(string="Notas")
 
-    materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True, readonly=True)
+    materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("INVENTARIO", readonly=True)
@@ -844,7 +844,7 @@ class Servicios(models.Model):
     fecha_solicitud = fields.Date(string="Fecha de Solicitud", default= datetime.today(),readonly=True)
     fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
-    material_id = fields.One2many("dtm.materials.line","servicio_id")
+    material_id = fields.One2many("dtm.materials.line","servicio_id" ,readonly=False)
     anexos_id = fields.Many2many("ir.attachment")
 
 
