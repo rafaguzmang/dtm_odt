@@ -737,7 +737,6 @@ class TestModelLine(models.Model):
     materials_availabe = fields.Integer("INVENTARIO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     revision = fields.Boolean(string="COMPRAR")
-    comprado = fields.Boolean(default=False)
     entregado = fields.Boolean(default=False)
     recibe = fields.Char()
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)

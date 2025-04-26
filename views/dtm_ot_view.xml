@@ -144,17 +144,16 @@
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
-                                        decoration-info="comprado and not entregado"
-                                        decoration-bf="comprado or entregado" >
-                                        <field name="materials_list" attrs="{'readonly': [('comprado', '=', True)]} " create="false" delete="false"/>
+                                        decoration-info="revision and not entregado"
+                                        decoration-bf="revision or entregado" >
+                                        <field name="materials_list" attrs="{'readonly': [('revision', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
-                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('comprado', '=', True)]}" />
+                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('revision', '=', True)]}" />
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
                                         <field name="almacen"  attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                         <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-                                        <field name="comprado" invisible="1"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                         <field name="usuario" invisible="1"/>
