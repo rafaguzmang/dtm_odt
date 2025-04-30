@@ -28,7 +28,7 @@
                     <filter string="Versión" name="PD" domain="[('version_ot','>',1)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
-                    <filter string="En diseño" name="diseno" domain="['|', ('firma_ventas', '=', False), '&amp;', ('version_ot', '>', 1), ('manufactura', '=', False)]"/>
+                    <filter string="En diseño" name="diseno" domain="[ ('firma_ventas', '=', False),  ('manufactura', '=', False)]"/>
 
 
                </search>
@@ -160,7 +160,7 @@
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">
-                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible':  [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}" />
+                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
                                     <field name="costo_material"/>
                                 </div>
                             </page>

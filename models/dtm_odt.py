@@ -80,8 +80,7 @@ class DtmOdt(models.Model):
         if not 0 in self.materials_ids.mapped('materials_cuantity'):
             self.almacen_rev = False if self.almacen_rev else True
             self.firma_almacen = 'Pendientes' if self.almacen_rev else ''
-        else:
-            raise ValidationError('No debe de haber cantidades en cero')
+
 
     def action_pasive(self):
         pass
@@ -92,8 +91,8 @@ class DtmOdt(models.Model):
             result.usuario = self.env.user.partner_id.email
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
-        # Pone el nombre de usuario
-        self.firma = self.env.user.partner_id.name
+        # Pone el nombre del diseñador
+        self.firma = self.env.user.partner_id.name if not self.firma else self.firma
         if self.tipe_order in ["OT","NPI"]:
             if not self.ot_number:
                 get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1) #Obtiene el último número de orden
@@ -118,9 +117,9 @@ class DtmOdt(models.Model):
 
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
-        self.materiales_check()
+        self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
         email = self.env.user.partner_id.email
-        if self.intervencion_calidad:
+        if self.intervencion_calidad: # Solo si se solicita la intervención de calidad
             if email in ['calidad@dtmindustry.com', 'calidad2@dtmindustry.com']:
                 self.firma_calidad = self.env.user.partner_id.name
             elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order != "SK" and self.tipe_order != "PD" and self.firma_calidad:
@@ -132,13 +131,23 @@ class DtmOdt(models.Model):
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
-        elif email in ['hugo_chacon@dtmindustry.com','ventas1@dtmindustry.com',"rafaguzmang@hotmail.com"] and self.tipe_order != "SK" and self.tipe_order != "PD":
-            self.firma_ventas = self.env.user.partner_id.name
-            self.proceso(parcial)
 
-        elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
-                       'ingenieria1@dtmindustry.com']:
-            self.firma_diseno(email,parcial)
+        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com',
+                       "rafaguzmang@hotmail.com"] and self.tipe_order not in ("SK", "PD"):
+            # Firma de aprobación de OT
+            self.firma_ventas = self.env.user.partner_id.name
+
+        elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com',
+                       "rafaguzmang@hotmail.com"]:
+            # Firma de diseño
+            if not self.firma:
+                self.firma_diseno(email, parcial)
+            # Solo ingenieria1 puede liberar oficialmente
+            if email == 'ingenieria1@dtmindustry.com' and not self.firma_ingenieria:
+                self.firma_ingenieria = self.env.user.partner_id.name
+        # Ejecutar proceso automáticamente si todas las firmas están listas
+        if self.firma and self.firma_ventas and self.firma_ingenieria:
+            self.proceso(parcial)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
