@@ -56,8 +56,8 @@ class DtmOdt(models.Model):
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
     date_disign_finish = fields.Date(string="Fecha Diseño",readonly =True)
-    manufactura = fields.Boolean(default=False)
-    almacen_rev = fields.Boolean(default=False)
+    manufactura = fields.Boolean(string="P",default=False)
+    nesteo_chk = fields.Boolean(string="N",default=False)
     intervencion_calidad =  fields.Boolean(string='Revisión Calidad',default=False,readonly=True)
 
     #---------------------Resumen de descripción------------
@@ -131,7 +131,6 @@ class DtmOdt(models.Model):
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
-
         elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com',
                        "rafaguzmang@hotmail.com"] and self.tipe_order not in ("SK", "PD"):
             # Firma de aprobación de OT
@@ -146,7 +145,10 @@ class DtmOdt(models.Model):
             if email == 'ingenieria1@dtmindustry.com' and not self.firma_ingenieria:
                 self.firma_ingenieria = self.env.user.partner_id.name
         # Ejecutar proceso automáticamente si todas las firmas están listas
+        if self.firma and self.firma_ventas:
+            self.nesteo_chk = True
         if self.firma and self.firma_ventas and self.firma_ingenieria:
+            self.nesteo_chk = False
             self.proceso(parcial)
 
     def proceso(self,parcial=False):

@@ -28,7 +28,7 @@
                     <filter string="Versión" name="PD" domain="[('version_ot','>',1)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
-                    <filter string="En diseño" name="diseno" domain="[ ('firma_ventas', '=', False),  ('manufactura', '=', False)]"/>
+                    <filter string="En diseño" name="diseno" domain="[ '|',('manufactura', '=', False),('nesteo_chk','=',True)]"/>
 
 
                </search>
@@ -54,6 +54,7 @@
                     <field name="firma"/>
                     <field name="firma_ventas"/>
                     <field name="manufactura"/>
+                    <field name="nesteo_chk" />
                 </tree>
             </field>
         </record>
