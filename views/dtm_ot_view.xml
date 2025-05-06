@@ -160,7 +160,7 @@
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">
-                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" />
+                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible': [('firma_ingenieria', '=', False)]}"/>
                                     <field name="costo_material"/>
                                 </div>
                             </page>
