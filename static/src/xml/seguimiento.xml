@@ -1,0 +1,55 @@
+<templates xml:space="preserve">
+    <t t-name="dtm_odt.seguimiento" owl="1">
+        <div class="container-fluid">
+            <div class="container my-5">
+                <div class="p-5 text-left text-white rounded-3" style="background-color: #982119;">
+                    <h1 class="text-white">Diseño</h1>
+                    <p class="lead">
+        <!--                Ordenes en diseño {{total}}-->
+                    </p>
+                </div>
+            </div>
+            <div class="container-fluid my-5">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th>OD</th>
+                        <th>N</th>
+                        <th>Versión</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Días</th>
+                        <th>Promesa</th>
+                        <th>Cliente</th>
+                        <th>Nombre</th>
+                        <th>Diseñador</th>
+                        <th>Notas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                        <t t-foreach="state.items" t-as="item" t-key="item.id">
+                            <tr>
+                                <td><t t-esc="item.od_number"/></td>
+                                <td><t t-esc="item.nesteo_chk"/></td>
+                                <td><t t-esc="item.version_ot"/></td>
+                                <td><t t-esc="item.date_in"/></td>
+                                <td><t t-esc="item.date_rel"/></td>
+                                <td><t t-esc="item.diferencia"/></td>
+                                <td><t t-esc="item.date_disign_finish"/></td>
+                                <td><t t-esc="item.name_client"/></td>
+                                <td><t t-esc="item.product_name"/></td>
+                                <td><t t-esc="item.disenador"/></td>
+                                <td>
+                                    <input t-att-value="item.notes"   type="text" t-on-input="(ev) => this.textFuncion(ev, item.id)" />
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                  </table>
+            </div>
+
+        </div>
+
+    </t>
+</templates>

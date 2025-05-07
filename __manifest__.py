@@ -9,20 +9,23 @@
         #Views
         'views/dtm_ot_view.xml',
         'views/dtm_odt_revisiones_view.xml',
-        # 'views/dtm_npi_view.xml',
+        'views/seguimiento_view.xml',
         #Menú
         'views/dtm_menu.xml',
         #Reports
         'reports/npi.xml',
         'reports/orden_de_trabajo.xml',
         'reports/rechazo.xml',
-        'reports/lista_materiales.xml'
+        'reports/lista_materiales.xml',
+
         ],
     'license': 'LGPL-3',
      'assets': {
         'web.assets_backend': [
             'dtm_odt/static/src/css/styles.css',
-            # 'dtm_odt/static/src/js/script.js',
+            'dtm_odt/static/src/js/script.js',
+            'dtm_odt/static/src/xml/seguimiento.xml',
+            'dtm_odt/static/src/js/seguimiento.js',
             ],
     },
 }

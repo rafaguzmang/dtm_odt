@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="dtm_odt_segumiento_action" model="ir.actions.client">
+        <field  name="name">Seguimiento</field>
+        <field name="tag">dtm_odt.seguimiento</field>
+    </record>
+
+<!-- Menú principal -->
+<!--    <menuitem id="dtm_odt_segumiento_menu" action="dtm_odt_segumiento_action"/>-->
+
+
+
+</odoo>
