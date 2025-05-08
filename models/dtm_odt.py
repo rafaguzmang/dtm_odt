@@ -35,7 +35,8 @@ class DtmOdt(models.Model):
     firma = fields.Char(string="Firma", readonly = True)
     firma_compras = fields.Char()
     firma_produccion = fields.Char()
-    firma_almacen = fields.Char(string="Firma Almacén",readonly = False,default='almacen@dtmindustry.com')
+    firma_almacen = fields.Char(string="Firma Almacén",readonly = False)
+    almacen_rev = fields.Boolean()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char(string='Revisado',readonly=True)
     firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
@@ -79,7 +80,7 @@ class DtmOdt(models.Model):
         # print(self.materials_ids.mapped('materials_cuantity'))
         if not 0 in self.materials_ids.mapped('materials_cuantity'):
             self.almacen_rev = False if self.almacen_rev else True
-            self.firma_almacen = 'Pendientes' if self.almacen_rev else ''
+            self.firma_almacen = 'Pendiente' if self.almacen_rev else ''
 
 
     def action_pasive(self):
