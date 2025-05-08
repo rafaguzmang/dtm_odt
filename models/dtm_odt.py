@@ -111,7 +111,7 @@ class DtmOdt(models.Model):
             row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
             # Se verifica si es una lámina
             if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
+                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
