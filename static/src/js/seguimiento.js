@@ -131,7 +131,7 @@ export class Seguimiento extends Component {
             this.state.items = this.state.items.map(row =>(
                 {
                     ...row,
-                    diferencia: ((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)).toFixed(0),
+                    diferencia: ((((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)),
                     nesteo_chk: row.nesteo_chk?'✓':'',
 //                    diferencia: row.date_in
                 }
