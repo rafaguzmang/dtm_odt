@@ -13,7 +13,8 @@
                 <table class="table">
                     <thead>
                       <tr>
-                        <th>OD</th>
+                        <th>No</th>
+                        <th>Tipo</th>
                         <th>N</th>
                         <th>Versión</th>
                         <th>Entrada</th>
@@ -31,6 +32,7 @@
                         <t t-foreach="state.items" t-as="item" t-key="item.id">
                             <tr>
                                 <td><t t-esc="item.od_number"/></td>
+                                <td><t t-esc="item.tipe_order"/></td>
                                 <td><t t-esc="item.nesteo_chk"/></td>
                                 <td><t t-esc="item.version_ot"/></td>
                                 <td><t t-esc="item.date_in"/></td>

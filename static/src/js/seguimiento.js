@@ -94,6 +94,7 @@ export class Seguimiento extends Component {
               ['|',['manufactura','=',false],['nesteo_chk','=',true]], // Dominio (puedes ajustar)
               [
                 'id',
+                'tipe_order',
                 'od_number',
                 'firma_ventas',
                 'version_ot',
@@ -131,12 +132,14 @@ export class Seguimiento extends Component {
             this.state.items = this.state.items.map(row =>(
                 {
                     ...row,
-                    diferencia: ((((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)),
+                    diferencia: row.tipe_order == 'OT'?((((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)):100,
                     nesteo_chk: row.nesteo_chk?'✓':'',
+                    date_disign_finish: row.date_disign_finish== false?'':row.date_disign_finish,
 //                    diferencia: row.date_in
                 }
             ));
-//            console.log("📦 Datos modificados:", this.state.items);
+            this.state.items.sort((a,b)=> a.diferencia - b.diferencia)
+            // console.log("📦 Datos modificados:", this.state.items);
 
 
 
