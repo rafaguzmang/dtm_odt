@@ -1,0 +1,33 @@
+<template xml:space="preserve">
+    <t t-name="dtm_odt.indicadores" owl="1">
+        <div class="container mt-4" >
+            <h3>Tabla</h3>
+            <table class="table  table-striped">
+              <thead class="table-primary">
+                <tr>
+                    <th>Mes</th>
+                    <th>Ordenes</th>
+                    <th>Version tres</th>
+                    <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <t t-foreach="state.indicadores" t-as="item" t-key="item.mes">
+                    <tr>
+                        <td><t t-esc="item.mes"/></td>
+                        <td><t t-esc="item.totales"/></td>
+                        <td><t t-esc="item.versiones"/></td>
+                        <td><t t-esc="item.porciento"/></td>
+
+                    </tr>
+                  </t>
+              </tbody>
+            </table>
+            <h3 class="mt-4">Gráfica</h3>
+            <canvas t-ref="grafico" width="400" height="200"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>    </t>
+
+</template>

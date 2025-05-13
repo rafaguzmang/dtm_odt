@@ -10,6 +10,7 @@
         'views/dtm_ot_view.xml',
         'views/dtm_odt_revisiones_view.xml',
         'views/seguimiento_view.xml',
+        'views/indicadores_view.xml',
         #Menú
         'views/dtm_menu.xml',
         #Reports
@@ -26,6 +27,10 @@
             'dtm_odt/static/src/js/script.js',
             'dtm_odt/static/src/xml/seguimiento.xml',
             'dtm_odt/static/src/js/seguimiento.js',
+            'dtm_odt/static/src/xml/indicadores.xml',
+            'dtm_odt/static/src/js/indicadores.js',
+            'dtm_odt/static/lib/chart.js',  # Ruta local que usarás para Chart.js
+            'dtm_odt/static/lib/chartjs-plugin-annotation.js',
             ],
     },
 }

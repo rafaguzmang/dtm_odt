@@ -3,7 +3,9 @@
      <menuitem name="Diseño" id="menu_root_dtm_diseno">
         <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
         <menuitem id="odt_revisiones_action_menu" action="dtm_odt.dtm_revisiones_action"/>
-         <menuitem id="dtm_odt_segumiento_menu" action="dtm_odt_segumiento_action"/>
+        <menuitem id="dtm_odt_segumiento_menu" action="dtm_odt_segumiento_action"/>
+        <menuitem id="dtm_odt_indicadores_menu" action="dtm_odt_indicadores_action"/>
+
 
      </menuitem>
 </odoo>

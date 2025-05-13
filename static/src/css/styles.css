@@ -40,7 +40,158 @@ p{
     padding:0;
 }
 
-/*.o_list_renderer .o_list_table .o_list_record_remove{*/
-/*    display:none;*/
-/*}*/
+/*--------------------------------------------Tabla seguimiento-----------------------------------------*/
+
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.container-fluid{
+    width: 100%;
+}
+
+.tabla-ordenes{
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 3px;
+}
+
+.header-ordenes{
+    border: 1px solid rgba(0,0,0,0.1);
+    width: 13%;
+}
+
+
+.header-container{
+    width: 100%;
+}
+.container-info{
+    width: 15%;
+}
+
+.container-manufactura{
+    width: 80%;
+    z-index: 10;
+    right: 4%;
+    top: 35%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.vals-container{
+    padding: 0;
+    position: sticky;
+}
+
+.search-list{
+   width: 100%;
+}
+
+.li-orden{
+    width: 10%;
+}
+.li-orden input{
+    width: 80%;
+}
+
+.li-cliente {
+    width: 25%;
+}
+#cliente{
+    width: 90%;
+}
+
+
+.li-producto{
+    width: 25%;
+}
+
+.li-status{
+    width: 15%;
+}
+
+@media (max-width:930px){
+    .header-container{
+        position: static;
+        width: 170%;
+    }
+    .container-table{
+        margin-top: 0%;
+        position: static;
+    }
+    .vals-container{
+        width: 100%;
+        flex-direction: column;
+    }
+    .container-tittle{
+        order: 1;
+    }
+    .container-info{
+        width: 50%;
+        order: 2;
+    }
+    .container-manufactura{
+        width: 50%;
+        right: 0%;
+        display: flex;
+        position: static;
+        order: 3;
+        flex-direction: column;
+        top:25%;
+    }
+    .card-hover{
+        width: 100%;
+        padding-bottom: 0.2%;
+        height: 3.2em;
+    }
+    .card-body{
+        width: 100%;
+        padding: 0;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5.7%;
+        padding-right: 5%;
+    }
+    .search-list{
+        flex-direction: column;
+    }
+    li{
+        justify-content: space-between;
+    }
+    .li-orden{
+        width: 100%;
+    }
+    .li-orden p{
+        width: 50%;
+    }
+    .li-orden input{
+        width: 60%;
+    }
+    .li-cliente {
+        width: 100%;
+    }
+    .li-cliente p {
+        width: 50%;
+    }
+    #cliente {
+        width: 60%;
+    }
+
+    .li-producto{
+        width: 100%;
+    }
+    .li-producto p{
+        width: 50%;
+    }
+
+    .li-status{
+        width: 100%;
+    }
+    .li-status p{
+        width: 50%;
+    }
+    .header-container{
+        width: 43em;
+    }
+}
 

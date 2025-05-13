@@ -42,6 +42,7 @@
                 <tree  >
                     <field name="od_number"/>
                     <field name="ot_number"/>
+                    <field name="revision_ot"/>
                     <field name="version_ot"/>
                     <field name="tipe_order"/>
                     <field name="po_number"/>
@@ -65,10 +66,10 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
+                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" /> />
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True), ('firma_ventas', '=', True)]}" />
-<!--                        <button type="object" name="action_firma_parcial" string="Firma-Parcial"  icon="fa-pencil" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|', ('retrabajo', '=', True), ('firma_ventas', '=', False)]}"/> />-->
                     </header>
 
                     <sheet>
@@ -117,6 +118,7 @@
                             <group class="col-4">
                                     <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
                                     <field name="version_ot"  options='{"type": "number"}'/>
+                                    <field name="revision_ot"  options='{"type": "number"}'/>
                                     <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
                                     <field name="color"/>
                                     <field name="firma_almacen"/>
