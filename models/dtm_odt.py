@@ -150,6 +150,7 @@ class DtmOdt(models.Model):
             self.nesteo_chk = True
         if self.firma and self.firma_ventas and self.firma_ingenieria:
             self.nesteo_chk = False
+            self.manufactura = True
             self.proceso(parcial)
 
     def proceso(self,parcial=False):
@@ -179,9 +180,7 @@ class DtmOdt(models.Model):
         if get_ot:#Actualiza la orden en procesos
             get_ot.write(vals)
         else:
-            if not get_ot.status:#Se pone el status en aprobación o en nesteos si hay archivos en las máquinas cortadoras
-                status = "aprobacion"
-                if self.cortadora_id or self.primera_pieza_id:
+            if self.cortadora_id or self.primera_pieza_id or self.tubos_id:
                     status = "corte"
             vals["status"] = status
             get_ot.create(vals)#Crea la orden en procesos
@@ -470,7 +469,10 @@ class DtmOdt(models.Model):
                 "tipo_orden": self.tipe_order
             }
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
-            get_corte.write(vals) if get_corte else get_corte.create(vals)
+            if get_corte:
+                get_corte.write(vals)
+            else:
+                get_corte.create(vals)
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
 
             # Se obtinen los archivos de corte para mandar a la cortadora de tubos
