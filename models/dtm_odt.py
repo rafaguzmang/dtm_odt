@@ -178,10 +178,14 @@ class DtmOdt(models.Model):
         }
         vals["firma_parcial"] = parcial
         if get_ot:#Actualiza la orden en procesos
+            if (self.cortadora_id or self.primera_pieza_id) and get_ot.status == "aprobacion" :
+                status = "corte"
+            vals["status"] = status
             get_ot.write(vals)
         else:
-            if self.cortadora_id or self.primera_pieza_id or self.tubos_id:
-                    status = "corte"
+            status = "aprobacion" #Se pone el status en aprobación o en nesteos si hay archivos en las máquinas cortadoras
+            if self.cortadora_id or self.primera_pieza_id:
+                status = "corte"
             vals["status"] = status
             get_ot.create(vals)#Crea la orden en procesos
             get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),("tipe_order","=",self.tipe_order)])#Carga la orden de procesos
