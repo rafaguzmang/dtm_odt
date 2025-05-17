@@ -522,18 +522,10 @@ class DtmOdt(models.Model):
                 "nombre_orden":self.product_name,
                 "tipo_orden": self.tipe_order
             }
-<<<<<<< HEAD
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])
             get_corte.write(vals) if get_corte else get_corte.create(vals)
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])
-=======
-            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
-            if get_corte:
-                get_corte.write(vals)
-            else:
-                get_corte.create(vals)
-            get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),("tipo_orden","=",self.tipe_order)])
->>>>>>> materiales
+
 
             # Se obtinen los archivos de corte para mandar a la cortadora de tubos
             lines = []
