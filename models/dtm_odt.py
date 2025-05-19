@@ -127,7 +127,7 @@ class DtmOdt(models.Model):
 
     def action_almacen(self):
         # print(self.materials_ids.mapped('materials_cuantity'))
-        if not 0 in self.materials_ids.mapped('materials_cuantity'):
+        if self.materials_ids:
             self.almacen_rev = False if self.almacen_rev else True
             self.firma_almacen = 'Pendiente' if self.almacen_rev else ''
 
