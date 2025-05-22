@@ -230,7 +230,7 @@ class DtmOdt(models.Model):
         if get_ot:#Actualiza la orden en procesos
             if (self.cortadora_id or self.primera_pieza_id) and get_ot.status == "aprobacion" :
                 status = "corte"
-            vals["status"] = status
+            vals["status"] = get_ot.status
             get_ot.write(vals)
         else:
             status = "aprobacion" #Se pone el status en aprobación o en nesteos si hay archivos en las máquinas cortadoras
@@ -804,6 +804,7 @@ class TestModelLine(models.Model):
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
     revision = fields.Boolean(string="COMPRAR")
     entregado = fields.Boolean(default=False)
+    cant_entregada = fields.Integer()
     recibe = fields.Char()
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True)
