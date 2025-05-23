@@ -95,7 +95,7 @@ class DtmOdt(models.Model):
                 'color': self.color,
                 'cuantity': self.cuantity,
                 'materials_ids': [(5, 0, {})],
-                'disenador': self.disenador,
+                'disenador': 'Luis' if self.disenador == 'garcia' else 'Andrés',
                 'firma': '',
                 'firma_almacen': '',
                 'almacen_rev': '',
@@ -108,7 +108,7 @@ class DtmOdt(models.Model):
                 'nesteos': False,
                 'rechazo_id':[(5, 0, {})],
                 'anexos_ventas_id':self.anexos_ventas_id,
-                'anexos_id':self.anexos_id,
+                'anexos_id':[(5, 0, {})],
                 'cortadora_id':[(5, 0, {})],
                 'primera_pieza_id':[(5, 0, {})],
                 'tubos_id':[(5, 0, {})],
@@ -130,7 +130,6 @@ class DtmOdt(models.Model):
         if self.materials_ids:
             self.almacen_rev = False if self.almacen_rev else True
             self.firma_almacen = 'Pendiente' if self.almacen_rev else ''
-
 
     def action_pasive(self):
         pass
@@ -164,7 +163,6 @@ class DtmOdt(models.Model):
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
-
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
         self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
@@ -194,6 +192,7 @@ class DtmOdt(models.Model):
             # Solo ingenieria1 puede liberar oficialmente
             if email == 'ingenieria1@dtmindustry.com' and not self.firma_ingenieria:
                 self.firma_ingenieria = self.env.user.partner_id.name
+
         # Ejecutar proceso automáticamente si todas las firmas están listas
         if self.firma and self.firma_ventas:
             self.nesteo_chk = True
@@ -201,6 +200,8 @@ class DtmOdt(models.Model):
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)
+            if not self.firma_almacen == 'almacen@dtmindustry.com':
+                self.action_almacen()
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
@@ -322,8 +323,6 @@ class DtmOdt(models.Model):
                 self.cortadora_laser()#Se manda cortar lámina
                 self.cortadora_tubos()#Se manda cortar Perfilería
             self.firma_ingenieria = self.env.user.partner_id.name
-
-
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
@@ -600,7 +599,6 @@ class DtmOdt(models.Model):
             buscar = buscar.replace("Maquinado Externo", "")
             # print(buscar,codigo.nombre)
             if codigo.revision and buscar.find('Maquinado') == -1:
-
                 # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
                 cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number)),('revision_ot','=',self.revision_ot),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
                 # cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
@@ -647,7 +645,8 @@ class DtmOdt(models.Model):
                         'cantidad':cantidad_item - cantidad_comprado,
                         'disenador':self.env.user.partner_id.name if not self.env.user.partner_id.name in ["Alejandro Erives Chavez","Hugo Chacon","Administrator"] else self.firma,
                         'servicio':servicio,
-                        'tipo_orden':self.tipe_order
+                        'tipo_orden':self.tipe_order,
+                        'revision_ot':self.revision_ot
                     }
                 if get_compras.disenador:
                     vals['disenador'] = get_compras.disenador
@@ -760,13 +759,9 @@ class DtmOdt(models.Model):
     def get_view(self, view_id=None, view_type='form', **options):
         res = super(DtmOdt,self).get_view(view_id, view_type,**options)
 
-        # get_materials_line = self.env['dtm.materials.line'].search([])
-        # for material in get_materials_line:
-        #     print(material.id)
-
         get_this = self.env['dtm.odt'].search([])
         for odt in get_this:
-            if str(odt.ot_number) in self.env['dtm.proceso'].search([]).mapped('ot_number'):
+            if self.env['dtm.proceso'].search([('ot_number','=',odt.ot_number),('revision_ot','=',odt.revision_ot)]):
                 odt.manufactura = True
 
         # Pone precio a los materiales
