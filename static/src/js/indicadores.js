@@ -65,8 +65,8 @@ export class Indicadores extends Component{
                                     annotations: {
                                         line1: {
                                             type: 'line',
-                                            yMin: 5,
-                                            yMax: 5,
+                                            yMin: 85,
+                                            yMax: 85,
                                             borderColor: 'rgba(0, 255, 0, 0.4)',
                                             borderWidth: 1,
                                             label: {

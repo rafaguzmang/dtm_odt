@@ -141,7 +141,7 @@ class DtmOdt(models.Model):
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
         # Pone el nombre del diseñador
-        self.firma = self.env.user.partner_id.name if not self.firma else self.firma
+        self.firma = self.env.user.partner_id.name
         if self.tipe_order in ["OT","NPI"]:
             if not self.ot_number:
                 get_this = self.env['dtm.odt'].search([],order="ot_number desc",limit=1) #Obtiene el último número de orden
@@ -149,8 +149,6 @@ class DtmOdt(models.Model):
                 self.ot_number = max(get_this.ot_number,get_facturado.ot_number) + 1 #Obtiene el último número de orden
             get_ventas = self.env['dtm.compras.items'].search([("orden_diseno","=",self.od_number)])
             get_ventas.write({"firma": self.firma,"orden_trabajo":self.ot_number})#Pone el número de la orden de trabajo en ventas
-            if self.firma_ventas:
-                self.proceso(parcial)
 
     #Revisión de la lista de materiales antes de mandarse a compras
     def materiales_check(self):
@@ -173,24 +171,21 @@ class DtmOdt(models.Model):
             elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order != "SK" and self.tipe_order != "PD" and self.firma_calidad:
                 self.firma_ventas = self.env.user.partner_id.name
                 self.proceso(parcial)
-            elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', "rafaguzmang@hotmail.com",
-                         'ingenieria1@dtmindustry.com']:
+            elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
                 self.firma_diseno(email,parcial)
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
-        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com',
-                       "rafaguzmang@hotmail.com"] and self.tipe_order not in ("SK", "PD"):
+        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas:
             # Firma de aprobación de OT
             self.firma_ventas = self.env.user.partner_id.name
 
-        elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com',
-                       "rafaguzmang@hotmail.com"]:
+        elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             # Firma de diseño
             if not self.firma:
                 self.firma_diseno(email, parcial)
             # Solo ingenieria1 puede liberar oficialmente
-            if email == 'ingenieria1@dtmindustry.com' and not self.firma_ingenieria:
+            if email == 'ingenieria1@dtmindustry.com' and self.firma_ventas and not self.firma_ingenieria:
                 self.firma_ingenieria = self.env.user.partner_id.name
 
         # Ejecutar proceso automáticamente si todas las firmas están listas
