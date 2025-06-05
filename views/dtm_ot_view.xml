@@ -296,13 +296,18 @@
                                         <notebook>
                                             <page string="Materiales">
                                                 <field name="material_id">
-                                                      <tree editable="bottom" >
+                                                    <tree editable="bottom" decoration-success="entregado"
+                                        decoration-info="revision and not entregado"
+                                        decoration-bf="revision or entregado" >
                                                         <field name="materials_list"/>
                                                         <field name="notas"/>
                                                         <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
                                                         <field name="materials_availabe"/>
                                                         <field name="materials_required" options='{"type": "number"}'/>
-                                                        <field name="revision"/>
+                                                        <field name="almacen" />
+                                                        <field name="revision" />
+                                                        <field name="entregado" invisible="1"/>
+
                                                     </tree>
                                                 </field>
                                             </page>

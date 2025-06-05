@@ -186,7 +186,8 @@ class DtmOdt(models.Model):
                 self.firma_diseno(email, parcial)
             # Solo ingenieria1 puede liberar oficialmente
             if email == 'ingenieria1@dtmindustry.com' and self.firma_ventas and not self.firma_ingenieria:
-                self.firma_ingenieria = self.env.user.partner_id.name
+                if not self.firma_ingenieria:
+                    self.firma_ingenieria = self.env.user.partner_id.name
 
         # Ejecutar proceso automáticamente si todas las firmas están listas
         if self.firma and self.firma_ventas:
@@ -317,7 +318,6 @@ class DtmOdt(models.Model):
             if self.firma_ingenieria:
                 self.cortadora_laser()#Se manda cortar lámina
                 self.cortadora_tubos()#Se manda cortar Perfilería
-            self.firma_ingenieria = self.env.user.partner_id.name
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
@@ -792,7 +792,7 @@ class TestModelLine(models.Model):
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("INVENTARIO", readonly=True)
     materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
-    revision = fields.Boolean(string="COMPRAR")
+    revision = fields.Boolean(string="COMPRAR",readonly=True)
     entregado = fields.Boolean(default=False)
     cant_entregada = fields.Integer()
     recibe = fields.Char()
