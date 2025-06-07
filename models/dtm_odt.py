@@ -783,15 +783,15 @@ class TestModelLine(models.Model):
 
     model_id = fields.Many2one("dtm.odt")
     servicio_id = fields.Many2one("dtm.odt.servicios")
-    nombre = fields.Char(compute="_compute_material_list",store=True)
-    medida = fields.Char(store=True)
+    nombre = fields.Char(compute="_compute_material_list",store=True,related='materials_list.nombre')
+    medida = fields.Char(store=True, related='materials_list.medida')
     notas = fields.Char(string="Notas")
 
     materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True)
     materials_cuantity = fields.Integer("CANTIDAD")
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("INVENTARIO", readonly=True)
-    materials_required = fields.Integer("REQUERIDO",compute ="_compute_materials_inventory",store=True)
+    materials_required = fields.Integer("REQUERIDO",store=True)
     revision = fields.Boolean(string="COMPRAR",readonly=True)
     entregado = fields.Boolean(default=False)
     cant_entregada = fields.Integer()
@@ -863,11 +863,11 @@ class TestModelLine(models.Model):
             })
             # print("..........................................................")
 
-    @api.depends("materials_list")
-    def _compute_material_list(self):
-        for result in self:
-            result.nombre = result.materials_list.nombre
-            result.medida = result.materials_list.medida if result.materials_list.medida else ""
+    # @api.depends("materials_list")
+    # def _compute_material_list(self):
+    #     for result in self:
+    #         result.nombre = result.materials_list.nombre
+    #         result.medida = result.materials_list.medida if result.materials_list.medida else ""
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
