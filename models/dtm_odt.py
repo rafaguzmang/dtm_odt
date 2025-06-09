@@ -126,10 +126,10 @@ class DtmOdt(models.Model):
 
 
     def action_almacen(self):
-        # print(self.materials_ids.mapped('materials_cuantity'))
-        if self.materials_ids:
-            self.almacen_rev = False if self.almacen_rev else True
-            self.firma_almacen = 'Pendiente' if self.almacen_rev else ''
+        if any(not m.almacen for m in self.materials_ids):
+            self.almacen_rev = 'Pendiente'
+        else:
+            self.firma_almacen = 'almacen@dtmindustry.com'
 
     def action_pasive(self):
         pass
@@ -196,8 +196,8 @@ class DtmOdt(models.Model):
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)
-            if not self.firma_almacen == 'almacen@dtmindustry.com':
-                self.action_almacen()
+
+        self.action_almacen()
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
