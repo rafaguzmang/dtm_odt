@@ -98,7 +98,7 @@ class DtmOdt(models.Model):
                 'disenador': 'Luis' if self.disenador == 'garcia' else 'Andrés',
                 'firma': False,
                 'firma_almacen': '',
-                'almacen_rev': '',
+                'almacen_rev': False,
                 'firma_ventas': False,
                 'firma_calidad': '',
                 'firma_ingenieria': False,
@@ -127,9 +127,12 @@ class DtmOdt(models.Model):
 
     def action_almacen(self):
         if any(not m.almacen for m in self.materials_ids):
-            self.almacen_rev = 'Pendiente'
+            self.almacen_rev = True
+            self.firma_almacen = 'Pendiente'
+            print('Almacén')
         else:
             self.firma_almacen = 'almacen@dtmindustry.com'
+            print('no almacén')
 
     def action_pasive(self):
         pass
