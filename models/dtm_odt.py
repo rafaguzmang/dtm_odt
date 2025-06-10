@@ -322,6 +322,7 @@ class DtmOdt(models.Model):
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
         if self.cortadora_id or self.primera_pieza_id:
+            # Se obtienen los datos de la orden del modulo de procesos
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
@@ -333,7 +334,7 @@ class DtmOdt(models.Model):
                 "tipo_orden": self.tipe_order
             }
             material_corte = ""
-            # Se encargan de buscar la información necesario -------------------------------
+            # Se encargan de buscar la información necesaria -------------------------------
             get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])# Guarda la información (archivos) para pasar a corte
             get_encorte_primera = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Busca si la primera pieza está en proceso de corte
             get_encorte_segunda =  self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Busca si la segunda está en proceso de corte
@@ -693,7 +694,8 @@ class DtmOdt(models.Model):
                 tipo_servicio = "Maquinado" if item.tipo_servicio == 'maquinado' else\
                     'Maquinado Externo' if item.tipo_servicio == 'externo' else\
                     'Sinquiado' if  item.tipo_servicio == 'sinquiado' else\
-                    'Estañado' if item.tipo_servicio == 'estanado' else 'Pavoneado'
+                    'Estañado' if item.tipo_servicio == 'estanado' else\
+                    'Anonizado' if item.tipo_servicio == 'anonizado' else 'Pavoneado'
                 # print(tipo_servicio)Pavoneado
                 nombre = f"{tipo_servicio} {item.nombre}"
                 # print(nombre)
@@ -724,7 +726,7 @@ class DtmOdt(models.Model):
         #Borra todos los servicios que no esten en el modelo de servicios
         servicios_exist = []
         for servicio in self.env['dtm.materials.line'].search([("model_id","=",self._origin.id)]):
-            if servicio.nombre.split(' ')[0] in ['Maquinado','Externo','Sinquiado','Estañado','Pavoneado']:
+            if servicio.nombre.split(' ')[0] in ['Maquinado','Externo','Sinquiado','Estañado','Pavoneado','Anonizado']:
                 servicios_exist.append(servicio)
             else:
                 tabla_list.append(servicio.id)
@@ -892,7 +894,7 @@ class Servicios(models.Model):
     extern_id = fields.Many2one("dtm.odt")
 
     nombre = fields.Char(string="Nombre del Servicio")
-    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado"),("pavoneado","Pavoneado")],required=True)
+    tipo_servicio = fields.Selection(string="Tipo de Servicio",selection=[("maquinado","Maquinado"),("externo","Maquinado Externo"),("sinquiado","Sinquiado"),("estanado","Estañado"),("pavoneado","Pavoneado"),("anonizado","Anonizado")],required=True)
     cantidad = fields.Integer(string="Cantidad")
     tipo_orden = fields.Char(string="OT/NPI")
     numero_orden = fields.Integer(string="Orden")
