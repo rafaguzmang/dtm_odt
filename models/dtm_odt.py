@@ -129,10 +129,8 @@ class DtmOdt(models.Model):
         if any(not m.almacen for m in self.materials_ids):
             self.almacen_rev = True
             self.firma_almacen = 'Pendiente'
-            print('Almacén')
         else:
             self.firma_almacen = 'almacen@dtmindustry.com'
-            print('no almacén')
 
     def action_pasive(self):
         pass
@@ -329,13 +327,15 @@ class DtmOdt(models.Model):
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
-            # print(get_proceso.status,status)
+            print(get_proceso.status,status)
             vals = {
                 "orden_trabajo":self.ot_number,
+                "revision_ot":self.revision_ot,
                 "fecha_entrada": datetime.today(),
                 "nombre_orden":self.product_name,
                 "tipo_orden": self.tipe_order
             }
+            # print(vals)
             material_corte = ""
             # Se encargan de buscar la información necesaria -------------------------------
             get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])# Guarda la información (archivos) para pasar a corte
