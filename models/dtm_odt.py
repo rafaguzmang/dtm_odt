@@ -196,7 +196,7 @@ class DtmOdt(models.Model):
         if self.firma and self.firma_ventas and self.firma_ingenieria:
             self.nesteo_chk = False
             self.manufactura = True
-            self.proceso(parcial)
+        self.proceso(parcial)
 
         self.action_almacen()
 
@@ -327,7 +327,7 @@ class DtmOdt(models.Model):
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
-            print(get_proceso.status,status)
+            # print(get_proceso.status,status)
             vals = {
                 "orden_trabajo":self.ot_number,
                 "revision_ot":self.revision_ot,
@@ -645,8 +645,10 @@ class DtmOdt(models.Model):
                         'disenador':self.env.user.partner_id.name if not self.env.user.partner_id.name in ["Alejandro Erives Chavez","Hugo Chacon","Administrator"] else self.firma,
                         'servicio':servicio,
                         'tipo_orden':self.tipe_order,
-                        'revision_ot':self.revision_ot
+                        'revision_ot':self.revision_ot,
+                        'nesteo': True if self.firma_ingenieria else False
                     }
+                print(vals)
                 if get_compras.disenador:
                     vals['disenador'] = get_compras.disenador
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)])
