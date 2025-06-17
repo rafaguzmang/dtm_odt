@@ -63,6 +63,9 @@ class DtmOdt(models.Model):
     manufactura = fields.Boolean(string="P",default=False)
     nesteo_chk = fields.Boolean(string="N",default=False)
     intervencion_calidad =  fields.Boolean(string='Revisión Calidad',default=False,readonly=True)
+    nesteo_inicio = fields.Datetime()
+    nesteo_final = fields.Datetime()
+    tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -193,10 +196,20 @@ class DtmOdt(models.Model):
         # Ejecutar proceso automáticamente si todas las firmas están listas
         if self.firma and self.firma_ventas:
             self.nesteo_chk = True
+            if not self.nesteo_inicio:
+                self.nesteo_inicio = fields.Datetime.now()
+                # print(self.nesteo_inicio)
         if self.firma and self.firma_ventas and self.firma_ingenieria:
             self.nesteo_chk = False
             self.manufactura = True
-        self.proceso(parcial)
+            self.proceso(parcial)
+            if not self.nesteo_final:
+                self.nesteo_final = fields.Datetime.now()
+                # print(self.nesteo_final)
+        if self.nesteo_final and self.nesteo_inicio:
+            self.tiempo_nesteo = round((self.nesteo_final - self.nesteo_inicio ).total_seconds() / 3600.0,2)
+            # print(self.tiempo_nesteo,self.nesteo_final,self.nesteo_inicio)
+
 
         self.action_almacen()
 

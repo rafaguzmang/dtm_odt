@@ -126,6 +126,7 @@
                             <group class="col-4">
                                     <field name="intervencion_calidad"/>
                                     <field name="firma_calidad"/>
+                                    <field name="tiempo_nesteo"/>
                             </group>
 
                         </div>
