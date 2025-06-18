@@ -203,14 +203,13 @@ class DtmOdt(models.Model):
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)
-            if not self.nesteo_final:
+            print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
+            if not self.nesteo_final and (self.cortadora_id or self.primera_pieza_id or self.tubos_id):
                 self.nesteo_final = fields.Datetime.now()
                 # print(self.nesteo_final)
-        if self.nesteo_final and self.nesteo_inicio:
+        if self.nesteo_final and self.nesteo_inicio :
             self.tiempo_nesteo = round((self.nesteo_final - self.nesteo_inicio ).total_seconds() / 3600.0,2)
             # print(self.tiempo_nesteo,self.nesteo_final,self.nesteo_inicio)
-
-
         self.action_almacen()
 
     def proceso(self,parcial=False):
