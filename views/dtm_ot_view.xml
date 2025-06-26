@@ -39,7 +39,7 @@
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
-                <tree  >
+                <tree  delete="false">
                     <field name="od_number"/>
                     <field name="ot_number"/>
                     <field name="revision_ot"/>
