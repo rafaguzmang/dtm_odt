@@ -146,6 +146,22 @@
 
                             <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
+                                <field name="lista_material_id"  attrs="{'readonly': [('firma', '!=', False),('firma_ventas','!=',False)]}">
+<!--                                <field name="lista_material_id">-->
+                                    <tree editable="bottom" >
+                                        <field name="material_id"  create="false" delete="false"/>
+                                        <field name="cantidad" options='{"type": "number"}' />
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    </tree>
+                                </field>
+                                <div class="d-flex justify-content-between">
+                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible': [('firma_ingenieria', '!=', 'Bryan Banda')]}"/>
+                                    <field name="costo_material"/>
+                                </div>
+                            </page>
+                            <page string="INGENIERÍA" attrs="{'invisible': ['|','|',('tipe_order','=','SK'),('tipe_order','=','PD'),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}">
+
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
@@ -163,10 +179,6 @@
                                         <field name="usuario" invisible="1"/>
                                     </tree>
                                 </field>
-                                <div class="d-flex justify-content-between">
-                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible': [('firma_ingenieria', '!=', 'Bryan Banda')]}"/>
-                                    <field name="costo_material"/>
-                                </div>
                             </page>
                             <page string="RECHAZO" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">

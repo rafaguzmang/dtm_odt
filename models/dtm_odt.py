@@ -34,6 +34,7 @@ class DtmOdt(models.Model):
     color = fields.Char(string="COLOR",default="N/A")
     cuantity = fields.Integer(string="CANTIDAD")
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
+    lista_material_id = fields.One2many("dtm.odt.listamateriales","model_id")
     disenador = fields.Char("Diseñador")
     firma = fields.Char(string="Firma", readonly = True)
     firma_compras = fields.Char()
@@ -135,6 +136,9 @@ class DtmOdt(models.Model):
         else:
             self.firma_almacen = 'almacen@dtmindustry.com'
 
+        if not self.materials_ids:
+            self.firma_almacen = None
+
     def action_pasive(self):
         pass
 
@@ -198,12 +202,15 @@ class DtmOdt(models.Model):
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
-                # print(self.nesteo_inicio)
+
+            if not self.materials_ids:
+                self.materiales_nesteo()
+
         if self.firma and self.firma_ventas and self.firma_ingenieria:
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)
-            print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
+            # print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
             if not self.nesteo_final and (self.cortadora_id or self.primera_pieza_id or self.tubos_id):
                 self.nesteo_final = fields.Datetime.now()
                 # print(self.nesteo_final)
@@ -211,6 +218,57 @@ class DtmOdt(models.Model):
             self.tiempo_nesteo = round((self.nesteo_final - self.nesteo_inicio ).total_seconds() / 3600.0,2)
             # print(self.tiempo_nesteo,self.nesteo_final,self.nesteo_inicio)
         self.action_almacen()
+
+    def materiales_nesteo(self):
+        lista = []
+        for item in self.lista_material_id:
+
+            # Obtener stock
+            stock = self.env['dtm.materiales'].browse(item.material_id.id)
+            stock_total = stock.cantidad  # Campo float
+
+            # Obtener total apartado (ordenado pero aún no entregado)
+            apartado = sum(
+                self.env['dtm.materials.line']
+                .search([
+                    ('materials_list', '=', item.material_id.id),
+                    ('entregado', '!=', True),
+                    ('revision', '!=', True),
+                    ('materials_cuantity', '>', 0)
+                ])
+                .mapped('materials_availabe')
+            )
+
+            # Calcular disponible
+            disponible = stock_total - apartado
+
+            # Inicializar
+            requerido = 0
+            nuevo_apartado = 0
+
+            if disponible >= item.cantidad:
+                nuevo_apartado = item.cantidad
+                requerido = 0
+            elif 0 < disponible < item.cantidad:
+                nuevo_apartado = disponible
+                requerido = item.cantidad - disponible
+            else:
+                nuevo_apartado = 0
+                requerido = item.cantidad
+
+            vals = {
+                'model_id':item.model_id.id,
+                'nombre':item.material_id.nombre,
+                'medida':item.material_id.medida,
+                'materials_list':item.material_id.id,
+                'materials_cuantity':item.cantidad,
+                'usuario':item.usuario,
+                'materials_availabe':max(0,nuevo_apartado),
+                'materials_required':max(0,requerido)
+            }
+
+            to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+            to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
@@ -900,10 +958,6 @@ class TestModelLine(models.Model):
                 'disponible': stock - max(0,apartado_almacen + line.materials_availabe)
             })
 
-
-
-
-
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
     _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
@@ -948,6 +1002,26 @@ class OtFile(models.Model):
     model_id = fields.Many2one("dtm.odt")
     model_tubo_id = fields.Many2one("dtm.odt")
     liga = fields.Char(string="Ligas")
+
+class ListaMateriales(models.Model):
+    _name = 'dtm.odt.listamateriales'
+    _description = 'Modulo para llevar la lista de los materiales para la fabricación del proyecto'
+
+    model_id = fields.Many2one('dtm.odt')
+
+    material_id = fields.Many2one('dtm.materiales')
+    cantidad = fields.Integer(string="Cantidad")
+    precio = fields.Float(string="Precio")
+    currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id)
+    usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+
+    def _compute_usuario(self):
+        for result in self:
+            result.usuario = self.env.user.partner_id.email
+
+    @api.onchange('material_id')
+    def onchage_material_id(self):
+        self.precio = self.env['dtm.compras.precios'].search([('codigo','=',self.material_id.id)],limit=1).precio
 
 
 
