@@ -10,4 +10,7 @@ access_dtm_odt_revisiones,access.dtm.odt.revisiones,model_dtm_odt_revisiones,bas
 
 access_dtm_odt_listamateriales,access.dtm.odt.listamateriales,model_dtm_odt_listamateriales,base.group_user,1,1,1,1
 
+access_confirm_dialog_wizard,access.confirm.dialog.wizard,model_confirm_dialog_wizard,base.group_user,1,1,1,1
+
+
 

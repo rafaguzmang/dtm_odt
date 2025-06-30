@@ -66,7 +66,8 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" /> />
+                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" /> />
+                        <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True), ('firma_ventas', '=', True)]}" />
@@ -77,9 +78,6 @@
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
                                 <field name="date_rel"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="Cliente" class="oe_stat_button" icon="fa-user">
-                                <field name="name_client"  string="" widget="statinfo"/>
-                            </button>
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-paperclip">
                                 <field name="orden_compra_pdf"  string="" widget="statinfo"/>
                             </button>
@@ -89,7 +87,7 @@
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-pencil">
                                 <field name="firma"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield">
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield" attrs="{'invisible': [('tipe_order','=','COT')]}">
                                 <field name="firma_ingenieria"  string="" widget="statinfo"/>
                             </button>
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-clipboard">
@@ -105,14 +103,13 @@
                             <div class="row" style="padding-bottom: 15px;">
                                 <div class="col-6">
                                     <h1>
-                                        <field name="product_name" attrs="{'readonly': [('tipe_order', '=', 'OT')]}" />
+                                        <field name="product_name" attrs="{'readonly': [('tipe_order', '!=', 'NPI')]}" />
                                     </h1>
+                                    <h4>
+                                        <field name="name_client"  attrs="{'readonly': [('tipe_order', '!=', 'NPI')]}"/>
+                                    </h4>
                                 </div>
-                                 <div class="col-6">
-                                    <h1>
-                                        <field name="name_client" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}" />
-                                    </h1>
-                                </div>
+
                             </div>
                         <div class="row d-flex justify-content-between">
                             <group class="col-4">
@@ -143,7 +140,6 @@
                                     <field name="description"/>
                                 </group>
                             </page>
-
                             <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
                                 <field name="lista_material_id"  attrs="{'readonly': [('firma', '!=', False),('firma_ventas','!=',False)]}">
@@ -160,7 +156,7 @@
                                     <field name="costo_material"/>
                                 </div>
                             </page>
-                            <page string="INGENIERÍA" attrs="{'invisible': ['|','|',('tipe_order','=','SK'),('tipe_order','=','PD'),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}">
+                            <page string="INGENIERÍA" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
@@ -194,7 +190,7 @@
                                 <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
 
                             </page>
-                            <page string="MITSUBISHI" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="MITSUBISHI" attrs="{'invisible': ['|','|',('tipe_order','=','COT'),('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
@@ -209,7 +205,7 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="LTP 6032"  attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="LTP 6032"  attrs="{'invisible': ['|','|',('tipe_order','=','COT'),('tipe_order','=','SK'),('tipe_order','=','PD')]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}" />
@@ -346,6 +342,22 @@
 
             </field>
         </record>
+
+        <record id="view_confirm_dialog_form" model="ir.ui.view">
+        <field name="name">confirm.dialog.wizard.form</field>
+        <field name="model">confirm.dialog.wizard</field>
+        <field name="arch" type="xml">
+        <form string="Información">
+                <h2>
+                    <field name="message" readonly="1"/>
+                </h2>
+            <footer>
+                <button string="Cerrar" class="btn-primary" special="cancel"/>
+            </footer>
+        </form>
+    </field>
+</record>
+
 
     </data>
 </odoo>

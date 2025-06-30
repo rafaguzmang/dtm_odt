@@ -23,10 +23,10 @@ class DtmOdt(models.Model):
     # Campo para llevar el conteo exclusivo de diseño
     od_number = fields.Integer(string="OD",readonly=True)
     ot_number = fields.Integer(string="OT",default=action_autoNum,readonly=True)
-    tipe_order = fields.Char(string=" ",readonly=True, default='NPI')
+    tipe_order = fields.Char(string="TIPO",readonly=True, default='NPI')
     revision_ot = fields.Integer(string="VERSIÓN",default=1,readonly=True) # Esto es versión
-    name_client = fields.Char(string="CLIENTE")
-    product_name = fields.Char(string="NOMBRE DEL PRODUCTO")
+    name_client = fields.Char(string="CLIENTE",default='Nombre del Cliente')
+    product_name = fields.Char(string="NOMBRE DEL PRODUCTO",default='Nombre del Producto')
     date_in = fields.Date(string="ENTRADA", default= datetime.today(),readonly=True)
     po_number = fields.Char(string="PO/Cot",readonly=True)
     date_rel = fields.Date(string="ENTREGA", default= datetime.today())
@@ -128,6 +128,78 @@ class DtmOdt(models.Model):
             })
         # print(version,self.ot_number,self.revision_ot)
 
+    def action_orden_hijo(self):
+        get_diseno_odt = self.env['dtm.odt'].search([('ot_number', '!=', False)], order='ot_number desc', limit=1)
+        get_diseno_fact = self.env['dtm.facturado.odt'].search([('ot_number', '!=', False)],
+                                                                       order='ot_number desc', limit=1)
+        ot_number = max(get_diseno_odt.ot_number, get_diseno_fact.ot_number) + 1
+
+        vals= {
+                'description':self.description,
+                'od_number': None,
+                'ot_number': ot_number,
+                'tipe_order': 'OT',
+                'revision_ot': self.ot_number,
+                'name_client': self.name_client,
+                'product_name': self.product_name,
+                'date_in': self.date_in,
+                'po_number': self.po_number,
+                'date_rel': self.date_rel,
+                'version_ot': self.version_ot,
+                'color': self.color,
+                'cuantity': 0,
+                'materials_ids': [(0, 0, {
+                                                'nombre':material.nombre,
+                                                'medida':material.medida,
+                                                'notas':material.notas,
+                                                'materials_list':material.materials_list.id,
+                                                'materials_cuantity':material.materials_cuantity,
+                                                'costo':material.costo,
+                                            }) for material in self.materials_ids],
+                'lista_material_id':[(0, 0, {
+                                                'material_id':material.material_id.id,
+                                                'cantidad':material.cantidad,
+                                                'precio':material.precio,
+                                            }) for material in self.lista_material_id],
+                'disenador': self.disenador,
+                'firma': self.firma,
+                'firma_almacen': '',
+                'almacen_rev': False,
+                'firma_ventas': False,
+                'firma_calidad': '',
+                'firma_ingenieria': False,
+                'po_fecha_creacion': self.po_fecha_creacion,
+                'po_fecha': self.po_fecha,
+                'planos': self.planos,
+                'nesteos': False,
+                'rechazo_id': [(5, 0, {})],
+                'anexos_ventas_id': self.anexos_ventas_id,
+                'anexos_id': [(5, 0, {})],
+                'cortadora_id': [(5, 0, {})],
+                'primera_pieza_id': [(5, 0, {})],
+                'tubos_id': [(5, 0, {})],
+                'no_cotizacion': self.no_cotizacion,
+                'orden_compra_pdf': self.orden_compra_pdf,
+                'ligas_id': [(5, 0, {})],
+                'ligas_tubos_id': [(5, 0, {})],
+                'archivos_id': self.archivos_id,
+                'date_disign_finish': self.date_disign_finish,
+                'manufactura': False,
+                'nesteo_chk': False,
+                'intervencion_calidad': self.intervencion_calidad,
+            }
+        # print(vals)
+        self.env['dtm.odt'].create(vals)
+        return {
+            'name': 'Orden Creada',
+            'type': 'ir.actions.act_window',
+            'res_model': 'confirm.dialog.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_message': f'La Orden {ot_number} se ha creado correctamente.'
+            }
+        }
 
     def action_almacen(self):
         if any(not m.almacen for m in self.materials_ids):
@@ -198,7 +270,7 @@ class DtmOdt(models.Model):
                     self.firma_ingenieria = self.env.user.partner_id.name
 
         # Ejecutar proceso automáticamente si todas las firmas están listas
-        if self.firma and self.firma_ventas:
+        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','hugo_chacon@dtmindustry.com'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
@@ -206,7 +278,7 @@ class DtmOdt(models.Model):
             if not self.materials_ids:
                 self.materiales_nesteo()
 
-        if self.firma and self.firma_ventas and self.firma_ingenieria:
+        if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order != 'COT':
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)
@@ -221,54 +293,72 @@ class DtmOdt(models.Model):
 
     def materiales_nesteo(self):
         lista = []
-        for item in self.lista_material_id:
 
-            # Obtener stock
-            stock = self.env['dtm.materiales'].browse(item.material_id.id)
-            stock_total = stock.cantidad  # Campo float
+        print(self.env['dtm.odt'].search([('ot_number', '=', self.revision_ot)],limit=1))
+        if self.env['dtm.odt'].search([('ot_number','=',self.revision_ot)],limit=1):
+            for item in self.lista_material_id:
+                vals = {
+                    'model_id': item.model_id.id,
+                    'nombre': item.material_id.nombre,
+                    'medida': item.material_id.medida,
+                    'materials_list': item.material_id.id,
+                    'materials_cuantity': 0,
+                    'usuario': item.usuario,
+                    'materials_availabe': 0,
+                    'materials_required':0
+                }
+                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+                to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
 
-            # Obtener total apartado (ordenado pero aún no entregado)
-            apartado = sum(
-                self.env['dtm.materials.line']
-                .search([
-                    ('materials_list', '=', item.material_id.id),
-                    ('entregado', '!=', True),
-                    ('revision', '!=', True),
-                    ('materials_cuantity', '>', 0)
-                ])
-                .mapped('materials_availabe')
-            )
+        else:
+            for item in self.lista_material_id:
 
-            # Calcular disponible
-            disponible = stock_total - apartado
+                # Obtener stock
+                stock = self.env['dtm.materiales'].browse(item.material_id.id)
+                stock_total = stock.cantidad  # Campo float
 
-            # Inicializar
-            requerido = 0
-            nuevo_apartado = 0
+                # Obtener total apartado (ordenado pero aún no entregado)
+                apartado = sum(
+                    self.env['dtm.materials.line']
+                    .search([
+                        ('materials_list', '=', item.material_id.id),
+                        ('entregado', '!=', True),
+                        ('revision', '!=', True),
+                        ('materials_cuantity', '>', 0)
+                    ])
+                    .mapped('materials_availabe')
+                )
 
-            if disponible >= item.cantidad:
-                nuevo_apartado = item.cantidad
+                # Calcular disponible
+                disponible = stock_total - apartado
+
+                # Inicializar
                 requerido = 0
-            elif 0 < disponible < item.cantidad:
-                nuevo_apartado = disponible
-                requerido = item.cantidad - disponible
-            else:
                 nuevo_apartado = 0
-                requerido = item.cantidad
 
-            vals = {
-                'model_id':item.model_id.id,
-                'nombre':item.material_id.nombre,
-                'medida':item.material_id.medida,
-                'materials_list':item.material_id.id,
-                'materials_cuantity':item.cantidad,
-                'usuario':item.usuario,
-                'materials_availabe':max(0,nuevo_apartado),
-                'materials_required':max(0,requerido)
-            }
+                if disponible >= item.cantidad:
+                    nuevo_apartado = item.cantidad
+                    requerido = 0
+                elif 0 < disponible < item.cantidad:
+                    nuevo_apartado = disponible
+                    requerido = item.cantidad - disponible
+                else:
+                    nuevo_apartado = 0
+                    requerido = item.cantidad
 
-            to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
-            to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
+                vals = {
+                    'model_id':item.model_id.id,
+                    'nombre':item.material_id.nombre,
+                    'medida':item.material_id.medida,
+                    'materials_list':item.material_id.id,
+                    'materials_cuantity':item.cantidad,
+                    'usuario':item.usuario,
+                    'materials_availabe':max(0,nuevo_apartado),
+                    'materials_required':max(0,requerido)
+                }
+
+                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+                to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
@@ -901,25 +991,28 @@ class TestModelLine(models.Model):
         for line in self:
             # Obtiene el id del almacén dtm_materiales
             material = line.materials_list
-            print(material.id)
+            # print(material.id)
             if not material:
                 line.materials_inventory = 0
                 line.materials_availabe = 0
                 line.materials_required = 0
                 continue
+            # Obtiene la cantidad del item de la orden maestra
+            get_cot = self.env['dtm.odt'].search([('ot_number','=',line.model_id.revision_ot)],limit=1).lista_material_id.filtered_domain([('material_id','=',line.materials_list.id)]).cantidad
+            # obtiene las ordenes hijas
+            get_cot_list = self.env['dtm.odt'].search([('revision_ot','=',line.model_id.revision_ot)])
+            # suma las cantidades del item en cuestión de las ordenes hijas
+            suma = sum([item.materials_ids.filtered_domain([('materials_list','=',line.materials_list.id)]).materials_cuantity for item in get_cot_list])
+            print(suma,get_cot,line.materials_list.id)
 
+            #Condicional que no debe dejar pasar a las ordenes hijas si la cantidad del item en cuestión es mayor al de la maestra. Todas las demas ordenes pasan
+            if get_cot and get_cot != 0 and suma > get_cot :
+                raise ValidationError(
+                    "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s)." % (
+                    suma, get_cot)
+                )
             # Obtiene la información de almacén Stock, Apartado, Disponible
             stock = material.cantidad
-            print(line._origin.id)
-            # Se consultan todas las ordenes que solicitan este material y lo suma
-            print(self.env['dtm.materials.line'].search(
-                [
-                    ('materials_list', '=', material.id),
-                    ('id', '!=', line._origin.id),
-                    ('materials_cuantity','>',0),
-                    ('revision', '!=', True),
-                    ('entregado', '!=', True),
-                ]))
             apartado_almacen = sum(self.env['dtm.materials.line'].search(
                 [
                     ('materials_list', '=', material.id),
@@ -929,7 +1022,7 @@ class TestModelLine(models.Model):
                     ('entregado', '!=', True),
                 ]).mapped('materials_availabe'))
             disponible_almacen = max(0, stock - apartado_almacen)
-            print('Almacén', stock, apartado_almacen, disponible_almacen)
+            # print('Almacén', stock, apartado_almacen, disponible_almacen)
 
             # Inventario base donde se graba el stock del almacén
             line.materials_inventory = stock
@@ -1022,6 +1115,16 @@ class ListaMateriales(models.Model):
     @api.onchange('material_id')
     def onchage_material_id(self):
         self.precio = self.env['dtm.compras.precios'].search([('codigo','=',self.material_id.id)],limit=1).precio
+
+class ConfirmDialog(models.TransientModel):
+    _name = 'confirm.dialog.wizard'
+    _description = 'Dialogo de Confirmacion'
+
+    message = fields.Text(string="Mensaje")
+
+    def action_close(self):
+        return {'type': 'ir.actions.act_window_close'}
+
 
 
 
