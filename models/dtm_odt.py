@@ -19,7 +19,7 @@ class DtmOdt(models.Model):
     def action_autoNum(self): # Genera número consecutivo de NPI
         get_terminado = self.env['dtm.facturado.npi'].search([],order='ot_number desc',limit=1)
         get_npi = self.env['dtm.odt'].search([("tipe_order","=","NPI")],order='ot_number desc', limit=1)
-        return get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
+        return 0 if self.tipe_order in ['Pre'] else get_npi.ot_number + 1 if get_npi.ot_number > get_terminado.ot_number else get_terminado.ot_number + 1
     # Campo para llevar el conteo exclusivo de diseño
     od_number = fields.Integer(string="OD",readonly=True)
     ot_number = fields.Integer(string="OT",default=action_autoNum,readonly=True)
@@ -67,6 +67,9 @@ class DtmOdt(models.Model):
     nesteo_inicio = fields.Datetime()
     nesteo_final = fields.Datetime()
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
+    # Prediseño
+    prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
+    liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', 'prediseno_liga_diseno', string="Ligas")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -241,6 +244,14 @@ class DtmOdt(models.Model):
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
+    def prediseño_terminado(self):
+        cotizacion = self.env['dtm.cotizaciones.predisenos'].search([('od_number','=',self.od_number),('product_name','=',self.product_name),('description','=',self.description)],limit=1)
+        print('Prediseño',cotizacion)
+        if cotizacion:
+            cotizacion.write({
+                'prediseno_id':[(6,0,self.prediseno_id.ids)]
+            })
+
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
         self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
@@ -256,7 +267,7 @@ class DtmOdt(models.Model):
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
-        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas:
+        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com', 'rafaguzmang@hotmail.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas:
             # Firma de aprobación de OT
             self.firma_ventas = self.env.user.partner_id.name
 
@@ -270,15 +281,18 @@ class DtmOdt(models.Model):
                     self.firma_ingenieria = self.env.user.partner_id.name
 
         # Ejecutar proceso automáticamente si todas las firmas están listas
-        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','hugo_chacon@dtmindustry.com'] and self.tipe_order != 'COT':
+        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
 
             if not self.materials_ids:
                 self.materiales_nesteo()
+        # Si la orden es un prediseño
+            if self.tipe_order == 'Pre':
+                self.prediseño_terminado()
 
-        if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order != 'COT':
+        if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             self.nesteo_chk = False
             self.manufactura = True
             self.proceso(parcial)

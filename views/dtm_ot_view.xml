@@ -78,7 +78,7 @@
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
                                 <field name="date_rel"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-paperclip">
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-paperclip" attrs="{'invisible': [('tipe_order','in',['COT','Pre'])]}">
                                 <field name="orden_compra_pdf"  string="" widget="statinfo"/>
                             </button>
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-certificate">
@@ -87,13 +87,13 @@
                             <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-pencil">
                                 <field name="firma"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield" attrs="{'invisible': [('tipe_order','=','COT')]}">
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-shield" attrs="{'invisible': [('tipe_order','in',['COT','Pre'])]}">
                                 <field name="firma_ingenieria"  string="" widget="statinfo"/>
                             </button>
                             <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-clipboard">
                                 <field name="tipe_order"  string="" widget="statinfo"/>
                             </button>
-                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-envelope">
+                            <button name="action_pasive" type="object" string="tipo" class="oe_stat_button" icon="fa-envelope" attrs="{'invisible': [('tipe_order','in',['Pre'])]}">
                                 <field name="po_number"  string="" widget="statinfo"/>
                             </button>
                              <button name="action_pasive" type="object" string="Anexos" class="oe_stat_button" icon="fa-calendar">
@@ -114,16 +114,16 @@
                         <div class="row d-flex justify-content-between">
                             <group class="col-4">
                                     <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
-                                    <field name="version_ot"  options='{"type": "number"}'/>
-                                    <field name="revision_ot"  options='{"type": "number"}'/>
-                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', '=', 'OT')]}"/>
-                                    <field name="color"/>
-                                    <field name="firma_almacen"/>
+                                    <field name="version_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="revision_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', 'in', ['OT','Pre'])]}"/>
+                                    <field name="color" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                             </group>
                             <group class="col-4">
-                                    <field name="intervencion_calidad"/>
-                                    <field name="firma_calidad"/>
-                                    <field name="tiempo_nesteo"/>
+                                    <field name="intervencion_calidad" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="firma_calidad" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="tiempo_nesteo" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                             </group>
 
                         </div>
@@ -140,7 +140,7 @@
                                     <field name="description"/>
                                 </group>
                             </page>
-                            <page string="MATERIALES" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="MATERIALES" attrs="{'invisible': [('tipe_order','in',['Pre','PD','SK'])]}">
 
                                 <field name="lista_material_id"  attrs="{'readonly': [('firma', '!=', False),('firma_ventas','!=',False)]}">
 <!--                                <field name="lista_material_id">-->
@@ -156,7 +156,7 @@
                                     <field name="costo_material"/>
                                 </div>
                             </page>
-                            <page string="INGENIERÍA" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
 
                                 <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
@@ -176,7 +176,7 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="RECHAZO" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="RECHAZO" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree editable="bottom">
                                         <field name="descripcion"/>
@@ -186,11 +186,11 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="PLANOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="PLANOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
 
                             </page>
-                            <page string="MITSUBISHI" attrs="{'invisible': ['|','|',('tipe_order','=','COT'),('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
@@ -205,7 +205,7 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="LTP 6032"  attrs="{'invisible': ['|','|',('tipe_order','=','COT'),('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}" />
@@ -223,7 +223,7 @@
                             <page string="NOTAS">
                                 <field name="notes"/>
                             </page>
-                            <page string="PO" attrs="{'invisible': [('usuario','=','ingenieria1@dtmindustry.com')]}">
+                            <page string="PO" attrs="{'invisible': ['|',('tipe_order','in',['SK','PD','Pre']),('usuario','=','ingenieria1@dtmindustry.com')]}">
                                 <group>
                                     <field name="usuario" invisible="1"/>
                                 </group>
@@ -255,7 +255,7 @@
                                      </form>
                                 </field>
                             </page>
-                            <page string="SERVICIOS" attrs="{'invisible': ['|',('tipe_order','=','SK'),('tipe_order','=','PD')]}">
+                            <page string="SERVICIOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="maquinados_id">
                                     <tree>
                                         <field name="tipo_servicio"/>
@@ -329,12 +329,24 @@
                                 </field>
 
                             </page>
-                            <page string="ANEXOS">
+                            <page string="ANEXOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="archivos_id"/>
+                            </page>
+                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <field name="prediseno_id" widget="many2many_binary"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <field name="liga_id"/>
+                                    </div>
+                                </div>
+
                             </page>
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
+
                         <field name="message_follower_ids" widget="mail_followers"/>
                         <field name="message_ids" widget="mail_thread"/>
                     </div>
