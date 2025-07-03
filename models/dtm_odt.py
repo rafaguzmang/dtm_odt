@@ -68,8 +68,8 @@ class DtmOdt(models.Model):
     nesteo_final = fields.Datetime()
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
     # Prediseño
-    prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
-    liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', 'prediseno_liga_diseno', string="Ligas")
+#     prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
+#     liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', 'prediseno_liga_diseno', string="Ligas")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -244,13 +244,13 @@ class DtmOdt(models.Model):
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
-    def prediseño_terminado(self):
-        cotizacion = self.env['dtm.cotizaciones.predisenos'].search([('od_number','=',self.od_number),('product_name','=',self.product_name),('description','=',self.description)],limit=1)
-        print('Prediseño',cotizacion)
-        if cotizacion:
-            cotizacion.write({
-                'prediseno_id':[(6,0,self.prediseno_id.ids)]
-            })
+    # def prediseño_terminado(self):
+    #     cotizacion = self.env['dtm.cotizaciones.predisenos'].search([('od_number','=',self.od_number),('product_name','=',self.product_name),('description','=',self.description)],limit=1)
+    #     print('Prediseño',cotizacion)
+    #     if cotizacion:
+    #         cotizacion.write({
+    #             'prediseno_id':[(6,0,self.prediseno_id.ids)]
+    #         })
 
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
@@ -1013,18 +1013,19 @@ class TestModelLine(models.Model):
                 continue
             # Obtiene la cantidad del item de la orden maestra
             get_cot = self.env['dtm.odt'].search([('ot_number','=',line.model_id.revision_ot)],limit=1).lista_material_id.filtered_domain([('material_id','=',line.materials_list.id)]).cantidad
-            # obtiene las ordenes hijas
-            get_cot_list = self.env['dtm.odt'].search([('revision_ot','=',line.model_id.revision_ot)])
-            # suma las cantidades del item en cuestión de las ordenes hijas
-            suma = sum([item.materials_ids.filtered_domain([('materials_list','=',line.materials_list.id)]).materials_cuantity for item in get_cot_list])
-            print(suma,get_cot,line.materials_list.id)
+            if get_cot:
+                # obtiene las ordenes hijas
+                get_cot_list = self.env['dtm.odt'].search([('revision_ot','=',line.model_id.revision_ot)])
+                # suma las cantidades del item en cuestión de las ordenes hijas
+                suma = sum([item.materials_ids.filtered_domain([('materials_list','=',line.materials_list.id)]).materials_cuantity for item in get_cot_list])
+                print(suma,get_cot,line.materials_list.id)
 
-            #Condicional que no debe dejar pasar a las ordenes hijas si la cantidad del item en cuestión es mayor al de la maestra. Todas las demas ordenes pasan
-            if get_cot and get_cot != 0 and suma > get_cot :
-                raise ValidationError(
-                    "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s)." % (
-                    suma, get_cot)
-                )
+                #Condicional que no debe dejar pasar a las ordenes hijas si la cantidad del item en cuestión es mayor al de la maestra. Todas las demas ordenes pasan
+                if get_cot and get_cot != 0 and suma > get_cot :
+                    raise ValidationError(
+                        "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s)." % (
+                        suma, get_cot)
+                    )
             # Obtiene la información de almacén Stock, Apartado, Disponible
             stock = material.cantidad
             apartado_almacen = sum(self.env['dtm.materials.line'].search(

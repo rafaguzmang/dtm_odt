@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
         <record id="dtm_odt.dtm_ot_action" model="ir.actions.act_window">
             <field name="name">Diseño</field>
             <field name="res_model">dtm.odt</field>
@@ -335,10 +334,10 @@
                             <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
                                 <div class="row">
                                     <div class="col-6">
-                                        <field name="prediseno_id" widget="many2many_binary"/>
+<!--                                        <field name="prediseno_id" widget="many2many_binary"/>-->
                                     </div>
                                     <div class="col-6">
-                                        <field name="liga_id"/>
+<!--                                        <field name="liga_id"/>-->
                                     </div>
                                 </div>
 
@@ -359,15 +358,15 @@
         <field name="name">confirm.dialog.wizard.form</field>
         <field name="model">confirm.dialog.wizard</field>
         <field name="arch" type="xml">
-        <form string="Información">
-                <h2>
-                    <field name="message" readonly="1"/>
-                </h2>
-            <footer>
-                <button string="Cerrar" class="btn-primary" special="cancel"/>
-            </footer>
-        </form>
-    </field>
+            <form string="Información">
+                    <h2>
+                        <field name="message" readonly="1"/>
+                    </h2>
+                <footer>
+                    <button string="Cerrar" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
 </record>
 
 
