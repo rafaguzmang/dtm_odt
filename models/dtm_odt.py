@@ -281,7 +281,7 @@ class DtmOdt(models.Model):
                     self.firma_ingenieria = self.env.user.partner_id.name
 
         # Ejecutar proceso automáticamente si todas las firmas están listas
-        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
+        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT' and not self.firma_ingenieria:
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
@@ -291,6 +291,8 @@ class DtmOdt(models.Model):
         # Si la orden es un prediseño
             if self.tipe_order == 'Pre':
                 self.prediseño_terminado()
+        # Manda a compras
+
 
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             self.nesteo_chk = False
@@ -823,8 +825,8 @@ class DtmOdt(models.Model):
                         'nesteo': True if self.firma_ingenieria else False
                     }
                 # print(vals)
-                if get_compras.disenador:
-                    vals['disenador'] = get_compras.disenador
+                # if get_compras.disenador:
+                #     vals['disenador'] = get_compras.disenador
                 get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)])
                 # Si la cantidad requerida no ha sido comprada la crea o la actualiza
                 if not get_comprado and codigo.materials_required > 0:
