@@ -64,7 +64,7 @@
             <field name="name">dtm.odt.form</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
-                <form>
+                <form delete="false">
                     <header>
                         <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" /> />
                         <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
@@ -205,6 +205,21 @@
                                     </div>
                                 </div>
                             </page>
+                            <page string="BFC6025" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
+                                <div style="display:flex;">
+                                    <div style="display:flex;width: 50%">
+                                        <field name="primera_pieza_bfc_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+                                        <field name="bfc_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+                                    </div>
+                                    <div style="width: 50%">
+                                        <field name="ligas_id"  >
+                                            <tree editable="bottom">
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
+                                </div>
+                            </page>
                             <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
@@ -332,17 +347,17 @@
                             <page string="ANEXOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="archivos_id"/>
                             </page>
-                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <field name="prediseno_id" widget="many2many_binary"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <field name="liga_id"/>
-                                    </div>
-                                </div>
+<!--                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">-->
+<!--                                <div class="row">-->
+<!--                                    <div class="col-6">-->
+<!--                                        <field name="prediseno_id" widget="many2many_binary"/>-->
+<!--                                    </div>-->
+<!--                                    <div class="col-6">-->
+<!--                                        <field name="liga_id"/>-->
+<!--                                    </div>-->
+<!--                                </div>-->
 
-                            </page>
+<!--                            </page>-->
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
