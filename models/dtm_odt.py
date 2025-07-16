@@ -531,7 +531,6 @@ class DtmOdt(models.Model):
             #---------------------------------------------------
             # Condicionales
             #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
-            print(get_encorte_primera,get_encorte_segunda,get_cortado_primera,get_cortado_segunda)
             list_archivos = [] #lista para almacenar los archivos de corte
 
             if not get_encorte_primera and not get_encorte_segunda and not get_cortado_primera and not get_cortado_segunda:
@@ -666,7 +665,6 @@ class DtmOdt(models.Model):
                 if self.primera_pieza_id and not self.liberado:
                     vals["primera_pieza"] = True
                 get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("orden_trabajo","=",self.ot_number),("revision_ot","=",self.revision_ot)],order='nombre desc',limit=1)
-                print(get_files)
                 if get_files:
                     get_files.write(vals)
                     lines.append(get_files.id)
@@ -857,7 +855,7 @@ class DtmOdt(models.Model):
                         'codigo':codigo.materials_list.id,
                         'nombre':f"{self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
-                        'disenador':self.firma,
+                        'disenador':self.disenador,
                         'servicio':servicio,
                         'tipo_orden':self.tipe_order,
                         'revision_ot':self.revision_ot,
