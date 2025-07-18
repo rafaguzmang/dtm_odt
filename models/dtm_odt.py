@@ -732,44 +732,40 @@ class DtmOdt(models.Model):
                 "orden_trabajo":self.ot_number,
                 "fecha_entrada": datetime.today(),
                 "nombre_orden":self.product_name,
-                "tipo_orden": self.tipe_order
+                "tipo_orden": self.tipe_order,
+                "revision_ot":self.revision_ot
             }
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])
             get_corte.write(vals) if get_corte else get_corte.create(vals)
             get_corte = self.env['dtm.tubos.corte'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])
 
-
             # Se obtinen los archivos de corte para mandar a la cortadora de tubos
             lines = []
-            get_corte.write({'cortadora_id': [(5, 0, {})]})
             for file in self.tubos_id:
                 # Busca el documento en ir.attachment para obtener los datos necesarios
                 attachment = self.env['ir.attachment'].browse(file.id)
                 vals = {
                     "documentos":attachment.datas,
                     "nombre":attachment.name,
+                    "model_id":get_corte.id
                 }
                 # Busca el documento en dtm.tubos.documentos para agregarlo en caso de que no este o en caso contrario actualizarlo
-                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
-                if get_files:
-                    get_files.write(vals)
-                    # obtiene el id y lo agrega a la lista
-                    lines.append(get_files.id)
-                else:
-                    # Lo crea y lo busca para tener la referencia
+                get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas),("model_id","=",get_corte.id)], order='id desc',limit=1)
+                get_cortado = self.env['dtm.tubos.realizados'].search(
+                    [('orden_trabajo', '=', self.ot_number), ('revision_ot', '=', self.revision_ot),
+                     ('tipo_orden', '=', self.tipe_order)], limit=1).cortadora_id.mapped('nombre')
+                # print(get_cortado)
+                if not attachment.name in get_cortado:
                     get_files.create(vals)
-                    get_files = self.env['dtm.tubos.documentos'].search([("nombre","=",file.name),("documentos","=",attachment.datas)], order='id desc',limit=1)
-                    # obtiene el id y lo agrega a la lista
-                    lines.append(get_files.id)
-            # Agrega los ids de la lista a la tabla Many2many cortadora_id
-            get_corte.write({'cortadora_id': [(6, 0, lines)]})
+                else:
+                    get_files.write(vals)
 
             lines = []
             # Se obtiene la lista de materiales para agregar a la cortadora de tubos (Perfiles)
             if self.materials_ids:
                   for material in self.materials_ids:
                     # Se revisa si es un tipo de Perfil
-                    for match in ['Canales','Cuadrado','I.P.R.','P.T.R.','Redondo','Rectangular','Perfil']:
+                    for match in ['Canales','Cuadrado','I.P.R.','P.T.R.','Redondo','Rectangular','Perfil','Tubo','Varilla']:
                         if material.materials_list.nombre.find(match) != -1:
                             # Se obtienen los datos del material para mandarlo al modulo dtm.tubos.corte
                             content = {
