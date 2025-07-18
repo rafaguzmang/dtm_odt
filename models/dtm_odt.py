@@ -260,6 +260,7 @@ class DtmOdt(models.Model):
     def action_firma(self,parcial=False):
         self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
         email = self.env.user.partner_id.email
+        self.disenador = self.firma if self.tipe_order == 'NPI' and not self.disenador else None
         if self.intervencion_calidad: # Solo si se solicita la intervención de calidad
             if email in ['calidad@dtmindustry.com', 'calidad2@dtmindustry.com']:
                 self.firma_calidad = self.env.user.partner_id.name
@@ -279,6 +280,7 @@ class DtmOdt(models.Model):
             # Firma de diseño
             if not self.firma:
                 self.firma_diseno(email, parcial)
+
             # Solo ingenieria1 puede liberar oficialmente
             if email == 'ingenieria1@dtmindustry.com' and self.firma_ventas and not self.firma_ingenieria:
                 if not self.firma_ingenieria:
@@ -512,7 +514,6 @@ class DtmOdt(models.Model):
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
             status = get_proceso.mapped('status')
-            # print(get_proceso.status,status)
             vals = {
                 "orden_trabajo":self.ot_number,
                 "revision_ot":self.revision_ot,
