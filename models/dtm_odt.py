@@ -260,7 +260,9 @@ class DtmOdt(models.Model):
     def action_firma(self,parcial=False):
         self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
         email = self.env.user.partner_id.email
-        self.disenador = self.firma if self.tipe_order == 'NPI' and not self.disenador else None
+        # self.disenador = self.firma  and not self.disenador else None
+        if self.tipe_order == 'NPI' and not self.disenador and email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
+            self.disenador = self.env.user.partner_id.name
         if self.intervencion_calidad: # Solo si se solicita la intervención de calidad
             if email in ['calidad@dtmindustry.com', 'calidad2@dtmindustry.com']:
                 self.firma_calidad = self.env.user.partner_id.name
