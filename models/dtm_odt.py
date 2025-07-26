@@ -508,6 +508,7 @@ class DtmOdt(models.Model):
             if self.firma_ingenieria:
                 self.cortadora_laser()#Se manda cortar lámina
                 self.cortadora_tubos()#Se manda cortar Perfilería
+                self.maquinados()#Mando los servicios a maquinados
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
@@ -895,6 +896,36 @@ class DtmOdt(models.Model):
                 }
                 get_servicios.write(vals) if get_servicios else get_servicios.create(vals)
                 self.compras_odt(servicio.material_id,2,True)
+
+    def maquinados(self):
+        # se verifica si los servicios existen en el modulo de maquinados
+        if 'maquinado' in self.maquinados_id.mapped('tipo_servicio'):
+            maquinado = self.env['dtm.maquinados'].search([('orden_trabajo','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipo_orden','=',self.tipe_order)],limit=1)
+            vals = {
+                'orden_trabajo':self.ot_number,
+                'revision_ot':self.revision_ot,
+                'tipo_orden':self.tipe_order,
+                'disenador':self.disenador,
+            }
+             # si existe se actualiza la información si no se crea
+            maquinado.write(vals) if maquinado else maquinado.create(vals)
+            maquinado = self.env['dtm.maquinados'].search([('orden_trabajo', '=', self.ot_number), ('revision_ot', '=', self.revision_ot),('tipo_orden', '=', self.tipe_order)], limit=1)
+            # se pasan todos los servicios de la orden a la tabla de la orden que esta en el modulo de maquinados
+            # se recorren los servicios
+            for servicio in self.maquinados_id:
+                if servicio.tipo_servicio == 'maquinado':
+                    vals_servicios = {
+                        'nombre':servicio.nombre,
+                        'tipo_servicio':'Maquinado',
+                        'cantidad':servicio.cantidad,
+                        'fecha_solicitud':servicio.fecha_solicitud,
+                        'model_id':maquinado.id,
+                        'material_id': servicio.material_id,
+                        'anexos_id':servicio.anexos_id
+                    }
+                    servicio = self.env['dtm.maquinados.servicios'].search([('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
+                    servicio.write(vals_servicios) if servicio else servicio.create(vals_servicios)
+
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
     @api.onchange("maquinados_id")
     def _onchange_maquinados_id(self):
