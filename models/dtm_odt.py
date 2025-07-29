@@ -72,8 +72,8 @@ class DtmOdt(models.Model):
     nesteo_final = fields.Datetime()
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
     # Prediseño
-    prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
-    liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', 'prediseno_liga_diseno', string="Ligas")
+    # prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
+    # liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', 'prediseno_liga_diseno', string="Ligas")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -253,8 +253,10 @@ class DtmOdt(models.Model):
         # print('Prediseño',cotizacion)
         if cotizacion:
             cotizacion.write({
-                'prediseno_id':[(6,0,self.prediseno_id.ids)]
+                'prediseno_id':[(6,0,self.prediseno_id.ids)],
+                'liga_id':[(6,0,self.liga_id.ids)]
             })
+            self.unlink()
 
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
@@ -536,7 +538,7 @@ class DtmOdt(models.Model):
             # Condicionales
             #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
             list_archivos = [] #lista para almacenar los archivos de corte
-
+            # si no hay archivos
             if not get_encorte_primera and not get_encorte_segunda and not get_cortado_primera and not get_cortado_segunda:
                 if self.primera_pieza_id or self.primera_pieza_bfc_id:
                     vals["primera_pieza"]= True
@@ -553,17 +555,19 @@ class DtmOdt(models.Model):
                 for archivos in [mitsubishi_archivos,bfc6032_archivos]:
                     for archivo in archivos:
                         list_archivos.append(archivo)
-            # Si la orden se encuentra en corte actualizará respetando los cortes realizados y agregando los nuevos, no puede quitar cortes realizados
+            # si el archivo es primera pieza y no ha sido cortado
             # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
             elif get_encorte_primera and not get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
                 # print("Primera pieza solo en corte")
                 get_corte = get_encorte_primera
                 get_corte.write(vals)
+                # recolecta los archivos de las dos cortadoras
                 mitsubishi_archivos = self.primera_pieza_id
                 bfc6032_archivos = self.primera_pieza_bfc_id
                 for archivos in [mitsubishi_archivos, bfc6032_archivos]:
                     for archivo in archivos:
                         list_archivos.append(archivo)
+            # si hay segunda pieza
             elif not get_encorte_primera and get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
                 # print("Primera pieza cortada pero no hay segundas piezas")
                 if self.primera_pieza_id or self.primera_pieza_bfc_id:
@@ -594,12 +598,12 @@ class DtmOdt(models.Model):
                         recordset = self.env['ir.attachment'].browse(record_ids)
                         list_archivos = recordset #Pasa los archivos de la segunda pieza
             elif get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
-                #Segunda pieza en corte
+                # Segunda pieza en corte
                 # print("Segunda pieza en corte")
                 vals["primera_pieza"]= False
                 get_corte = get_encorte_segunda
                 get_corte.write(vals)
-                bfc6032_archivos = self.primera_pieza_bfc_id
+                bfc6032_archivos = self.bfc_id
                 mitsubishi_archivos = self.cortadora_id
                 for archivos in [mitsubishi_archivos, bfc6032_archivos]:
                     for archivo in archivos:
@@ -622,12 +626,12 @@ class DtmOdt(models.Model):
                     recordset = self.env['ir.attachment'].browse(record_ids)
                     list_archivos = recordset #Pasa los archivos de la segunda pieza
             elif not get_encorte_segunda and get_cortado_segunda:
-                # print("Segunda pieza a retrabajo ya con algunas en el status de cortado")
+                # print("Segunda pieza")
                 vals["primera_pieza"]= False
                 get_corte.create(vals) #Crea la orden de segunda pieza
                 get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
                 # Pasa los archivos de la segunda pieza
-                bfc6032_archivos = self.primera_pieza_bfc_id
+                bfc6032_archivos = self.bfc_id
                 mitsubishi_archivos = self.cortadora_id
                 for archivos in [mitsubishi_archivos, bfc6032_archivos]:
                     for archivo in archivos:
