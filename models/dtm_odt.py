@@ -863,7 +863,9 @@ class DtmOdt(models.Model):
                         'servicio':servicio,
                         'tipo_orden':self.tipe_order,
                         'revision_ot':self.revision_ot,
-                        'nesteo': True if self.firma_ingenieria else False
+                        'nesteo': True if self.firma_ingenieria else False,
+                        'mostrador':0,
+                        'mayoreo':0
                     }
                 # print(vals)
                 # if get_compras.disenador:
@@ -903,6 +905,7 @@ class DtmOdt(models.Model):
 
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados
+        print('Maquinado',self.maquinados_id.mapped('tipo_servicio'))
         if 'maquinado' in self.maquinados_id.mapped('tipo_servicio'):
             maquinado = self.env['dtm.maquinados'].search([('orden_trabajo','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipo_orden','=',self.tipe_order)],limit=1)
             vals = {
