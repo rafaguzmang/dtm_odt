@@ -276,9 +276,11 @@ class DtmOdt(models.Model):
             else:
                 raise ValidationError('Se requiere revisión de calidad')
 
-        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com', 'rafaguzmang@hotmail.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas:
+        elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com', 'rafaguzmang@hotmail.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas and self.firma:
             # Firma de aprobación de OT
             self.firma_ventas = self.env.user.partner_id.name
+            self.maquinados()  # Manda los servicios a maquinados
+
 
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             # Firma de diseño
@@ -510,7 +512,6 @@ class DtmOdt(models.Model):
             if self.firma_ingenieria:
                 self.cortadora_laser()#Se manda cortar lámina
                 self.cortadora_tubos()#Se manda cortar Perfilería
-                self.maquinados()#Mando los servicios a maquinados
 
     def cortadora_laser(self):
         print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
@@ -534,7 +535,7 @@ class DtmOdt(models.Model):
             # Proceso de terminado
             get_cortado_primera = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)]) # Busca si la primera pieza esta cortada
             get_cortado_segunda = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)]) # Busca si las segundas piezas ya fueron cortadas
-            print(get_encorte_primera,get_encorte_segunda,get_cortado_primera,get_cortado_segunda)
+            # print(get_encorte_primera,get_encorte_segunda,get_cortado_primera,get_cortado_segunda)
             #---------------------------------------------------
             # Condicionales
             #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
