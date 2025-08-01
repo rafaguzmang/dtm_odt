@@ -82,7 +82,6 @@ export class Seguimiento extends Component {
         } catch (error) {
           console.error("❌ Error al obtener datos:", error);
         }
-
         // Obtener datos para la tabla
         const readBody = {
           jsonrpc: "2.0",
