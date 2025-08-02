@@ -4,7 +4,7 @@ from odoo.http import request,Response
 import json
 
 class WebSiteDirections(http.Controller):
-    @http.route('/dtm_odt/get_data', type='http', auth='public', methods=['GET'])
+    @http.route('/dtm_odt/get_data', type='http', auth='public',  csrf=False)
     def get_compras(self, **kw):
 
         ntext_value = kw.get('ntext')
@@ -12,13 +12,21 @@ class WebSiteDirections(http.Controller):
         # Construye la respuesta como un diccionario de Python
         result = [{'codigo': material} for material in materiales]
         # result = [{'codigo': ntext_value}]
-
+        print(result)
         # Convierte la respuesta a JSON y establece el encabezado de tipo de contenido
+        # return request.make_response(
+        #     json.dumps(result),  # Convierte a una cadena JSON
+        #     headers={'Content-Type': 'application/json',
+        #               'Access-Control-Allow-Origin': '* ',
+        #              }
+        # )
+
         return request.make_response(
-            json.dumps(result),  # Convierte a una cadena JSON
-            headers={'Content-Type': 'application/json',
-                      'Access-Control-Allow-Origin': '* ',
-                     }
+            json.dumps(result),
+            headers={
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            }
         )
 
     @http.route('/diseno_indicadores', type='json', auth='public')

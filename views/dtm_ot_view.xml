@@ -121,6 +121,9 @@
                                     <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                             </group>
                             <group class="col-4">
+                                    <field name="diseno_terminado" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="diseno_duracion" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+
                                     <field name="intervencion_calidad" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                                     <field name="firma_calidad" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                                     <field name="tiempo_nesteo" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
@@ -135,7 +138,7 @@
                                 <field name="retrabajo" invisible="1"/>
                                 <field name="firma" invisible="1"/>
                         <notebook>
-                            <page  string="RESUMEN">
+                            <page string="RESUMEN">
                                 <group>
                                     <field name="description"/>
                                 </group>
@@ -270,7 +273,7 @@
                                      </form>
                                 </field>
                             </page>
-                            <page string="SERVICIOS" attrs="{'invisible': ['|',('tipe_order','in',['SK','PD','Pre']),('usuario','not in',['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com'])]}">
+                            <page string="SERVICIOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="maquinados_id">
                                     <tree>
                                         <field name="tipo_servicio"/>
