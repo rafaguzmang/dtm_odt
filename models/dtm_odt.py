@@ -37,9 +37,8 @@ class DtmOdt(models.Model):
     lista_material_id = fields.One2many("dtm.odt.listamateriales","model_id")
     disenador = fields.Char("Diseñador")
     firma = fields.Char(string="Firma", readonly = True)
-    firma_compras = fields.Char()
     firma_produccion = fields.Char()
-    firma_almacen = fields.Char(string="Firma Almacén",readonly = False)
+    firma_almacen = fields.Char(string="Firma Almacén",readonly = True)
     almacen_rev = fields.Boolean()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     firma_calidad = fields.Char(string='Revisado',readonly=True)
@@ -64,7 +63,9 @@ class DtmOdt(models.Model):
     ligas_id = fields.One2many("dtm.odt.ligas","model_id")
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
-    date_disign_finish = fields.Date(string="Fecha Diseño",readonly =True)
+    date_disign_finish = fields.Datetime(string="Fecha Diseño",readonly =True)
+    diseno_terminado = fields.Datetime(string="Diseño Terminado/hrs", readonly = True)
+    diseno_duracion = fields.Float(string="Tiempo de diseño",compute= '_compute_duracion', readonly = True)
     manufactura = fields.Boolean(string="P",default=False)
     nesteo_chk = fields.Boolean(string="N",default=False)
     intervencion_calidad =  fields.Boolean(string='Revisión Calidad',default=False,readonly=True)
@@ -88,6 +89,15 @@ class DtmOdt(models.Model):
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
     costo_material = fields.Float(string="Costo",readonly = True)
+
+    # Calcula el tiempo que duró el proceso de diseño
+    def _compute_duracion(self):
+        for result in self:
+            print(result.id,result.diseno_terminado)
+            if result.diseno_terminado:
+                result.diseno_duracion = round((result.diseno_terminado - result.create_date).total_seconds() / 3600.0, 2)
+            else:
+                result.diseno_duracion = 0
 
     def action_version(self):
         version = self.env['dtm.odt'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot + 1)])
@@ -275,24 +285,26 @@ class DtmOdt(models.Model):
                 self.firma_diseno(email,parcial)
             else:
                 raise ValidationError('Se requiere revisión de calidad')
-
+        # Firma Diseñador, Ventas
         elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com', 'rafaguzmang@hotmail.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas and self.firma:
             # Firma de aprobación de OT
             self.firma_ventas = self.env.user.partner_id.name
             self.maquinados()  # Manda los servicios a maquinados
+            self.diseno_terminado = datetime.today()
 
-
+        # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             # Firma de diseño
             if not self.firma:
                 self.firma_diseno(email, parcial)
+
 
             # Solo ingenieria1 puede liberar oficialmente
             if email == 'ingenieria1@dtmindustry.com' and self.firma_ventas and not self.firma_ingenieria:
                 if not self.firma_ingenieria:
                     self.firma_ingenieria = self.env.user.partner_id.name
 
-        # Ejecutar proceso automáticamente si todas las firmas están listas
+        # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
         if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:

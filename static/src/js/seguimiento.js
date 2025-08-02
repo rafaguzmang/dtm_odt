@@ -101,6 +101,7 @@ export class Seguimiento extends Component {
                 'date_rel',
                 'notes',
                 'date_disign_finish',
+                'diseno_terminado',
                 'name_client',
                 'product_name',
                 'disenador',
@@ -123,7 +124,7 @@ export class Seguimiento extends Component {
             });
 
             const readData = await readResponse.json();
-//            console.log("📦 Datos obtenidos:", readData.result);
+            console.log("📦 Datos obtenidos:", readData.result);
 
 
               // Asigna los datos al estado
@@ -131,7 +132,7 @@ export class Seguimiento extends Component {
             this.state.items = this.state.items.map(row =>(
                 {
                     ...row,
-                    diferencia: row.tipe_order == 'OT'?((((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)):100,
+                    diferencia: !row.firma_ventas?((((new Date(row.date_disign_finish) - new Date().getTime()) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)):((((new Date(row.date_disign_finish) - new Date(row.diseno_terminado)) / (1000 * 60 * 60 * 24)) + 1).toFixed(0)),
                     nesteo_chk: row.nesteo_chk?'✓':'',
                     date_disign_finish: row.date_disign_finish== false?'':row.date_disign_finish,
 //                    diferencia: row.date_in
