@@ -72,8 +72,8 @@ class DtmOdt(models.Model):
     nesteo_final = fields.Datetime()
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
     # Prediseño
-    prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
-    liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', string="Ligas")
+    # prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
+    # liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', string="Ligas")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN")
@@ -862,7 +862,6 @@ class DtmOdt(models.Model):
                         'nombre':f"{self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
                         'cantidad':cantidad_item - cantidad_comprado,
                         'disenador':self.disenador,
-                        'servicio':servicio,
                         'tipo_orden':self.tipe_order,
                         'revision_ot':self.revision_ot,
                         'nesteo': True if self.firma_ingenieria else False
