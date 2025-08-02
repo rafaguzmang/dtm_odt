@@ -93,7 +93,7 @@ class DtmOdt(models.Model):
     # Calcula el tiempo que duró el proceso de diseño
     def _compute_duracion(self):
         for result in self:
-            print(result.id,result.diseno_terminado)
+            # print(result.id,result.diseno_terminado)
             if result.diseno_terminado:
                 result.diseno_duracion = round((result.diseno_terminado - result.create_date).total_seconds() / 3600.0, 2)
             else:
