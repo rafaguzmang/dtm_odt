@@ -11,6 +11,7 @@
         'views/dtm_odt_revisiones_view.xml',
         'views/seguimiento_view.xml',
         'views/indicadores_view.xml',
+        'views/dtm_odt_retrabajo_view.xml',
         #Menú
         'views/dtm_menu.xml',
         #Reports
