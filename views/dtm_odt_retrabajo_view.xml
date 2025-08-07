@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="dtm_odt_retrabajo_tree_view" model="ir.ui.view">
+            <field name="name">dtm.odt.retrabajo.tree</field>
+            <field name="model">dtm.odt.retrabajo</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="create_date" string="Fecha" readonly="1"/>
+                    <field name="name"/>
+                    <field name="motivo"/>
+                    <field name="version"/>
+                    <field name="revision"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="dtm_odt_retrabajo_act_window" model="ir.actions.act_window">
+            <field name="name">Bitácora de Retrabajo</field>
+            <field name="res_model">dtm.odt.retrabajo</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+
+    </data>
+</odoo>

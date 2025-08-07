@@ -39,7 +39,7 @@
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
-                <tree  delete="false">
+                <tree  delete="false" >
                     <field name="od_number"/>
                     <field name="ot_number"/>
                     <field name="revision_ot"/>
@@ -66,11 +66,12 @@
             <field name="arch" type="xml">
                 <form delete="false">
                     <header>
-                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" /> />
+                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" />
                         <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': [('retrabajo', '=', True), ('firma_ventas', '=', True)]}" />
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                        <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
                     </header>
 
                     <sheet>
@@ -116,8 +117,10 @@
                                     <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
                                     <field name="version_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                                     <field name="revision_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
-                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': [('ot_number', 'in', ['OT','Pre'])]}"/>
-                                    <field name="color" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
+                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': ['|',('ot_number', 'in', ['OT','Pre']),('retrabajo', '=', True)]}"/>
+                                    <field name="color" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])],
+                                                                'readonly': [('retrabajo', '=', True)]
+                                                                }"/>
                                     <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                             </group>
                             <group class="col-4">
@@ -145,7 +148,7 @@
                             </page>
                             <page string="MATERIALES" attrs="{'invisible': [('tipe_order','in',['Pre','PD','SK'])]}">
 
-                                <field name="lista_material_id"  attrs="{'readonly': [('firma', '!=', False),('firma_ventas','!=',False)]}">
+                                <field name="lista_material_id"  attrs="{'readonly': [('retrabajo', '=', True)]}">
 <!--                                <field name="lista_material_id">-->
                                     <tree editable="bottom" >
                                         <field name="material_id"  create="false" delete="false"/>
@@ -159,9 +162,8 @@
                                     <field name="costo_material"/>
                                 </div>
                             </page>
-                            <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
-
-                                <field name="materials_ids"  attrs="{'readonly': [('retrabajo', '=', True)]}">
+                            <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
+                                <field name="materials_ids"  attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('firma_ventas','=',False)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
@@ -196,8 +198,9 @@
                             <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
-                                        <field name="cortadora_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+                                        <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="cortadora_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+
                                     </div>
                                     <div style="width: 50%">
                                         <field name="ligas_id"  >
@@ -211,8 +214,8 @@
                             <page string="BFC6025" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                 <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_bfc_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
-                                        <field name="bfc_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
+                                        <field name="primera_pieza_bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
                                     </div>
                                     <div style="width: 50%">
                                         <field name="ligas_id"  >
@@ -226,7 +229,7 @@
                             <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
-                                        <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}" />
+                                        <field name="tubos_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}" />
                                     </div>
                                     <div style="width: 50%">
                                         <field name="ligas_tubos_id"  >
@@ -274,7 +277,7 @@
                                 </field>
                             </page>
                             <page string="SERVICIOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
-                                <field name="maquinados_id">
+                                <field name="maquinados_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
                                     <tree>
                                         <field name="tipo_servicio"/>
                                         <field name="nombre"/>
@@ -314,30 +317,8 @@
                                                 <field name="nombre"/>
                                                 <field name="cantidad" options='{"type": "number"}'/>
                                             </group>
-<!--                                            <group>-->
-<!--                                                <field name="fecha_solicitud"/>-->
-<!--                                                <field name="fecha_compra"/>-->
-<!--                                                <field name="fecha_entrada"/>-->
-<!--                                            </group>-->
                                         </group>
                                         <notebook>
-                                            <page string="Materiales">
-                                                <field name="material_id">
-                                                    <tree editable="bottom" decoration-success="entregado"
-                                        decoration-info="revision and not entregado"
-                                        decoration-bf="revision or entregado" >
-                                                        <field name="materials_list"/>
-                                                        <field name="notas"/>
-                                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'invisible': [('materials_list', '=', False)]}"/>
-                                                        <field name="materials_availabe"/>
-                                                        <field name="materials_required" options='{"type": "number"}'/>
-                                                        <field name="almacen" />
-                                                        <field name="revision" />
-                                                        <field name="entregado" invisible="1"/>
-
-                                                    </tree>
-                                                </field>
-                                            </page>
                                             <page string="Anexos">
                                                 <field name="anexos_id" widget="many2many_binary"/>
                                             </page>
@@ -350,21 +331,24 @@
                             <page string="ANEXOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="archivos_id"/>
                             </page>
-<!--                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-6">-->
-<!--                                        <field name="prediseno_id" widget="many2many_binary"/>-->
-<!--                                    </div>-->
-<!--                                    <div class="col-6">-->
-<!--                                        <field name="liga_id">-->
-<!--&lt;!&ndash;                                            <tree>&ndash;&gt;-->
-<!--&lt;!&ndash;                                                <field name="liga"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                                            </tree>&ndash;&gt;-->
-<!--                                        </field>-->
-<!--                                    </div>-->
-<!--                                </div>-->
+                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <field name="prediseno_id" widget="many2many_binary"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <field name="liga_id">
+                                            <tree>
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
+                                </div>
 
-<!--                            </page>-->
+                            </page>
+                            <page string="RETRABAJO" attrs="{'invisible': [('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}">
+                                <field name="bitacora_id"/>
+                            </page>
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
