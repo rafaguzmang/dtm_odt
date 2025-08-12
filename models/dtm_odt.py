@@ -1012,15 +1012,15 @@ class DtmOdt(models.Model):
                 item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
 
 
-        get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
-        get_compras = self.env['dtm.compras.precios'].search([('codigo','in',get_materiales)]).mapped('codigo')
-        for item in get_compras:
-            if item in get_materiales:
-                get_self = self.env['dtm.odt.listamateriales'].search([('material_id','=',item)])
-                get_precio = self.env['dtm.compras.precios'].search([('codigo','=',item)])
-                if get_self:
-                    for material in get_self:
-                        material.write({'unitario':get_precio.precio,'precio': material.cantidad * get_precio.precio})
+        # get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
+        # get_compras = self.env['dtm.compras.precios'].search([('codigo','in',get_materiales)]).mapped('codigo')
+        # for item in get_compras:
+        #     if item in get_materiales:
+        #         get_self = self.env['dtm.odt.listamateriales'].search([('material_id','=',item)])
+        #         get_precio = self.env['dtm.compras.precios'].search([('codigo','=',item)])
+        #         if get_self:
+        #             for material in get_self:
+        #                 material.write({'unitario':get_precio.precio,'precio': material.cantidad * get_precio.precio})
 
 
 
@@ -1204,6 +1204,9 @@ class ListaMateriales(models.Model):
     @api.depends('cantidad')
     def compute_precio(self):
         for result in self:
+            # unitario = result.material_id.mostrador if result.material_id.mostrador else 0
+            # result.material_id.id == 1639 and print(result.material_id.id,unitario)
+            # result.unitario = unitario
             result.precio = result.unitario * result.cantidad
 
 
