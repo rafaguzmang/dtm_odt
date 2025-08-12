@@ -331,21 +331,21 @@
                             <page string="ANEXOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="archivos_id"/>
                             </page>
-                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <field name="prediseno_id" widget="many2many_binary"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <field name="liga_id">
-                                            <tree>
-                                                <field name="liga"/>
-                                            </tree>
-                                        </field>
-                                    </div>
-                                </div>
+<!--                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">-->
+<!--                                <div class="row">-->
+<!--                                    <div class="col-6">-->
+<!--                                        <field name="prediseno_id" widget="many2many_binary"/>-->
+<!--                                    </div>-->
+<!--                                    <div class="col-6">-->
+<!--                                        <field name="liga_id">-->
+<!--                                            <tree>-->
+<!--                                                <field name="liga"/>-->
+<!--                                            </tree>-->
+<!--                                        </field>-->
+<!--                                    </div>-->
+<!--                                </div>-->
 
-                            </page>
+<!--                            </page>-->
                             <page string="RETRABAJO" attrs="{'invisible': [('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}">
                                 <field name="bitacora_id"/>
                             </page>
