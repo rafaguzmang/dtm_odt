@@ -74,7 +74,7 @@ class DtmOdt(models.Model):
     nesteo_final = fields.Datetime()
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
     # Prediseño
-    # prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
+    prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
     # liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', string="Ligas")
 
     #---------------------Resumen de descripción------------
@@ -91,6 +91,15 @@ class DtmOdt(models.Model):
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
     costo_material = fields.Float(string="Costo",readonly = True)
+    costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
+
+    def compute_costo_diseno(self):
+        for result in self:
+            result.costo_diseno = sum(result.lista_material_id.mapped('precio'))
+
+    def compute_costo_material(self):
+        for result in self:
+            result.costo_material = sum(result.materials_ids.mapped('costo'))
 
     # Calcula el tiempo que duró el proceso de diseño
     def _compute_duracion(self):
@@ -947,26 +956,25 @@ class DtmOdt(models.Model):
                 break
 
         for servicio in self.maquinados_id:
-            servicio_search = self.env['dtm.materiales'].search([('nombre','=',servicio.nombre)])
+            servicio_search = self.env['dtm.materiales'].search([('nombre','=',servicio.nombre)], limit= 1)
             vals = {
-                'nombre':servicio.nombre,
+                'nombre':f"Maquinado {servicio.nombre}",
                 'medida':'.'
             }
             servicio_search.create(vals) if not servicio_search else None
-            servicio_search = self.env['dtm.materiales'].search([('nombre', '=', servicio.nombre)])
-            print(servicio_search)
+            servicio_search = self.env['dtm.materiales'].search([('nombre', '=', f"Maquinado {servicio.nombre}")], limit= 1)
 
-            list_material = self.env['dtm.odt.listamateriales'].search([('material_id','=',servicio_search.id),('model_id','=',self._origin.id)])
-            print(self._origin.id)
+            list_material = self.env['dtm.odt.listamateriales'].search([('material_id','=',servicio_search.id),('model_id','=',self._origin.id)], limit= 1)
+            # print(self._origin.id)
             vals = {
                         'model_id':self._origin.id,
                         'material_id':servicio_search.id,
                         'cantidad':servicio.cantidad
                     }
-            print(vals)
+            # print(vals)
             list_material.write(vals) if list_material else list_material.create(vals)
             list_material = self.env['dtm.odt.listamateriales'].search([('material_id','=',servicio_search.id),('model_id','=',self._origin.id)])
-            print('list_material',list_material)
+            # print('list_material',list_material)
 
 
 
@@ -1001,11 +1009,22 @@ class DtmOdt(models.Model):
             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
             # print(item.model_id.id)
             if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
-                item.write({'costo':item.materials_cuantity*self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
+                item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
 
-        # Suma el total del costo de los materiales
-        for materiales in get_this:
-            materiales.write({'costo_material':sum(materiales.materials_ids.mapped('costo'))})
+
+        get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
+        get_compras = self.env['dtm.compras.precios'].search([('codigo','in',get_materiales)]).mapped('codigo')
+        for item in get_compras:
+            if item in get_materiales:
+                get_self = self.env['dtm.odt.listamateriales'].search([('material_id','=',item)])
+                get_precio = self.env['dtm.compras.precios'].search([('codigo','=',item)])
+                if get_self:
+                    for material in get_self:
+                        material.write({'unitario':get_precio.precio,'precio': material.cantidad * get_precio.precio})
+
+
+
+
 
         # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
 
@@ -1172,17 +1191,22 @@ class ListaMateriales(models.Model):
 
     material_id = fields.Many2one('dtm.materiales')
     cantidad = fields.Integer(string="Cantidad")
-    precio = fields.Float(string="Precio")
+    unitario = fields.Float(string='Unitario',related='material_id.mostrador',store=True,readonly=False)
+    precio = fields.Float(string='Total',readonly = True, compute = 'compute_precio')
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario",store=True,readonly=True)
+
 
     def _compute_usuario(self):
         for result in self:
             result.usuario = self.env.user.partner_id.email
 
-    @api.onchange('material_id')
-    def onchage_material_id(self):
-        self.precio = self.env['dtm.compras.precios'].search([('codigo','=',self.material_id.id)],limit=1).precio
+    @api.depends('cantidad')
+    def compute_precio(self):
+        for result in self:
+            result.precio = result.unitario * result.cantidad
+
+
 
 class ConfirmDialog(models.TransientModel):
     _name = 'confirm.dialog.wizard'

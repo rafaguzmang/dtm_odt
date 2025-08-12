@@ -154,12 +154,13 @@
                                         <field name="material_id"  create="false" delete="false"/>
                                         <field name="cantidad" options='{"type": "number"}' />
                                         <field name="currency_id" invisible="1"/>
+                                        <field name="unitario"/>
                                         <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">
                                     <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible': [('firma_ingenieria', '!=', 'Bryan Banda')]}"/>
-                                    <field name="costo_material"/>
+                                    <field name="costo_diseno"/>
                                 </div>
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
@@ -180,6 +181,7 @@
                                         <field name="usuario" invisible="1"/>
                                     </tree>
                                 </field>
+                                 <field name="costo_material"/>
                             </page>
                             <page string="RECHAZO" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
@@ -362,20 +364,18 @@
         </record>
 
         <record id="view_confirm_dialog_form" model="ir.ui.view">
-        <field name="name">confirm.dialog.wizard.form</field>
-        <field name="model">confirm.dialog.wizard</field>
-        <field name="arch" type="xml">
-        <form string="Información">
-                <h2>
-                    <field name="message" readonly="1"/>
-                </h2>
-            <footer>
-                <button string="Cerrar" class="btn-primary" special="cancel"/>
-            </footer>
-        </form>
-    </field>
-</record>
-
-
+                <field name="name">confirm.dialog.wizard.form</field>
+                <field name="model">confirm.dialog.wizard</field>
+                <field name="arch" type="xml">
+                <form string="Información">
+                        <h2>
+                            <field name="message" readonly="1"/>
+                        </h2>
+                    <footer>
+                        <button string="Cerrar" class="btn-primary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
     </data>
 </odoo>
