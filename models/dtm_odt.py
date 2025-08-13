@@ -299,7 +299,6 @@ class DtmOdt(models.Model):
         # Firma Diseñador, Ventas
         elif email in ['hugo_chacon@dtmindustry.com', 'ventas1@dtmindustry.com', 'rafaguzmang@hotmail.com'] and self.tipe_order not in ("SK", "PD") and not self.firma_ventas and self.firma:
             # Firma de aprobación de OT
-
                 self.firma_ventas = self.env.user.partner_id.name
                 self.maquinados()  # Manda los servicios a maquinados
                 self.diseno_terminado = datetime.today()
