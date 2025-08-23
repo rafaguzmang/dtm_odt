@@ -304,8 +304,6 @@ class DtmOdt(models.Model):
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
 
-
-
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             # Firma de diseño
@@ -346,7 +344,6 @@ class DtmOdt(models.Model):
     def materiales_nesteo(self):
         lista = []
 
-        # print(self.env['dtm.odt'].search([('ot_number', '=', self.revision_ot)],limit=1))
         if self.env['dtm.odt'].search([('ot_number','=',self.revision_ot)],limit=1):
             for item in self.lista_material_id:
                 vals = {
@@ -364,7 +361,6 @@ class DtmOdt(models.Model):
 
         else:
             for item in self.lista_material_id:
-
                 # Obtener stock
                 stock = self.env['dtm.materiales'].browse(item.material_id.id)
                 stock_total = stock.cantidad  # Campo float
@@ -408,6 +404,7 @@ class DtmOdt(models.Model):
                     'materials_availabe':max(0,nuevo_apartado),
                     'materials_required':max(0,requerido)
                 }
+
 
                 to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
                 to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
@@ -944,36 +941,57 @@ class DtmOdt(models.Model):
 
 
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
-    @api.onchange("maquinados_id")
-    def _onchange_maquinados_id(self):
-        # print(self.maquinados_id)
+    @api.model
+    def create(self, vals):
+        record = super().create(vals)
+        record._sync_maquinados_to_materiales()
+        return record
 
-        #Actualiza el primary_key a un ID libre
-        for find_id in range(1,self.env['dtm.materiales'].search([], order='id desc', limit=1).id+1):
-            if not self.env['dtm.materiales'].search([("id","=",find_id)]):
-                self.env.cr.execute(f"SELECT setval('dtm_materiales_id_seq', {find_id}, false);")
-                break
+    def write(self, vals):
+        res = super().write(vals)
+        self._sync_maquinados_to_materiales()
+        return res
 
-        for servicio in self.maquinados_id:
-            servicio_search = self.env['dtm.materiales'].search([('nombre','=',servicio.nombre)], limit= 1)
-            vals = {
-                'nombre':f"Maquinado {servicio.nombre}",
-                'medida':'.'
-            }
-            servicio_search.create(vals) if not servicio_search else None
-            servicio_search = self.env['dtm.materiales'].search([('nombre', '=', f"Maquinado {servicio.nombre}")], limit= 1)
+    def _sync_maquinados_to_materiales(self):
+        """Sincroniza maquinados con la lista de materiales."""
 
-            list_material = self.env['dtm.odt.listamateriales'].search([('material_id','=',servicio_search.id),('model_id','=',self._origin.id)], limit= 1)
-            # print(self._origin.id)
-            vals = {
-                        'model_id':self._origin.id,
-                        'material_id':servicio_search.id,
-                        'cantidad':servicio.cantidad
-                    }
-            # print(vals)
-            list_material.write(vals) if list_material else list_material.create(vals)
-            list_material = self.env['dtm.odt.listamateriales'].search([('material_id','=',servicio_search.id),('model_id','=',self._origin.id)])
-            # print('list_material',list_material)
+        # 🔧 siempre reposiciona la secuencia al último ID disponible
+        self.env.cr.execute("""
+                SELECT setval(
+                    'dtm_materiales_id_seq',
+                    COALESCE((SELECT MAX(id) FROM dtm_materiales), 1),
+                    true
+                );
+            """)
+
+        for rec in self:
+            for servicio in rec.maquinados_id:
+                # Busca el material correspondiente
+                servicio_search = self.env['dtm.materiales'].search([
+                    ('nombre', '=', f"Maquinado {servicio.nombre}")
+                ], limit=1)
+                # Si no existe, lo crea
+                if not servicio_search:
+                    servicio_search = self.env['dtm.materiales'].create({
+                        'nombre': f"Maquinado {servicio.nombre}",
+                        'medida': '.'
+                    })
+                # Relaciona con la lista de materiales
+                list_material = self.env['dtm.odt.listamateriales'].search([
+                    ('material_id', '=', servicio_search.id),
+                    ('model_id', '=', rec.id)
+                ], limit=1)
+
+                vals = {
+                    'model_id': rec.id,
+                    'material_id': servicio_search.id,
+                    'cantidad': servicio.cantidad
+                }
+
+                if list_material:
+                    list_material.write(vals)
+                else:
+                    self.env['dtm.odt.listamateriales'].create(vals)
 
 
 
@@ -1132,11 +1150,20 @@ class TestModelLine(models.Model):
                 'materials_cuantity': line.materials_cuantity,
                 'materials_availabe': line.materials_availabe,
             })
+            print(MaterialsLine.browse(line._origin.id).nombre)
 
             material.write({
                 'apartado': max(0,apartado_almacen + line.materials_availabe),
                 'disponible': stock - max(0,apartado_almacen + line.materials_availabe)
             })
+
+            if MaterialsLine.browse(line._origin.id).materials_list.nombre.startswith("Maquinado") and MaterialsLine.browse(line._origin.id).materials_list.medida == '.':
+                MaterialsLine.browse(line._origin.id).write({
+                    'materials_cuantity': line.materials_cuantity,
+                    'materials_availabe': line.materials_cuantity,
+                    'materials_required': 0
+                })
+
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
@@ -1172,8 +1199,7 @@ class Servicios(models.Model):
     anexos_id = fields.Many2many("ir.attachment")
 
 
-    def action_pasive(self):
-        pass
+
 
 class OtFile(models.Model):
     _name="dtm.odt.ligas"
@@ -1203,9 +1229,6 @@ class ListaMateriales(models.Model):
     @api.depends('cantidad')
     def compute_precio(self):
         for result in self:
-            # unitario = result.material_id.mostrador if result.material_id.mostrador else 0
-            # result.material_id.id == 1639 and print(result.material_id.id,unitario)
-            # result.unitario = unitario
             result.precio = result.unitario * result.cantidad
 
 

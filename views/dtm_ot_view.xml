@@ -174,7 +174,7 @@
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
-                                        <field name="almacen"  attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="almacen"/>
                                         <field name="revision"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
