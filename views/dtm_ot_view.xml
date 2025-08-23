@@ -174,8 +174,8 @@
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
-                                        <field name="almacen"  />
-                                        <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="almacen"  attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <field name="revision"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                         <field name="usuario" invisible="1"/>
@@ -195,7 +195,6 @@
                             </page>
                             <page string="PLANOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
-
                             </page>
                             <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                 <div style="display:flex;">
