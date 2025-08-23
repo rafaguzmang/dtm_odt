@@ -949,10 +949,11 @@ class DtmOdt(models.Model):
         # print(self.maquinados_id)
 
         #Actualiza el primary_key a un ID libre
-        for find_id in range(1,self.env['dtm.materiales'].search([], order='id desc', limit=1).id+1):
-            if not self.env['dtm.materiales'].search([("id","=",find_id)]):
-                self.env.cr.execute(f"SELECT setval('dtm_materiales_id_seq', {find_id}, false);")
-                break
+        # for find_id in range(1,self.env['dtm.materiales'].search([], order='id desc', limit=1).id+1):
+        #     if not self.env['dtm.materiales'].search([("id","=",find_id)]):
+        #         self.env.cr.execute(f"SELECT setval('dtm_materiales_id_seq', {find_id}, false);")
+        #         print(find_id)
+        #         break
 
         for servicio in self.maquinados_id:
             servicio_search = self.env['dtm.materiales'].search([('nombre','=',servicio.nombre)], limit= 1)
