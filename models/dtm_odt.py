@@ -1199,32 +1199,7 @@ class TestModelLine(models.Model):
                             total_hijas, master_qty, material.nombre)
                     )
 
-    # Se ejecuta al crear o modificar una línea
-    def write(self, vals):
-        # Guardar los valores antiguos ANTES de super()
-        old_values = {line: line.materials_cuantity for line in self}
-        # 1. Ejecutar el write normal
-        result = super(TestModelLine, self).write(vals)
-        # 2. Llamar a un método que actualice el almacén
-        self._update_material_reservation(old_values)
-        return result
 
-    @api.model
-    def create(self, vals):
-        # 1. Crear la línea
-        record = super(TestModelLine, self).create(vals)
-        # 2. Actualizar el almacén (pasa la línea creada y la cantidad vieja era 0)
-        record._update_material_reservation({record: 0})
-        return record
-
-    def unlink(self):
-        # Guardar los valores antiguos ANTES de borrar
-        old_values = {line: line.materials_cuantity for line in self}
-        # 1. Borrar la línea
-        result = super(TestModelLine, self).unlink()
-        # 2. Actualizar el almacén (restando las cantidades que se borraron)
-        self._update_material_reservation(old_values)
-        return result
 
     def _update_material_reservation(self, old_values):
         """Método centralizado para actualizar la reserva de material en el almacén."""
