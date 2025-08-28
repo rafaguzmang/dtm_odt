@@ -331,6 +331,7 @@ class DtmOdt(models.Model):
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             self.nesteo_chk = False
             self.manufactura = True
+            self.maquinados()
             self.proceso(parcial)
             # print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
             if not self.nesteo_final and (self.cortadora_id or self.primera_pieza_id or self.tubos_id):
