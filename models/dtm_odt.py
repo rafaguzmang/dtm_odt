@@ -9,6 +9,9 @@ import re
 import pytz
 import os
 
+from pkg_resources import require
+
+
 class DtmOdt(models.Model):
     _name = "dtm.odt"
     _inherit = ['mail.thread','mail.activity.mixin']
@@ -1091,7 +1094,7 @@ class TestModelLine(models.Model):
     notas = fields.Char(string="Notas")
 
     materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True)
-    materials_cuantity = fields.Integer("CANTIDAD")
+    materials_cuantity = fields.Integer("CANTIDAD", required=True)
     materials_inventory = fields.Integer("INVENTARIO", readonly=True)
     materials_availabe = fields.Integer("INVENTARIO", readonly=True)
     materials_required = fields.Integer("REQUERIDO", readonly=True ,store=True, compute='_compute_materials_inventory')
@@ -1102,6 +1105,13 @@ class TestModelLine(models.Model):
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+
+    @api.constrains('materials_cuantity')
+    def _check_cantidad(self):
+        for record in self:
+            if record.materials_cuantity == 0:
+                raise ValidationError(
+                    "La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.materials_list.id)
 
     def _compute_usuario(self):
         for result in self:
@@ -1120,80 +1130,119 @@ class TestModelLine(models.Model):
             else:
                 raise ValidationError("Lista de materiales no verificada")
 
-    @api.depends('materials_cuantity')
+    @api.depends('materials_cuantity', 'materials_list', 'model_id.revision_ot')
     def _compute_materials_inventory(self):
-        MaterialsLine = self.env['dtm.materials.line']
-
         for line in self:
-            # Obtiene el id del almacén dtm_materiales
             material = line.materials_list
-            # print(material.id)
             if not material:
-                line.materials_inventory = 0
-                line.materials_availabe = 0
-                line.materials_required = 0
-                continue
-            # Obtiene la cantidad del item de la orden maestra
-            get_cot = self.env['dtm.odt'].search([('ot_number','=',line.model_id.revision_ot)],limit=1).lista_material_id.filtered_domain([('material_id','=',line.materials_list.id)]).cantidad
-            # obtiene las ordenes hijas
-            get_cot_list = self.env['dtm.odt'].search([('revision_ot','=',line.model_id.revision_ot)])
-            # suma las cantidades del item en cuestión de las ordenes hijas
-            suma = sum([item.materials_ids.filtered_domain([('materials_list','=',line.materials_list.id)]).materials_cuantity for item in get_cot_list])
-            # print(suma,get_cot,line.materials_list.id)
-
-            #Condicional que no debe dejar pasar a las ordenes hijas si la cantidad del item en cuestión es mayor al de la maestra. Todas las demas ordenes pasan
-            if get_cot and get_cot != 0 and suma > get_cot :
-                raise ValidationError(
-                    "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s)." % (
-                    suma, get_cot)
-                )
-            # Obtiene la información de almacén Stock, Apartado, Disponible
-            stock = material.cantidad
-            apartado_almacen = sum(self.env['dtm.materials.line'].search(
-                [
-                    ('materials_list', '=', material.id),
-                    ('id', '!=', line._origin.id),
-                    ('materials_cuantity', '>', 0),
-                    ('revision', '!=', True),
-                    ('entregado', '!=', True),
-                ]).mapped('materials_availabe'))
-            disponible_almacen = max(0, stock - apartado_almacen)
-            # print('Almacén', stock, apartado_almacen, disponible_almacen)
-
-            # Inventario base donde se graba el stock del almacén
-            line.materials_inventory = stock
-            cantidad = max(line.materials_cuantity, 0)
-
-            # Cálculo básico de disponible y requerido
-            if disponible_almacen >= cantidad:
-                line.materials_availabe = cantidad  # Todo se toma del almacén
-                line.materials_required = 0  # No se manda a comprar
-            else:
-                line.materials_availabe = disponible_almacen  # Lo que haya
-                line.materials_required = cantidad - disponible_almacen  # Faltante a comprar
-
-            # Limpieza de negativos
-            line.materials_cuantity = cantidad
-
-
-            # ACTUALIZAR LA TABLA DIRECTAMENTE
-            MaterialsLine.browse(line._origin.id).write({
-                'materials_cuantity': line.materials_cuantity,
-                'materials_availabe': line.materials_availabe,
-            })
-            print(MaterialsLine.browse(line._origin.id).nombre)
-
-            material.write({
-                'apartado': max(0,apartado_almacen + line.materials_availabe),
-                'disponible': stock - max(0,apartado_almacen + line.materials_availabe)
-            })
-
-            if MaterialsLine.browse(line._origin.id).materials_list.nombre.startswith("Maquinado") and MaterialsLine.browse(line._origin.id).materials_list.medida == '.':
-                MaterialsLine.browse(line._origin.id).write({
-                    'materials_cuantity': line.materials_cuantity,
-                    'materials_availabe': line.materials_cuantity,
-                    'materials_required': 0
+                line.update({
+                    'materials_inventory': 0,
+                    'materials_availabe': 0,
+                    'materials_required': 0,
                 })
+                continue
+
+            # --- CÁLCULO DE INVENTARIO (Solo Lectura) ---
+            stock = material.cantidad
+
+            # DOMINIO CORREGIDO: Maneja correctamente los IDs temporales
+            domain = [
+                ('materials_list', '=', material.id),
+                ('materials_cuantity', '>', 0),
+                ('revision', '!=', True),
+                ('entregado', '!=', True),
+            ]
+
+            # Si la línea actual NO es nueva (tiene un ID real), exclúyela de la búsqueda
+            if line.id and isinstance(line.id, int):
+                domain.append(('id', '!=', line.id))
+            # Si la línea es nueva (es un NewId), no la excluyas por ID (porque no existe en la BD),
+            # pero tampoco te preocupes, porque la búsqueda solo encuentra registros guardados.
+
+            apartado_almacen = sum(self.env['dtm.materials.line'].search(domain).mapped('materials_cuantity'))
+            disponible_almacen = max(0, stock - apartado_almacen)
+
+            cantidad_solicitada = max(line.materials_cuantity, 0)
+
+            # --- ASIGNACIÓN DE VALORES COMPUTADOS ---
+            line.materials_inventory = stock
+            if disponible_almacen >= cantidad_solicitada:
+                line.materials_availabe = cantidad_solicitada
+                line.materials_required = 0
+            else:
+                line.materials_availabe = disponible_almacen
+                line.materials_required = cantidad_solicitada - disponible_almacen
+
+
+    @api.constrains('materials_cuantity', 'materials_list', 'model_id')
+    def _check_materials_exceed_master(self):
+        for line in self:
+            material = line.materials_list
+            if not material or line.model_id.revision_ot == False:
+                continue
+
+            get_cot = self.env['dtm.odt'].search([('ot_number', '=', line.model_id.revision_ot)], limit=1)
+            if not get_cot:
+                continue
+            master_qty = get_cot.lista_material_id.filtered_domain([('material_id', '=', material.id)]).cantidad
+
+            if master_qty:  # Solo validar si la orden maestra tiene este material
+                get_cot_list = self.env['dtm.odt'].search([('revision_ot', '=', line.model_id.revision_ot)])
+                # Suma todas las cantidades de este material en las órdenes hijas (incluyendo la actual)
+                total_hijas = sum(
+                    item.materials_ids.filtered_domain([('materials_list', '=', material.id)]).materials_cuantity
+                    for item in get_cot_list
+                )
+                if total_hijas > master_qty:
+                    raise ValidationError(
+                        "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s) para el material %s." % (
+                            total_hijas, master_qty, material.nombre)
+                    )
+
+    # Se ejecuta al crear o modificar una línea
+    def write(self, vals):
+        # Guardar los valores antiguos ANTES de super()
+        old_values = {line: line.materials_cuantity for line in self}
+        # 1. Ejecutar el write normal
+        result = super(TestModelLine, self).write(vals)
+        # 2. Llamar a un método que actualice el almacén
+        self._update_material_reservation(old_values)
+        return result
+
+    @api.model
+    def create(self, vals):
+        # 1. Crear la línea
+        record = super(TestModelLine, self).create(vals)
+        # 2. Actualizar el almacén (pasa la línea creada y la cantidad vieja era 0)
+        record._update_material_reservation({record: 0})
+        return record
+
+    def unlink(self):
+        # Guardar los valores antiguos ANTES de borrar
+        old_values = {line: line.materials_cuantity for line in self}
+        # 1. Borrar la línea
+        result = super(TestModelLine, self).unlink()
+        # 2. Actualizar el almacén (restando las cantidades que se borraron)
+        self._update_material_reservation(old_values)
+        return result
+
+    def _update_material_reservation(self, old_values):
+        """Método centralizado para actualizar la reserva de material en el almacén."""
+        for line in self:
+            material = line.materials_list
+            if not material:
+                continue
+            # Calcula la diferencia: (Nueva Cantidad - Vieja Cantidad)
+            old_qty = old_values.get(line, 0)
+            delta = line.materials_cuantity - old_qty
+
+            # Actualiza el campo 'apartado' del material
+            material.apartado += delta
+            # Asegúrate de que no sea negativo
+            if material.apartado < 0:
+                material.apartado = 0
+            # Recalcula el disponible
+            material.disponible = material.cantidad - material.apartado
 
 
 class Rechazo(models.Model):
@@ -1246,11 +1295,18 @@ class ListaMateriales(models.Model):
     model_id = fields.Many2one('dtm.odt')
 
     material_id = fields.Many2one('dtm.materiales')
-    cantidad = fields.Integer(string="Cantidad")
+    cantidad = fields.Integer(string="Cantidad",require=True)
     unitario = fields.Float(string='Unitario',related='material_id.mostrador',store=True,readonly=False)
     precio = fields.Float(string='Total',readonly = True, compute = 'compute_precio')
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario",store=True,readonly=True)
+
+    @api.constrains('cantidad')
+    def _check_cantidad(self):
+        for record in self:
+            if record.cantidad == 0:
+                raise ValidationError("La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.material_id.id)
+
 
 
     def _compute_usuario(self):
