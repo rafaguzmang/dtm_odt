@@ -11,7 +11,7 @@ import os
 
 class DtmOdt(models.Model):
     _name = "dtm.odt"
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread','mail.activity.mixin']
     _description = "Oden de trabajo"
     _order = "ot_number desc"
     _rec_name = "ot_number"
@@ -32,8 +32,8 @@ class DtmOdt(models.Model):
     po_number = fields.Char(string="PO/Cot",readonly=True)
     date_rel = fields.Date(string="ENTREGA", default= datetime.today())
     version_ot = fields.Integer(string="REVISIÓN",default=1,readonly=True)# Esto es revisión
-    color = fields.Char(string="COLOR",default="N/A")
-    cuantity = fields.Integer(string="CANTIDAD")
+    color = fields.Char(string="COLOR",default="N/A",tracking=True)
+    cuantity = fields.Integer(string="CANTIDAD",tracking=True)
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
     lista_material_id = fields.One2many("dtm.odt.listamateriales","model_id")
     disenador = fields.Char("Diseñador")
@@ -78,10 +78,10 @@ class DtmOdt(models.Model):
     # liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', string="Ligas")
 
     #---------------------Resumen de descripción------------
-    description = fields.Text(string="DESCRIPCIÓN")
+    description = fields.Text(string="DESCRIPCIÓN",tracking=True)
 
     #------------------------Notas---------------------------
-    notes = fields.Text(string="Notas")
+    notes = fields.Text(string="Notas",tracking=True)
 
     liberado = fields.Char()
     retrabajo = fields.Boolean(default=False) #Al estar en verdadero pone todos los campos en readonly
@@ -93,6 +93,35 @@ class DtmOdt(models.Model):
     costo_material = fields.Float(string="Costo",readonly = True)
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
 
+    #----------------Tracking----------------------------
+    lista_material_id_tracking = fields.Char(compute='_compute_lista_material_id_tracking', store=True, tracking = True)
+    materials_ids_tracking = fields.Char(compute='_compute_materials_ids_tracking', store=True, tracking = True)
+    maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
+    anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
+
+    @api.depends('anexos_id')
+    def _compute_anexos_id_tracking(self):
+        for record in self:
+            record.maquinados_id_tracking = ", ".join(
+                [f"ir.attachment:{item.ids}\n" for item in
+                 record.anexos_id])
+
+    @api.depends('maquinados_id')
+    def _compute_maquinados_id_tracking(self):
+        for record in self:
+            record.maquinados_id_tracking = ", ".join([f"{item.nombre},{item.cantidad},ir.attachment:{item.anexos_id.ids}\n" for item in record.maquinados_id])
+
+
+    @api.depends('lista_material_id')
+    def _compute_lista_material_id_tracking(self):
+        for record in self:
+            record.lista_material_id_tracking = ", ".join([f"{item.material_id.id},{item.material_id.nombre}, {item.material_id.medida}, c:{item.cantidad}\n"for item in record.lista_material_id])
+
+    @api.depends('materials_ids')
+    def _compute_materials_ids_tracking(self):
+        for record in self:
+            record.materials_ids_tracking = ", ".join([f"{item.materials_list.id},{item.materials_list.nombre}, {item.materials_list.medida}, c:{item.materials_cuantity}, a:{item.materials_availabe}, r:{item.materials_required}, C:{item.revision}, A:{item.almacen}\n"for item in record.materials_ids])
+    #-------------------------------------------------------
     def compute_costo_diseno(self):
         for result in self:
             result.costo_diseno = sum(result.lista_material_id.mapped('precio'))
@@ -331,6 +360,7 @@ class DtmOdt(models.Model):
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             self.nesteo_chk = False
             self.manufactura = True
+            self.maquinados()
             self.proceso(parcial)
             # print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
             if not self.nesteo_final and (self.cortadora_id or self.primera_pieza_id or self.tubos_id):
@@ -702,6 +732,7 @@ class DtmOdt(models.Model):
                     lines.append(get_files.id)
                 else:
                     vals['cortado'] = False
+                    vals['contador'] = 0
                     get_files.create(vals)
                     get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
                     lines.append(get_files.id)
