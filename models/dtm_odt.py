@@ -1106,6 +1106,14 @@ class TestModelLine(models.Model):
     costo = fields.Float(string="Precio",readonly=True)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
 
+    @api.onchange('materials_cuantity')
+    def _onchenge_materials_cuantity(self):
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
+            raise ValidationError("Material agotado")
+
+
+
+
     @api.constrains('materials_cuantity')
     def _check_cantidad(self):
         for record in self:
@@ -1173,6 +1181,21 @@ class TestModelLine(models.Model):
                 line.materials_availabe = disponible_almacen
                 line.materials_required = cantidad_solicitada - disponible_almacen
 
+            apartado_almacen = sum(self.env['dtm.materials.line'].search(
+                [
+                    ('materials_list', '=', material.id),
+                    # ('id', '!=', line._origin.id),
+                    ('materials_cuantity', '>', 0),
+                    ('revision', '!=', True),
+                    ('entregado', '!=', True),
+                ]).mapped('materials_availabe'))
+
+            # Actualiza el campo 'apartado' del material
+            material.apartado = max(apartado_almacen,0)
+
+            # Recalcula el disponible
+            material.disponible = material.cantidad - material.apartado
+
 
     @api.constrains('materials_cuantity', 'materials_list', 'model_id')
     def _check_materials_exceed_master(self):
@@ -1201,23 +1224,6 @@ class TestModelLine(models.Model):
 
 
 
-    def _update_material_reservation(self, old_values):
-        """Método centralizado para actualizar la reserva de material en el almacén."""
-        for line in self:
-            material = line.materials_list
-            if not material:
-                continue
-            # Calcula la diferencia: (Nueva Cantidad - Vieja Cantidad)
-            old_qty = old_values.get(line, 0)
-            delta = line.materials_cuantity - old_qty
-
-            # Actualiza el campo 'apartado' del material
-            material.apartado += delta
-            # Asegúrate de que no sea negativo
-            if material.apartado < 0:
-                material.apartado = 0
-            # Recalcula el disponible
-            material.disponible = material.cantidad - material.apartado
 
 
 class Rechazo(models.Model):
