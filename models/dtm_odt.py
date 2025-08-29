@@ -335,6 +335,8 @@ class DtmOdt(models.Model):
                 self.maquinados()  # Manda los servicios a maquinados
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
+                self.proceso(parcial)
+
 
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
@@ -348,7 +350,7 @@ class DtmOdt(models.Model):
                 if not self.firma_ingenieria:
                     self.firma_ingenieria = self.env.user.partner_id.name
 
-        # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
+        # Ejecutar proceso automáticamente si todas las Firmas(3) están listas
         if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
