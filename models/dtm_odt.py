@@ -1222,10 +1222,6 @@ class TestModelLine(models.Model):
                             total_hijas, master_qty, material.nombre)
                     )
 
-
-
-
-
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
     _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
@@ -1258,9 +1254,6 @@ class Servicios(models.Model):
     fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
     anexos_id = fields.Many2many("ir.attachment")
-
-
-
 
 class OtFile(models.Model):
     _name="dtm.odt.ligas"
@@ -1298,8 +1291,6 @@ class ListaMateriales(models.Model):
     def compute_precio(self):
         for result in self:
             result.precio = result.unitario * result.cantidad
-
-
 
 class ConfirmDialog(models.TransientModel):
     _name = 'confirm.dialog.wizard'
