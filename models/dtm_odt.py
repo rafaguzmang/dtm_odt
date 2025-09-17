@@ -737,7 +737,7 @@ class DtmOdt(models.Model):
                     vals['cortado'] = False
                     vals['contador'] = 0
                     get_files.create(vals)
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("orden_trabajo","=",self.ot_number),("revision_ot","=",self.revision_ot)],order='nombre desc',limit=1)
                     lines.append(get_files.id)
             get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
