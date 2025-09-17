@@ -297,7 +297,7 @@ class DtmOdt(models.Model):
             row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
             # Se verifica si es una lámina
             if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","240.0 x 96.0"]
+                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
@@ -335,8 +335,6 @@ class DtmOdt(models.Model):
                 self.maquinados()  # Manda los servicios a maquinados
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
-                # self.proceso(parcial)
-
 
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
@@ -350,7 +348,7 @@ class DtmOdt(models.Model):
                 if not self.firma_ingenieria:
                     self.firma_ingenieria = self.env.user.partner_id.name
 
-        # Ejecutar proceso automáticamente si todas las Firmas(3) están listas
+        # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
         if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
@@ -379,70 +377,70 @@ class DtmOdt(models.Model):
     def materiales_nesteo(self):
         lista = []
 
-        # if self.env['dtm.odt'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot)],limit=1):
-        #     for item in self.lista_material_id:
-        #         vals = {
-        #             'model_id': item.model_id.id,
-        #             'nombre': item.material_id.nombre,
-        #             'medida': item.material_id.medida,
-        #             'materials_list': item.material_id.id,
-        #             'materials_cuantity': 0,
-        #             'usuario': item.usuario,
-        #             'materials_availabe': 0,
-        #             'materials_required':0
-        #         }
-        #         to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
-        #         to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
-        #
-        # else:
-        for item in self.lista_material_id:
-            # Obtener stock
-            stock = self.env['dtm.materiales'].browse(item.material_id.id)
-            stock_total = stock.cantidad  # Campo float
+        if self.env['dtm.odt'].search([('ot_number','=',self.revision_ot)],limit=1):
+            for item in self.lista_material_id:
+                vals = {
+                    'model_id': item.model_id.id,
+                    'nombre': item.material_id.nombre,
+                    'medida': item.material_id.medida,
+                    'materials_list': item.material_id.id,
+                    'materials_cuantity': 0,
+                    'usuario': item.usuario,
+                    'materials_availabe': 0,
+                    'materials_required':0
+                }
+                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+                to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
 
-            # Obtener total apartado (ordenado pero aún no entregado)
-            apartado = sum(
-                self.env['dtm.materials.line']
-                .search([
-                    ('materials_list', '=', item.material_id.id),
-                    ('entregado', '!=', True),
-                    ('revision', '!=', True),
-                    ('materials_cuantity', '>', 0)
-                ])
-                .mapped('materials_availabe')
-            )
+        else:
+            for item in self.lista_material_id:
+                # Obtener stock
+                stock = self.env['dtm.materiales'].browse(item.material_id.id)
+                stock_total = stock.cantidad  # Campo float
 
-            # Calcular disponible
-            disponible = stock_total - apartado
+                # Obtener total apartado (ordenado pero aún no entregado)
+                apartado = sum(
+                    self.env['dtm.materials.line']
+                    .search([
+                        ('materials_list', '=', item.material_id.id),
+                        ('entregado', '!=', True),
+                        ('revision', '!=', True),
+                        ('materials_cuantity', '>', 0)
+                    ])
+                    .mapped('materials_availabe')
+                )
 
-            # Inicializar
-            requerido = 0
-            nuevo_apartado = 0
+                # Calcular disponible
+                disponible = stock_total - apartado
 
-            if disponible >= item.cantidad:
-                nuevo_apartado = item.cantidad
+                # Inicializar
                 requerido = 0
-            elif 0 < disponible < item.cantidad:
-                nuevo_apartado = disponible
-                requerido = item.cantidad - disponible
-            else:
                 nuevo_apartado = 0
-                requerido = item.cantidad
 
-            vals = {
-                'model_id':item.model_id.id,
-                'nombre':item.material_id.nombre,
-                'medida':item.material_id.medida,
-                'materials_list':item.material_id.id,
-                'materials_cuantity':item.cantidad,
-                'usuario':item.usuario,
-                'materials_availabe':max(0,nuevo_apartado),
-                'materials_required':max(0,requerido)
-            }
+                if disponible >= item.cantidad:
+                    nuevo_apartado = item.cantidad
+                    requerido = 0
+                elif 0 < disponible < item.cantidad:
+                    nuevo_apartado = disponible
+                    requerido = item.cantidad - disponible
+                else:
+                    nuevo_apartado = 0
+                    requerido = item.cantidad
+
+                vals = {
+                    'model_id':item.model_id.id,
+                    'nombre':item.material_id.nombre,
+                    'medida':item.material_id.medida,
+                    'materials_list':item.material_id.id,
+                    'materials_cuantity':item.cantidad,
+                    'usuario':item.usuario,
+                    'materials_availabe':max(0,nuevo_apartado),
+                    'materials_required':max(0,requerido)
+                }
 
 
-            to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
-            to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
+                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+                to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
@@ -739,7 +737,7 @@ class DtmOdt(models.Model):
                     vals['cortado'] = False
                     vals['contador'] = 0
                     get_files.create(vals)
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name)],order='nombre desc',limit=1)
+                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("orden_trabajo","=",self.ot_number),("revision_ot","=",self.revision_ot)],order='nombre desc',limit=1)
                     lines.append(get_files.id)
             get_corte.write({'cortadora_id': [(6, 0, lines)]})
 
@@ -867,6 +865,7 @@ class DtmOdt(models.Model):
 
     def compras_odt(self,materiales):
         # ref == 2 and print(materiales,ref)
+        # print(materiales.mapped('materials_list.id'))
         for codigo in materiales:
             # Si el item no tiene marcado el check box hace los calculos para el área de compras
             buscar = codigo.nombre # Se quita la leyenda Maquinado Externo
@@ -1109,8 +1108,18 @@ class TestModelLine(models.Model):
 
     @api.onchange('materials_cuantity')
     def _onchenge_materials_cuantity(self):
-        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0","120.0 x 72.0 "] and self.materials_required > 0:
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
             raise ValidationError("Material agotado")
+
+
+
+
+    @api.constrains('materials_cuantity')
+    def _check_cantidad(self):
+        for record in self:
+            if record.materials_cuantity == 0:
+                raise ValidationError(
+                    "La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.materials_list.id)
 
     def _compute_usuario(self):
         for result in self:
@@ -1212,6 +1221,7 @@ class TestModelLine(models.Model):
                         "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s) para el material %s." % (
                             total_hijas, master_qty, material.nombre)
                     )
+
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
     _description = "Tabla para llenar los motivos por el cual se rechazo la ODT"
@@ -1244,6 +1254,7 @@ class Servicios(models.Model):
     fecha_compra = fields.Date(string="Fecha de Compra",readonly=True)
     fecha_entrada = fields.Date(string="Fecha de Entrada",readonly=True)
     anexos_id = fields.Many2many("ir.attachment")
+
 class OtFile(models.Model):
     _name="dtm.odt.ligas"
     _description = "Modelo para almacenar el archivo de las ligas para el admin"
@@ -1270,6 +1281,8 @@ class ListaMateriales(models.Model):
             if record.cantidad == 0:
                 raise ValidationError("La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.material_id.id)
 
+
+
     def _compute_usuario(self):
         for result in self:
             result.usuario = self.env.user.partner_id.email
@@ -1278,6 +1291,8 @@ class ListaMateriales(models.Model):
     def compute_precio(self):
         for result in self:
             result.precio = result.unitario * result.cantidad
+
+
 
 class ConfirmDialog(models.TransientModel):
     _name = 'confirm.dialog.wizard'
