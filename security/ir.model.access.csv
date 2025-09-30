@@ -13,5 +13,7 @@ access_dtm_odt_listamateriales,access.dtm.odt.listamateriales,model_dtm_odt_list
 access_confirm_dialog_wizard,access.confirm.dialog.wizard,model_confirm_dialog_wizard,base.group_user,1,1,1,1
 access_dtm_odt_retrabajo,access.dtm.odt.retrabajo,model_dtm_odt_retrabajo,base.group_user,1,1,1,1
 
+access_dtm_odt_laminas_nesteo,access.dtm.odt.laminas.nesteo,model_dtm_odt_laminas_nesteo,base.group_user,1,1,1,1
+
 
 

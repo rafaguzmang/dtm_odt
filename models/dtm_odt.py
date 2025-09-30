@@ -57,9 +57,7 @@ class DtmOdt(models.Model):
     anexos_id = fields.Many2many("ir.attachment" ,"anexos_id",string="Archivos")
     # Máquinas de corte laser
     cortadora_id = fields.Many2many("ir.attachment", "cortadora_id",string="Segundas piezas")
-    primera_pieza_bfc_id = fields.Many2many("ir.attachment", "primera_pieza_bfc_id",string="Primeras piezas")
-    bfc_id = fields.Many2many("ir.attachment", "bfc_id",string="Segundas piezas")
-    primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id",string="Primeras piezas")
+    primera_pieza_id = fields.One2many("dtm.odt.laminas.nesteo", "model_id",string="Primeras piezas")
     #----------------------------
     tubos_id = fields.Many2many("ir.attachment", "tubos_id")
     no_cotizacion = fields.Char('')
@@ -93,6 +91,8 @@ class DtmOdt(models.Model):
     maquinados_id = fields.One2many("dtm.odt.servicios","extern_id")
 
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
+    permiso_diseno = fields.Boolean()
+    permiso_ingenieria = fields.Boolean()
     costo_material = fields.Float(string="Costo",readonly = True)
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
 
@@ -113,7 +113,6 @@ class DtmOdt(models.Model):
     def _compute_maquinados_id_tracking(self):
         for record in self:
             record.maquinados_id_tracking = ", ".join([f"{item.nombre},{item.cantidad},ir.attachment:{item.anexos_id.ids}\n" for item in record.maquinados_id])
-
 
     @api.depends('lista_material_id')
     def _compute_lista_material_id_tracking(self):
@@ -276,8 +275,14 @@ class DtmOdt(models.Model):
 
     def _compute_usuario(self):
         for result in self:
-            # print(self.env.user.partner_id.email)
             result.usuario = self.env.user.partner_id.email
+            result.permiso_ingenieria = False
+            if result.usuario in ['ingenieria1@dtmindustry.com'] and not result.firma_ingenieria:
+                result.permiso_ingenieria = True
+                result.permiso_diseno = False
+
+
+
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
         # Pone el nombre del diseñador
@@ -297,7 +302,7 @@ class DtmOdt(models.Model):
             row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
             # Se verifica si es una lámina
             if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0"]
+                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
@@ -348,7 +353,7 @@ class DtmOdt(models.Model):
                 if not self.firma_ingenieria:
                     self.firma_ingenieria = self.env.user.partner_id.name
 
-        # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
+
         if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
@@ -356,10 +361,11 @@ class DtmOdt(models.Model):
 
             if not self.materials_ids:
                 self.materiales_nesteo()
+            self.compras_odt()
         # Si la orden es un prediseño
             if self.tipe_order == 'Pre':
                 self.prediseño_terminado()
-
+        # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             self.nesteo_chk = False
             self.manufactura = True
@@ -373,6 +379,11 @@ class DtmOdt(models.Model):
             self.tiempo_nesteo = round((self.nesteo_final - self.nesteo_inicio ).total_seconds() / 3600.0,2)
             # print(self.tiempo_nesteo,self.nesteo_final,self.nesteo_inicio)
         self.action_almacen()
+
+        self.permiso_ingenieria = False
+        if self.usuario in ['ingenieria1@dtmindustry.com'] and not self.firma_ingenieria and self.firma_ventas:
+            self.permiso_ingenieria = True
+            self.permiso_diseno = False
 
     def materiales_nesteo(self):
         lista = []
@@ -404,8 +415,7 @@ class DtmOdt(models.Model):
                     .search([
                         ('materials_list', '=', item.material_id.id),
                         ('entregado', '!=', True),
-                        ('revision', '!=', True),
-                        ('materials_cuantity', '>', 0)
+                        ('materials_availabe', '>', 0)
                     ])
                     .mapped('materials_availabe')
                 )
@@ -438,16 +448,12 @@ class DtmOdt(models.Model):
                     'materials_required':max(0,requerido)
                 }
 
-
                 to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
                 to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)])#Busca en procesos la orden
-        get_ot.write({ #Pone firma de ventas en la orden en el modulo de procesos
-            "firma_ventas": self.firma_ventas,
-            "firma_ventas_kanba":"Ventas"
-        })
+
         vals = { #Valores a crear o cambiar
                 "ot_number":self.ot_number,
                 "revision_ot":self.revision_ot,
@@ -464,9 +470,8 @@ class DtmOdt(models.Model):
                 "color":self.color,
                 "nesteos":True if self.cortadora_id or self.primera_pieza_id else False,
                 "planos": True if self.anexos_id else False,
-                "firma_diseno":self.firma
+                "disenador":self.disenador
         }
-        vals["firma_parcial"] = parcial
         if get_ot:#Actualiza la orden en procesos
             if (self.cortadora_id or self.primera_pieza_id) and get_ot.status == "aprobacion" :
                 status = "corte"
@@ -501,47 +506,7 @@ class DtmOdt(models.Model):
         lines = []
         get_ot.write({'primera_pieza_id': [(5, 0, {})]})
         list_archivos = []
-        if self.primera_pieza_id or self.primera_pieza_bfc_id: #Busca los archivos de corte cuando hay primera pieza
-            mitsubishi_archivos = self.cortadora_id  # Pasa los archivos de la segunda pieza
-            bfc6032_archivos = self.bfc_id
-            for archivos in [mitsubishi_archivos, bfc6032_archivos]:
-                for archivo in archivos:
-                    list_archivos.append(archivo)
-            for anexo in list_archivos:
-                attachment = self.env['ir.attachment'].browse(anexo.id)
-                vals = {
-                    "documentos":attachment.datas,
-                    "nombre":attachment.name
-                }
-                get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
-                if get_anexos:
-                    get_anexos.write(vals)
-                    lines.append(get_anexos.id)
-                else:
-                    get_anexos.create(vals)
-                    get_anexos = self.env['dtm.proceso.primer'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
-                    lines.append(get_anexos.id)
-            get_ot.write({'primera_pieza_id': [(6, 0, lines)]})
-        lines = []
-        get_ot.write({'cortadora_id': [(5, 0, {})]})
-        for anexo in self.cortadora_id:
-            attachment = self.env['ir.attachment'].browse(anexo.id)
-            vals = {
-                "documentos":attachment.datas,
-                "nombre":attachment.name
-            }
-            get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-            if get_anexos:
-                get_anexos.write(vals)
-                lines.append(get_anexos.id)
-            else:
-                get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.cortadora'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)],order='nombre desc',limit=1)
-                lines.append(get_anexos.id)
-        get_ot.write({'cortadora_id': [(6, 0, lines)]})
-
-        # Cortadora laser al modulo proceso
-        # Cortadora de tubos al modulo proceso
+      
         get_ot.write({'tubos_id': [(5, 0, {})]})
         lines = []
         for anexo in self.tubos_id: #Carga los archivos para corte de tubos en procesos
@@ -561,7 +526,7 @@ class DtmOdt(models.Model):
                 lines.append(get_anexos.id)
         get_ot.write({'tubos_id': [(6, 0, lines)]})
 
-        self.compras_odt(self.materials_ids) # Se manda el material a compras
+        self.compras_odt() # Se manda el material a compras
         #Revisa si la firma es de nesteo para mandar las ordenes a corte
         if self.env.user.partner_id.email in ['ingenieria1@dtmindustry.com','rafaguzmang@hotmail.com']:
             if self.firma_ingenieria:
@@ -570,7 +535,7 @@ class DtmOdt(models.Model):
 
     def cortadora_laser(self):
         # print("cortadora_laser",self.cortadora_id,self.primera_pieza_id)
-        if self.cortadora_id or self.primera_pieza_id or self.bfc_id or self.primera_pieza_bfc_id:
+        if self.cortadora_id or self.primera_pieza_id:
             # Se obtienen los datos de la orden del modulo de procesos
             get_proceso = self.env['dtm.proceso'].search([('ot_number','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipe_order','=',self.tipe_order)])
             get_proceso.status == "aprobacion" and get_proceso.write({'status':"corte"})
@@ -581,8 +546,7 @@ class DtmOdt(models.Model):
                 "nombre_orden":self.product_name,
                 "tipo_orden": self.tipe_order,
             }
-            material_corte = ""
-            # Se encargan de buscar la información necesaria -------------------------------
+            # Se encargan de buscar la información necesaria, este el el número de orden-------------------------------
             get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])# Guarda la información (archivos) para pasar a corte
             # Proceso de corte
             get_encorte_primera = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Busca si la primera pieza está en proceso de corte
@@ -590,205 +554,115 @@ class DtmOdt(models.Model):
             # Proceso de terminado
             get_cortado_primera = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)]) # Busca si la primera pieza esta cortada
             get_cortado_segunda = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)]) # Busca si las segundas piezas ya fueron cortadas
-            # print(get_encorte_primera,get_encorte_segunda,get_cortado_primera,get_cortado_segunda)
+
             #---------------------------------------------------
             # Condicionales
             #    No exite este archivo en ningún modelo de la cortadora, de ser así procede a crearlo
-            list_archivos = [] #lista para almacenar los archivos de corte
             # si no hay archivos
             if not get_encorte_primera and not get_encorte_segunda and not get_cortado_primera and not get_cortado_segunda:
-                if self.primera_pieza_id or self.primera_pieza_bfc_id:
+                if self.primera_pieza_id:
                     vals["primera_pieza"]= True
                     get_corte.create(vals) #Crea la orden de primera pieza
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
-                    mitsubishi_archivos = self.primera_pieza_id #Pasa los archivos de la primera pieza
-                    bfc6032_archivos = self.primera_pieza_bfc_id
                 else:
                     vals["primera_pieza"]= False
                     get_corte.create(vals) #Crea la orden de segunda pieza
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
-                    mitsubishi_archivos = self.cortadora_id # Pasa los archivos de la segunda pieza
-                    bfc6032_archivos = self.bfc_id
-                for archivos in [mitsubishi_archivos,bfc6032_archivos]:
-                    for archivo in archivos:
-                        list_archivos.append(archivo)
+
             # si el archivo es primera pieza y no ha sido cortado
-            # elif get_encorte_primera and not get_corte_primer and not get_encorte_segunda and not get_corte_segunda:
             elif get_encorte_primera and not get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
                 # print("Primera pieza solo en corte")
                 get_corte = get_encorte_primera
                 get_corte.write(vals)
                 # recolecta los archivos de las dos cortadoras
-                mitsubishi_archivos = self.primera_pieza_id
-                bfc6032_archivos = self.primera_pieza_bfc_id
-                for archivos in [mitsubishi_archivos, bfc6032_archivos]:
-                    for archivo in archivos:
-                        list_archivos.append(archivo)
+
             # si hay segunda pieza
             elif not get_encorte_primera and get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
                 # print("Primera pieza cortada pero no hay segundas piezas")
-                if self.primera_pieza_id or self.primera_pieza_bfc_id:
+                if self.primera_pieza_id:
                     vals["primera_pieza"]= True
                     get_corte.create(vals) #Crea la orden de primera pieza
-                    mitsubishi_archivos = self.primera_pieza_id
-                    bfc6032_archivos = self.primera_pieza_bfc_id
+
                     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])# Carga la orden recien creada para su manipulación
                     get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",True)])
-                    for archivos in [mitsubishi_archivos, bfc6032_archivos]:
-                        for archivo in archivos:
-                            list_archivos.append(archivo)
-                    if get_terminado:# Si hay archivos cortados los quita del retrabajo
-                        archivos_cortados = get_terminado.cortadora_id.ids
-                        record_ids = [] #Almacena los id que serán agregados para ser cortados
-                        record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
-                        for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
-                            for orden in ordenes:
-                                mapa = orden.cortadora_id.mapped("nombre")
-                                record_nombres.extend(mapa)
-                        for thisFile in list_archivos: #Compara los nuevos archivos con los ya cortados
-                            attachment = self.env['ir.attachment'].browse(thisFile.id)
-                            if attachment.name in record_nombres:
-                                record_nombres.remove(attachment.name)
-                            else:
-                                record_nombres.append(attachment.name)
-                                record_ids.append(attachment.id)
-                        recordset = self.env['ir.attachment'].browse(record_ids)
-                        list_archivos = recordset #Pasa los archivos de la segunda pieza
-            elif get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
-                # Segunda pieza en corte
-                # print("Segunda pieza en corte")
-                vals["primera_pieza"]= False
-                get_corte = get_encorte_segunda
-                get_corte.write(vals)
-                bfc6032_archivos = self.bfc_id
-                mitsubishi_archivos = self.cortadora_id
-                for archivos in [mitsubishi_archivos, bfc6032_archivos]:
-                    for archivo in archivos:
-                        list_archivos.append(archivo)
-                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
-                if get_terminado:# Si hay archivos cortados los quita del retrabajo
-                    record_ids = [] #Almacena los id que serán agregados para ser cortados
-                    record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
-                    for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
-                        for orden in ordenes:
-                            mapa = orden.cortadora_id.mapped("nombre")
-                            record_nombres.extend(mapa)
-                    for thisFile in list_archivos: #Comprara los nuevos archivos con los ya cortados
-                        attachment = self.env['ir.attachment'].browse(thisFile.id)
-                        if attachment.name in record_nombres:
-                            record_nombres.remove(attachment.name)
-                        else:
-                            record_nombres.append(attachment.name)
-                            record_ids.append(attachment.id)
-                    recordset = self.env['ir.attachment'].browse(record_ids)
-                    list_archivos = recordset #Pasa los archivos de la segunda pieza
-            elif not get_encorte_segunda and get_cortado_segunda:
-                # print("Segunda pieza")
-                vals["primera_pieza"]= False
-                get_corte.create(vals) #Crea la orden de segunda pieza
-                get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
-                # Pasa los archivos de la segunda pieza
-                bfc6032_archivos = self.bfc_id
-                mitsubishi_archivos = self.cortadora_id
-                for archivos in [mitsubishi_archivos, bfc6032_archivos]:
-                    for archivo in archivos:
-                        list_archivos.append(archivo)
-                get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
-                if get_terminado:# Si hay archivos cortados los quita del retrabajo
-                    record_ids = [] #Almacena los id que serán agregados para ser cortados
-                    record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
-                    for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
-                        for orden in ordenes:
-                            mapa = orden.cortadora_id.mapped("nombre")
-                            record_nombres.extend(mapa)
-                    for thisFile in list_archivos: #Comprara los nuevos archivos con los ya cortados
-                        attachment = self.env['ir.attachment'].browse(thisFile.id)
-                        if attachment.name in record_nombres:
-                            record_nombres.remove(attachment.name)
-                        else:
-                            record_nombres.append(attachment.name)
-                            record_ids.append(attachment.id)
-                    recordset = self.env['ir.attachment'].browse(record_ids)
-                    list_archivos = recordset #Pasa los archivos de la segunda pieza
+
+            # elif get_encorte_segunda:#Revisa que la primera pieza sea liberada que primera pieza esté cortada
+            #     # Segunda pieza en corte
+            #     # print("Segunda pieza en corte")
+            #     vals["primera_pieza"]= False
+            #     get_corte = get_encorte_segunda
+            #     get_corte.write(vals)
+            #     bfc6032_archivos = self.bfc_id
+            #     mitsubishi_archivos = self.cortadora_id
+            #     for archivos in [mitsubishi_archivos, bfc6032_archivos]:
+            #         for archivo in archivos:
+            #             list_archivos.append(archivo)
+            #     get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
+            #     if get_terminado:# Si hay archivos cortados los quita del retrabajo
+            #         record_ids = [] #Almacena los id que serán agregados para ser cortados
+            #         record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
+            #         for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
+            #             for orden in ordenes:
+            #                 mapa = orden.cortadora_id.mapped("nombre")
+            #                 record_nombres.extend(mapa)
+            #         for thisFile in list_archivos: #Comprara los nuevos archivos con los ya cortados
+            #             attachment = self.env['ir.attachment'].browse(thisFile.id)
+            #             if attachment.name in record_nombres:
+            #                 record_nombres.remove(attachment.name)
+            #             else:
+            #                 record_nombres.append(attachment.name)
+            #                 record_ids.append(attachment.id)
+            #         recordset = self.env['ir.attachment'].browse(record_ids)
+            #         list_archivos = recordset #Pasa los archivos de la segunda pieza
+            # elif not get_encorte_segunda and get_cortado_segunda:
+            #     # print("Segunda pieza")
+            #     vals["primera_pieza"]= False
+            #     get_corte.create(vals) #Crea la orden de segunda pieza
+            #     get_corte = self.env['dtm.materiales.laser'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])# Carga la orden recien creada para su manipulación
+            #     # Pasa los archivos de la segunda pieza
+            #     bfc6032_archivos = self.bfc_id
+            #     mitsubishi_archivos = self.cortadora_id
+            #     for archivos in [mitsubishi_archivos, bfc6032_archivos]:
+            #         for archivo in archivos:
+            #             list_archivos.append(archivo)
+            #     get_terminado = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order),("primera_pieza","=",False)])
+            #     if get_terminado:# Si hay archivos cortados los quita del retrabajo
+            #         record_ids = [] #Almacena los id que serán agregados para ser cortados
+            #         record_nombres = [] #Lista para llenar con todos los archivos de los documentos cortados
+            #         for ordenes in get_terminado:#Proceso de busqueda en el modelo de archivos cortados (dtm_laser_realizados)
+            #             for orden in ordenes:
+            #                 mapa = orden.cortadora_id.mapped("nombre")
+            #                 record_nombres.extend(mapa)
+            #         for thisFile in list_archivos: #Comprara los nuevos archivos con los ya cortados
+            #             attachment = self.env['ir.attachment'].browse(thisFile.id)
+            #             if attachment.name in record_nombres:
+            #                 record_nombres.remove(attachment.name)
+            #             else:
+            #                 record_nombres.append(attachment.name)
+            #                 record_ids.append(attachment.id)
+            #         recordset = self.env['ir.attachment'].browse(record_ids)
+            #         list_archivos = recordset #Pasa los archivos de la segunda pieza
             #-----------------------------------------------------------------------------------------------------------------------
 
 
-            lines = []
-            get_corte.write({'cortadora_id': [(5, 0, {})]})#limpia la tabla de los archivos
-            for file in list_archivos:
-                attachment = self.env['ir.attachment'].browse(file.id)
-                vals = {
-                    "documentos":attachment.datas,
-                    "nombre":attachment.name,
-                    "orden_trabajo":self.ot_number,
-                    "revision_ot":self.revision_ot,
-                    "primera_pieza":False,
-                    "cortadora":'Mitsubishi' if file.id in self.primera_pieza_id.ids or file.id in self.bfc_id.ids else 'BFC6025',
-                    "model_id": get_corte.id
-                }
-                # if not self.liberado:
-                if self.primera_pieza_id and not self.liberado:
-                    vals["primera_pieza"] = True
-                get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("orden_trabajo","=",self.ot_number),("revision_ot","=",self.revision_ot)],order='nombre desc',limit=1)
-                if get_files:
-                    get_files.write(vals)
-                    lines.append(get_files.id)
-                else:
-                    vals['cortado'] = False
-                    vals['contador'] = 0
-                    get_files.create(vals)
-                    get_files = self.env['dtm.documentos.cortadora'].search([("nombre","=",file.name),("orden_trabajo","=",self.ot_number),("revision_ot","=",self.revision_ot)],order='nombre desc',limit=1)
-                    lines.append(get_files.id)
-            get_corte.write({'cortadora_id': [(6, 0, lines)]})
-
-            # Busca todo el material que sea lámina
-            lines = []  # Lista para agregar lo ids que serán encontrados
-            get_corte.write({"materiales_id":[(5, 0, {})]})#Pasa los materiales correspondientes de la orden
-            for lamina in self.materials_ids:
-                if re.match("Lámina",lamina.nombre): # Revisa si el material tiene la palabra lámina de no ser así lo descarta
-                    get_almacen = self.env['dtm.materiales'].search([("id","=",lamina.materials_list.id)]) # Busca el material en el almacén por codigo
-                    localizacion = ""
-                    # if get_almacen.localizacion:  # Si tiene localización la asigna
-                    #     localizacion = get_almacen.localizacion
-                    content = { # Valores a sobreescribir o a crear
-                        "identificador": lamina.materials_list.id,
-                        "nombre": lamina.nombre,
-                        "medida": lamina.medida,
-                        "cantidad": lamina.materials_cuantity,
-                        "inventario": lamina.materials_inventory,
-                        "requerido": lamina.materials_required,
-                        "localizacion": localizacion
+            if self.primera_pieza_id and not self.liberado:
+                for file in self.primera_pieza_id:
+                    vals = {
+                        "model_id": get_corte.id,
+                        "documentos":file.archivo,
+                        "nombre":file.nombre,
+                        "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
+                        "lamina":f"{file.material_ids.nombre} {file.material_ids.medida}",
+                        "cantidad":file.cantidad,
                     }
-                    get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                        ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                        ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                        ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                        ("localizacion","=",localizacion)]) # Busca si exite el material
-                    if get_cortadora_laminas: # Si existe lo actualiza
-                        get_cortadora_laminas.write(content)
-                        lines.append(get_cortadora_laminas.id) # Agrega el id a la lista
-                    else:  # Si no existe lo crea
-                        get_cortadora_laminas.create(content)
-                        get_cortadora_laminas = self.env['dtm.cortadora.laminas'].search([
-                        ("identificador","=",lamina.materials_list.id),("nombre","=",lamina.nombre),
-                        ("medida","=",lamina.medida),("cantidad","=",lamina.materials_cuantity),
-                        ("inventario","=",lamina.materials_inventory),("requerido","=",lamina.materials_required),
-                        ("localizacion","=",localizacion)])
-                        lines.append(get_cortadora_laminas.id) # Agrega el id a la lista
-            # Busca los materiales en el modelo dtm.cortes.realizado para quitarlos de lines
-            get_lamina_cortadas = self.env['dtm.laser.realizados'].search([("orden_trabajo","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipo_orden","=",self.tipe_order)])#Busca si hay materiales cortados
-            if get_lamina_cortadas:
-                list_nombre = []
-                result = []
-                for ordenes in get_lamina_cortadas:
-                    for orden in ordenes:
-                        mapa = orden.materiales_id.mapped("id")
-                        list_nombre.extend(mapa)
-                for line in lines: #Revisa todos los ids de la lista() lines y si alguno ya fué cortado (dtm_laser_realizados) lo elimina de la lista
-                    if not line in list_nombre:
-                        result.append(line)
-                lines = result
-            get_corte.write({"materiales_id":[(6, 0,lines)]})
+                    get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
+                    # print(get_documentos)
+                    if get_documentos:
+                        get_documentos.write(vals)
+                    else:
+                        vals["start"] = False
+                        vals["cortado"] = False
+                        get_documentos.create(vals)
 
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
@@ -863,78 +737,39 @@ class DtmOdt(models.Model):
                   # Agrega la lista de materiales en la tabla materiales_id
                   get_corte.write({"materiales_id":[(6, 0,lines)]})
 
-    def compras_odt(self,materiales):
-        # ref == 2 and print(materiales,ref)
-        # print(materiales.mapped('materials_list.id'))
-        for codigo in materiales:
-            # Si el item no tiene marcado el check box hace los calculos para el área de compras
-            buscar = codigo.nombre # Se quita la leyenda Maquinado Externo
+    def compras_odt(self):
+       # Vamos a mandar a comprar
+        for codigo in self.materials_ids:
+            # print(codigo.materials_list.nombre)
+            buscar = codigo.materials_list.nombre # Se quita la leyenda Maquinado Externo
             buscar = buscar.replace("Maquinado Externo", "")
-            # print(buscar,codigo.nombre)
-            if codigo.revision and buscar.find('Maquinado') == -1:
-                # Suma la cantidad requerida con los codigos repetidos dentro de la misma Orden
-                cantidad_item = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number)),('revision_ot','=',self.revision_ot),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_required'))
-                # cantidad_total = sum(self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",str(self.ot_number))]).id),("materials_list","=",codigo.materials_list.id)]).mapped('materials_'))
-
-                # ref == 2 and print("Solicitado",cantidad_item)
+            if codigo.materials_required > 0 and buscar.find('Maquinado') == -1 and codigo.almacen:
                 # Busca los materiales solicitados en el apartado de requerido
-                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
-                get_compras_odt = get_compras.mapped('orden_trabajo')
-                get_compras_cantidad = get_compras.mapped('cantidad')
-                # ref == 2 and print("Codigo",codigo.materials_list.id)
-                list_reque_odt = list(set(",".join(get_compras_odt).replace(","," ").split()))
-                list_reque_odt = list(filter(lambda x: x!=str(self.ot_number),list_reque_odt))
-                total_reque = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item),("tipe_order","!=",'PD')]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_reque_odt])
-
-                cantidad_reque = sum(get_compras_cantidad) - total_reque
-                # ref == 2 and print("Requerido",cantidad_reque)
-
-                # Busca los materiales solicitados en el apartado de comprado
-                get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id),("comprado","=",False)])
-                get_comprado_odt = get_comprado.mapped('orden_trabajo')
-                get_comprado_cantidad = get_comprado.mapped('cantidad')
-                # ref == 2 and print(get_comprado,get_comprado_odt,get_comprado_cantidad)
-                list_comprado_odt = list(set(",".join(get_comprado_odt).replace(","," ").split()))
-                # ref == 2 and print(list_comprado_odt)
-                list_comprado_odt = list(filter(lambda x: x!=str(self.ot_number),list_comprado_odt))
-                # ref == 2 and print(list_comprado_odt)
-                total_comprado = sum([self.env['dtm.materials.line'].search([("model_id","=",self.env['dtm.odt'].search([("ot_number","=",item)]).id),("materials_list","=",codigo.materials_list.id)]).materials_required for item in list_comprado_odt])
-
-                # ref == 2 and print("--",sum(get_comprado_cantidad),total_comprado)
-                cantidad_comprado = (sum(get_comprado_cantidad) if sum(get_comprado_cantidad) > 0 else 0) - (total_comprado if total_comprado > 0 else 0)
-                # ref == 2 and print("Comprado",cantidad_comprado)
-                # ref == 2 and print("Comparación",cantidad_item,cantidad_comprado)
-                # ref == 2 and print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-                # print(get_compras.disenador)
-                # print(self.firma if not get_compras.disenador else "")
-                medida = self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).medida
+                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
+                codigo.model_id.ot_number == 958 and print(get_requerido)
+                get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
+                codigo.model_id.ot_number == 958 and print(get_realizado)
+                codigo.model_id.ot_number == 958 and print(codigo.materials_required,get_realizado.cantidad,get_requerido.cantidad)
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
-                        'nombre':f"{self.env['dtm.materiales'].search([('id','=',codigo.materials_list.id)]).nombre} {medida if medida else ''}",
-                        'cantidad':cantidad_item - cantidad_comprado,
+                        'nombre':f"{codigo.materials_list.nombre} {codigo.materials_list.medida if codigo.materials_list.medida else '.'}",
+                        'cantidad':codigo.materials_required,
                         'disenador':self.disenador,
                         'tipo_orden':self.tipe_order,
                         'revision_ot':self.revision_ot,
                         'nesteo': True if self.firma_ingenieria else False
                     }
-                # print(vals)
-                # if get_compras.disenador:
-                #     vals['disenador'] = get_compras.disenador
-                get_compras = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)])
-                # Si la cantidad requerida no ha sido comprada la crea o la actualiza
-                if not get_comprado and codigo.materials_required > 0:
-                    get_compras.write(vals) if get_compras else get_compras.create(vals)
-                # Si la cantidad requerida es mayor a la comprada crea una nueva compra o la actualiza
-                elif cantidad_item > cantidad_comprado and codigo.materials_required > 0:
-                    get_compras.write(vals) if get_compras else get_compras.create(vals)
-                # Si la cantidad requerida es igual a la comprada y se había generado un nueva orden de compra esta sera borrada
-                elif cantidad_item == cantidad_comprado:
-                    get_compras.unlink()
-                # Si este item requiere cero esta será borrada
-                if codigo.materials_required <= 0 and get_compras:
-                    get_compras.unlink()
-
+                codigo.model_id.ot_number == 958 and print(vals)
+                if not get_requerido and not get_realizado:
+                    get_requerido.create(vals)
+                    codigo.model_id.ot_number == 958 and print('Se crea por primera ves')
+                elif get_requerido and not get_realizado:
+                    get_requerido.write(vals)
+                    codigo.model_id.ot_number == 958 and print('Se actualiza si ya existe')
+                if get_realizado and get_realizado.cantidad < codigo.materials_required:
+                    get_requerido.write(vals) if get_requerido else get_requerido.create(vals)
+                    codigo.model_id.ot_number == 958 and print('Se crea si se necesita mas')
 
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados
@@ -972,6 +807,11 @@ class DtmOdt(models.Model):
             self.firma = None
         else:
             raise ValidationError("Bitácora de retrabajo vacía")
+
+    @api.constrains('primera_pieza_id')
+    def _check_archivos_duplicados(self):
+        for recor in self:
+            archivos = []
 
 
 # ----------------------------------------------------- Jala los servicios ----------------------------------------------------------------------------
@@ -1058,9 +898,18 @@ class DtmOdt(models.Model):
         # Pone precio a los materiales
         for item in self.env['dtm.materials.line'].search([]):
             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
-            # print(item.model_id.id)
+            # item.materials_list.id == 430 and print(item.model_id.ot_number)
+            # item.model_id.ot_number == 958 and print('Get view',item.materials_list.id,item.materials_list.nombre,item.model_id.ot_number)
+
             if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
                 item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
+            get_requerido = self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
+            get_realizado = self.env['dtm.compras.realizado'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
+            item.materials_list.id == 874 and print(get_realizado)
+            item.revision = False
+            if get_requerido or get_realizado:
+#                 item.model_id.ot_number == 958 and print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','=',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))]))
+                item.revision = True
 
 
         # get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
@@ -1087,8 +936,11 @@ class DtmOdt(models.Model):
 class TestModelLine(models.Model):
     _name = "dtm.materials.line"
     _description = "Tabla de materiales"
+    _rec_name = "materials_list"
 
+    # Campos inversos
     model_id = fields.Many2one("dtm.odt")
+
     nombre = fields.Char(compute="_compute_material_list",store=True,related='materials_list.nombre')
     medida = fields.Char(store=True, related='materials_list.medida')
     notas = fields.Char(string="Notas")
@@ -1111,9 +963,6 @@ class TestModelLine(models.Model):
         if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
             raise ValidationError("Material agotado")
 
-
-
-
     @api.constrains('materials_cuantity')
     def _check_cantidad(self):
         for record in self:
@@ -1125,20 +974,7 @@ class TestModelLine(models.Model):
         for result in self:
             result.usuario = self.env.user.partner_id.email
 
-    @api.onchange("revision")
-    def onchange_revision(self):
-        if self.revision:
-            if self.env['dtm.odt'].search([('id','=',self.model_id._origin.id)]).firma_almacen in ['almacen@dtmindustry.com']:
-                if self.nombre.find("Lámina") != -1:
-                    medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0"]
-                    self.revision = True
-                    if not any(medida in self.medida for medida in medidas_validas):
-                        self.revision = False
-                        raise ValidationError("Solo Láminas completas!!")
-            else:
-                raise ValidationError("Lista de materiales no verificada")
-
-    @api.depends('materials_cuantity', 'materials_list', 'model_id.revision_ot')
+    @api.depends('materials_cuantity')
     def _compute_materials_inventory(self):
         for line in self:
             material = line.materials_list
@@ -1149,15 +985,14 @@ class TestModelLine(models.Model):
                     'materials_required': 0,
                 })
                 continue
-
+            # print(material)
             # --- CÁLCULO DE INVENTARIO (Solo Lectura) ---
             stock = material.cantidad
-
+            # print('stock',stock)
             # DOMINIO CORREGIDO: Maneja correctamente los IDs temporales
             domain = [
                 ('materials_list', '=', material.id),
-                ('materials_cuantity', '>', 0),
-                ('revision', '!=', True),
+                ('materials_availabe', '>', 0),
                 ('entregado', '!=', True),
             ]
 
@@ -1166,14 +1001,16 @@ class TestModelLine(models.Model):
                 domain.append(('id', '!=', line.id))
             # Si la línea es nueva (es un NewId), no la excluyas por ID (porque no existe en la BD),
             # pero tampoco te preocupes, porque la búsqueda solo encuentra registros guardados.
-
+            # print(domain)
             apartado_almacen = sum(self.env['dtm.materials.line'].search(domain).mapped('materials_cuantity'))
+            # print('apartado_almacen',apartado_almacen)
             disponible_almacen = max(0, stock - apartado_almacen)
+#             print('disponible_almacen',disponible_almacen)
 
             cantidad_solicitada = max(line.materials_cuantity, 0)
 
             # --- ASIGNACIÓN DE VALORES COMPUTADOS ---
-            line.materials_inventory = stock
+            # line.materials_inventory = stock
             if disponible_almacen >= cantidad_solicitada:
                 line.materials_availabe = cantidad_solicitada
                 line.materials_required = 0
@@ -1186,7 +1023,6 @@ class TestModelLine(models.Model):
                     ('materials_list', '=', material.id),
                     # ('id', '!=', line._origin.id),
                     ('materials_cuantity', '>', 0),
-                    ('revision', '!=', True),
                     ('entregado', '!=', True),
                 ]).mapped('materials_availabe'))
 
@@ -1194,8 +1030,7 @@ class TestModelLine(models.Model):
             material.apartado = max(apartado_almacen,0)
 
             # Recalcula el disponible
-            material.disponible = material.cantidad - material.apartado
-
+            material.disponible = max(material.cantidad - material.apartado,0)
 
     @api.constrains('materials_cuantity', 'materials_list', 'model_id')
     def _check_materials_exceed_master(self):
@@ -1300,6 +1135,38 @@ class ConfirmDialog(models.TransientModel):
 
     def action_close(self):
         return {'type': 'ir.actions.act_window_close'}
+
+class MaterialNesteo(models.Model):
+    _name = "dtm.odt.laminas.nesteo"
+    _description = "Modelo para ligar material con archivo de nesteo"
+
+    model_id = fields.Many2one('dtm.odt')
+
+    # Documento
+    archivo = fields.Binary(string="Archivo")
+    nombre = fields.Char(string="Nombre")
+    # Material Cantidad
+    material_ids = fields.Many2one("dtm.materials.line",string="LISTADO DE MATERIALES",domain="[('model_id', '=', filtro),('materials_list.nombre', 'like', 'Lámina%')]",require=True)
+    filtro = fields.Integer()
+    cantidad = fields.Integer(string="Cantidad",require=True)
+    maquina = fields.Selection(string="Cortadora",selection=[('mitsubishi','MITSUBISHI'),('bfc6025','BFC6025')],require=True)
+    @api.model
+    def default_get(self, fields_list):
+        # Filtro para solo ver la lista de materiales relacionados
+        defaults = super().default_get(fields_list)
+        context = self.env.context['params']['id']
+        if context:
+            defaults['filtro'] = context
+        return defaults
+
+
+
+
+
+
+
+
+
 
 
 
