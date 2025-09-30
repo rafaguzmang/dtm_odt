@@ -297,7 +297,7 @@ class DtmOdt(models.Model):
             row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
             # Se verifica si es una lámina
             if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0"]
+                medidas_validas = ["240.0 x 96.0","120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","18.0 x 8.0","12.0 x 12.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
 
@@ -1108,11 +1108,8 @@ class TestModelLine(models.Model):
 
     @api.onchange('materials_cuantity')
     def _onchenge_materials_cuantity(self):
-        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0","18.0 x 8.0","12.0 x 12.0"] and self.materials_required > 0:
             raise ValidationError("Material agotado")
-
-
-
 
     @api.constrains('materials_cuantity')
     def _check_cantidad(self):
@@ -1156,8 +1153,7 @@ class TestModelLine(models.Model):
             # DOMINIO CORREGIDO: Maneja correctamente los IDs temporales
             domain = [
                 ('materials_list', '=', material.id),
-                ('materials_cuantity', '>', 0),
-                ('revision', '!=', True),
+                ('materials_availabe', '>', 0),
                 ('entregado', '!=', True),
             ]
 
@@ -1185,10 +1181,11 @@ class TestModelLine(models.Model):
                 [
                     ('materials_list', '=', material.id),
                     # ('id', '!=', line._origin.id),
-                    ('materials_cuantity', '>', 0),
-                    ('revision', '!=', True),
+                    ('materials_availabe', '>', 0),
                     ('entregado', '!=', True),
                 ]).mapped('materials_availabe'))
+
+
 
             # Actualiza el campo 'apartado' del material
             material.apartado = max(apartado_almacen,0)
