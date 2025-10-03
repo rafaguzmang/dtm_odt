@@ -70,8 +70,8 @@
                         <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />-->
+<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />
                         <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
                     </header>
 
@@ -221,11 +221,24 @@
                                     </group>
 
                                     <group class="d-flex flex-column">
-                                        <field name="cortadora_id"
-                                               attrs="{'readonly': ['|',('firma_ingenieria','!=',False),('usuario','!=','ingenieria1@dtmindustry.com')]}">
+                                        <field name="cortadora_id">
+<!--                                               attrs="{'readonly': ['|',('firma_ingenieria','!=',False),('usuario','!=','ingenieria1@dtmindustry.com')]}">-->
                                             <tree>
-                                                <field name="name"/>
+                                                <field name="nombre"/>
+                                                <field name="material_ids"/>
+                                                <field name="cantidad"/>
+                                                <field name="maquina" />
                                             </tree>
+                                            <form>
+                                                <group editable="bottom">
+                                                    <field name="archivo" filename="nombre" />
+                                                    <field name="nombre" invisible="1"/>
+                                                    <field name="material_ids" create="0"/>
+                                                    <field name="filtro" invisible="1"/>
+                                                    <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="maquina" />
+                                                </group>
+                                            </form>
                                         </field>
                                     </group>
                                 </group>
