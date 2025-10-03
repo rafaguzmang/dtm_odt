@@ -71,6 +71,7 @@
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
                         <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />-->
                         <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
                     </header>
 
@@ -122,7 +123,7 @@
                                                                 'readonly': [('retrabajo', '=', True)]
                                                                 }"/>
                                     <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
-                                    <field name="permiso_ingenieria" invisible="1"/>
+                                    <field name="permiso_ingenieria" invisible="0"/>
                             </group>
                             <group class="col-4">
                                     <field name="diseno_terminado" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
@@ -164,13 +165,13 @@
                                 </div>
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-                                <field name="materials_ids"  >
+                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
                                         <field name="materials_list" attrs="{'readonly': [('revision', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
-                                        <field name="materials_cuantity" options='{"type": "number"} ' attrs="{'readonly': [('revision', '=', True)]}" />
+                                        <field name="materials_cuantity" options='{"type": "number"}' attrs="{'readonly': [('revision', '=', True)]}"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
@@ -196,37 +197,75 @@
                             <page string="PLANOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="anexos_id" widget="many2many_binary" attrs="{'readonly': [('retrabajo', '=', True)]}"/>
                             </page>
-                            <page string="MITSUBISHI" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-                                <div style="display:flex;">
-                                    <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-                                        <field name="cortadora_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                            <page string="CORTADORA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
+                                <group>
+                                    <group class="d-flex flex-column">
+                                        <field name="primera_pieza_id">
+                                            <tree>
+                                                <field name="nombre"/>
+                                                <field name="material_ids"/>
+                                                <field name="cantidad"/>
+                                                <field name="maquina" />
+                                            </tree>
+                                            <form>
+                                                <group editable="bottom">
+                                                    <field name="archivo" filename="nombre" />
+                                                    <field name="nombre" invisible="1"/>
+                                                    <field name="material_ids" create="0"/>
+                                                    <field name="filtro" invisible="1"/>
+                                                    <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="maquina" />
+                                                </group>
+                                            </form>
+                                        </field>
+                                    </group>
 
-                                    </div>
-                                    <div style="width: 50%">
-                                        <field name="ligas_id"  >
-                                            <tree editable="bottom">
-                                                <field name="liga"/>
+                                    <group class="d-flex flex-column">
+                                        <field name="cortadora_id">
+<!--                                               attrs="{'readonly': ['|',('firma_ingenieria','!=',False),('usuario','!=','ingenieria1@dtmindustry.com')]}">-->
+                                            <tree>
+                                                <field name="nombre"/>
+                                                <field name="material_ids"/>
+                                                <field name="cantidad"/>
+                                                <field name="maquina" />
                                             </tree>
+                                            <form>
+                                                <group editable="bottom">
+                                                    <field name="archivo" filename="nombre" />
+                                                    <field name="nombre" invisible="1"/>
+                                                    <field name="material_ids" create="0"/>
+                                                    <field name="filtro" invisible="1"/>
+                                                    <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="maquina" />
+                                                </group>
+                                            </form>
                                         </field>
-                                    </div>
+                                    </group>
+                                </group>
+
+                                <div class="o_row">
+                                    <field name="ligas_id">
+                                        <tree editable="bottom">
+                                            <field name="liga"/>
+                                        </tree>
+                                    </field>
                                 </div>
                             </page>
-                            <page string="BFC6025" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-                                <div style="display:flex;">
-                                    <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-                                        <field name="bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-                                    </div>
-                                    <div style="width: 50%">
-                                        <field name="ligas_id"  >
-                                            <tree editable="bottom">
-                                                <field name="liga"/>
-                                            </tree>
-                                        </field>
-                                    </div>
-                                </div>
-                            </page>
+<!--                            <page string="BFC6025" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">-->
+<!--                                <div style="display:flex;">-->
+<!--                                    <div style="display:flex;width: 50%">-->
+<!--                                        <field name="primera_pieza_bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+<!--                                        <field name="bfc_id" widget="many2many_binary" attrs="{'readonly': ['|',('firma_ingenieria', '!=', False),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+<!--                                    </div>-->
+<!--                                    <div style="width: 50%">-->
+<!--                                        <field name="ligas_id"  >-->
+<!--                                            <tree editable="bottom">-->
+<!--                                                <field name="liga"/>-->
+<!--                                            </tree>-->
+<!--                                        </field>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </page>-->
                             <page string="LTP 6032"  attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
