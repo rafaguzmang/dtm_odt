@@ -291,11 +291,10 @@ class DtmOdt(models.Model):
         }
 
     def action_almacen(self):
+        self.firma_almacen = 'almacen@dtmindustry.com'
         if any(not m.almacen for m in self.materials_ids):
             self.almacen_rev = True
             self.firma_almacen = 'Pendiente'
-        else:
-            self.firma_almacen = 'almacen@dtmindustry.com'
 
         if not self.materials_ids:
             self.firma_almacen = None
@@ -945,6 +944,18 @@ class TestModelLine(models.Model):
     costo = fields.Float(string="Precio",readonly=True)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
 
+
+    # Onchange
+    @api.onchange('materials_cuantity')
+    def _onchenge_materials_cuantity(self):
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
+            raise ValidationError("Material agotado")
+    #---------------------------------
+    # Compute
+    # @api.depends('materials_cuantity')
+    # def compute_precio(self):
+    #     for result in self:
+    #         result.costo = result.unitario * result.cantidad
     def _compute_revision(self):
         for record in self:
             get_requerido = self.env['dtm.compras.requerido'].search([
@@ -960,18 +971,6 @@ class TestModelLine(models.Model):
             record.revision = False
             if get_realizado or get_requerido:
                 record.revision = True
-
-    @api.onchange('materials_cuantity')
-    def _onchenge_materials_cuantity(self):
-        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
-            raise ValidationError("Material agotado")
-
-    @api.constrains('materials_cuantity')
-    def _check_cantidad(self):
-        for record in self:
-            if record.materials_cuantity == 0:
-                raise ValidationError(
-                    "La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.materials_list.id)
 
     def _compute_usuario(self):
         for result in self:
@@ -1034,7 +1033,9 @@ class TestModelLine(models.Model):
 
             # Recalcula el disponible
             material.disponible = max(material.cantidad - material.apartado,0)
+    #---------------------------------
 
+    # Constrains
     @api.constrains('materials_cuantity', 'materials_list', 'model_id')
     def _check_materials_exceed_master(self):
         for line in self:
@@ -1059,6 +1060,14 @@ class TestModelLine(models.Model):
                         "La cantidad total solicitada en las órdenes hijas (%s) excede la cantidad disponible en la orden maestra (%s) para el material %s." % (
                             total_hijas, master_qty, material.nombre)
                     )
+
+    @api.constrains('materials_cuantity')
+    def _check_cantidad(self):
+        for record in self:
+            if record.materials_cuantity == 0:
+                raise ValidationError(
+                    "La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.materials_list.id)
+    #-------------------------------------------
 
 class Rechazo(models.Model):
     _name = "dtm.odt.rechazo"
@@ -1119,16 +1128,14 @@ class ListaMateriales(models.Model):
             if record.cantidad == 0:
                 raise ValidationError("La cantidad en el código '%s' no puede ser cero. Por favor, ingrese un valor mayor a cero." % record.material_id.id)
 
-
-
     def _compute_usuario(self):
         for result in self:
             result.usuario = self.env.user.partner_id.email
 
-    @api.depends('cantidad')
     def compute_precio(self):
-        for result in self:
-            result.precio = result.unitario * result.cantidad
+        for record in self:
+            record.unitario = record.material_id.mostrador
+            record.precio = record.material_id.mostrador * record.cantidad
 
 class ConfirmDialog(models.TransientModel):
     _name = 'confirm.dialog.wizard'
@@ -1168,7 +1175,6 @@ class MaterialNesteo(models.Model):
         # Filtro para solo ver la lista de materiales relacionados
         defaults = super().default_get(fields_list)
         context = self.env.context['params']['id']
-        print(context)
         if context:
             defaults['filtro'] = context
         return defaults
