@@ -917,20 +917,20 @@ class DtmOdt(models.Model):
                 odt.manufactura = True
 
         # Pone precio a los materiales
-        for item in self.env['dtm.materials.line'].search([]):
-            # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
-            # item.materials_list.id == 430 and print(item.model_id.ot_number)
-            # item.model_id.ot_number == 958 and print('Get view',item.materials_list.id,item.materials_list.nombre,item.model_id.ot_number)
-
-            if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
-                item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
-            get_requerido = self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
-            get_realizado = self.env['dtm.compras.realizado'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
-            item.materials_list.id == 874 and print(get_realizado)
-            item.revision = False
-            if get_requerido or get_realizado:
-#                 item.model_id.ot_number == 958 and print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','=',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))]))
-                item.revision = True
+#         for item in self.env['dtm.materials.line'].search([]):
+#             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
+#             # item.materials_list.id == 430 and print(item.model_id.ot_number)
+#             # item.model_id.ot_number == 958 and print('Get view',item.materials_list.id,item.materials_list.nombre,item.model_id.ot_number)
+#
+#             if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
+#                 item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
+#             get_requerido = self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
+#             get_realizado = self.env['dtm.compras.realizado'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
+#             item.materials_list.id == 874 and print(get_realizado)
+#             item.revision = False
+#             if get_requerido or get_realizado:
+# #                 item.model_id.ot_number == 958 and print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','=',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))]))
+#                 item.revision = True
 
 
         # get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
