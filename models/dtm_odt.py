@@ -658,7 +658,7 @@ class DtmOdt(models.Model):
                         "documentos":file.archivo,
                         "nombre":file.nombre,
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.nombre} {file.material_ids.medida}",
+                        "lamina":f"{file.material_ids.id} - {file.material_ids.nombre} {file.material_ids.medida}",
                         "cantidad":file.cantidad,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
@@ -676,13 +676,6 @@ class DtmOdt(models.Model):
             list_borrar = [doc for doc in  get_corte.cortadora_id.mapped('nombre') if doc not in nesteos.mapped('nombre')]
             # print(list_borrar)
             get_corte.cortadora_id.filtered_domain([('nombre','in',list_borrar)]).unlink()
-
-
-
-
-
-
-
 
     def cortadora_tubos(self):
         if self.tubos_id: #Agrega los datos a la máquina de corte
@@ -794,6 +787,13 @@ class DtmOdt(models.Model):
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados
         if 'maquinado' in self.maquinados_id.mapped('tipo_servicio'):
+            # Se busca si la orden ya tiene maquinados terminados
+            terminados = self.env['dtm.maquinados.terminados'].search([
+                ('orden_trabajo','=',self.ot_number),
+                ('revision_ot','=',self.version_ot),
+                ('tipo_orden','=',self.tipe_order)
+            ],limit=1)
+            # Se revisa si la orden ya existe en maquinados para actualizarla y de no ser así la crea
             maquinado = self.env['dtm.maquinados'].search([('orden_trabajo','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipo_orden','=',self.tipe_order)],limit=1)
             vals = {
                 'orden_trabajo':self.ot_number,
@@ -802,12 +802,14 @@ class DtmOdt(models.Model):
                 'disenador':self.disenador,
             }
              # si existe se actualiza la información si no se crea
-            maquinado.write(vals) if maquinado else maquinado.create(vals)
-            maquinado = self.env['dtm.maquinados'].search([('orden_trabajo', '=', self.ot_number), ('revision_ot', '=', self.revision_ot),('tipo_orden', '=', self.tipe_order)], limit=1)
+            if maquinado:
+                maquinado.write(vals)
+            else:
+                maquinado = self.env['dtm.maquinados'].create(vals)
             # se pasan todos los servicios de la orden a la tabla de la orden que esta en el modulo de maquinados
-            # se recorren los servicios
             for servicio in self.maquinados_id:
-                if servicio.tipo_servicio == 'maquinado':
+                # print(self.env['dtm.maquinados.servicios'].search([('model2_id','=',terminados.id),('nombre','=',servicio.nombre)]))
+                if servicio.tipo_servicio == 'maquinado' and not self.env['dtm.maquinados.servicios'].search([('model2_id','=',terminados.id),('nombre','=',servicio.nombre)]):
                     vals_servicios = {
                         'nombre':servicio.nombre,
                         'tipo_servicio':'Maquinado',
@@ -816,7 +818,7 @@ class DtmOdt(models.Model):
                         'model_id':maquinado.id,
                         'anexos_id':servicio.anexos_id
                     }
-                    servicio = self.env['dtm.maquinados.servicios'].search([('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
+                    servicio = self.env['dtm.maquinados.temporales'].search([('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
                     servicio.write(vals_servicios) if servicio else servicio.create(vals_servicios)
 
     def action_retrabajo(self):
