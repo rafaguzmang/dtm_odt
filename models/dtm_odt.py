@@ -658,7 +658,7 @@ class DtmOdt(models.Model):
                         "documentos":file.archivo,
                         "nombre":file.nombre,
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.nombre} {file.material_ids.medida}",
+                        "lamina":f"{file.material_ids.id} - {file.material_ids.nombre} {file.material_ids.medida}",
                         "cantidad":file.cantidad,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
@@ -671,10 +671,7 @@ class DtmOdt(models.Model):
                         get_documentos.create(vals)
 
             # Se quitan los archivos que fueron borrados
-            # print(get_corte.cortadora_id.mapped('nombre'))
-            # print(nesteos.mapped('nombre'))
             list_borrar = [doc for doc in  get_corte.cortadora_id.mapped('nombre') if doc not in nesteos.mapped('nombre')]
-            # print(list_borrar)
             get_corte.cortadora_id.filtered_domain([('nombre','in',list_borrar)]).unlink()
 
 
@@ -914,39 +911,6 @@ class DtmOdt(models.Model):
             # Pone el status en proceso si esta se encuentra en ese modulo
             if self.env['dtm.proceso'].search([('ot_number','=',odt.ot_number),('revision_ot','=',odt.revision_ot)]):
                 odt.manufactura = True
-
-        # Pone precio a los materiales
-#         for item in self.env['dtm.materials.line'].search([]):
-#             # print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('orden_trabajo','=',str(self.env['dtm.odt'].search([('id','=',item.model_id.id)]).ot_number))]).unitario)
-#             # item.materials_list.id == 430 and print(item.model_id.ot_number)
-#             # item.model_id.ot_number == 958 and print('Get view',item.materials_list.id,item.materials_list.nombre,item.model_id.ot_number)
-#
-#             if self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]):
-#                 item.write({'costo':item.materials_cuantity * self.env['dtm.compras.precios'].search([('codigo','=',item.materials_list.id)]).precio})
-#             get_requerido = self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
-#             get_realizado = self.env['dtm.compras.realizado'].search([('codigo','=',item.materials_list.id),('nombre','ilike',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))])
-#             item.materials_list.id == 874 and print(get_realizado)
-#             item.revision = False
-#             if get_requerido or get_realizado:
-# #                 item.model_id.ot_number == 958 and print(self.env['dtm.compras.requerido'].search([('codigo','=',item.materials_list.id),('nombre','=',item.materials_list.nombre),('orden_trabajo','=',str(item.model_id.ot_number))]))
-#                 item.revision = True
-
-
-        # get_materiales = self.env['dtm.odt.listamateriales'].search([('precio','=',0)]).mapped('material_id').ids
-        # get_compras = self.env['dtm.compras.precios'].search([('codigo','in',get_materiales)]).mapped('codigo')
-        # for item in get_compras:
-        #     if item in get_materiales:
-        #         get_self = self.env['dtm.odt.listamateriales'].search([('material_id','=',item)])
-        #         get_precio = self.env['dtm.compras.precios'].search([('codigo','=',item)])
-        #         if get_self:
-        #             for material in get_self:
-        #                 material.write({'unitario':get_precio.precio,'precio': material.cantidad * get_precio.precio})
-
-
-
-
-
-        # Busca las ordenes que ya fueron facturadas y borra los materiales solicitados por esta de la tabla dtm_materials_line
 
         return res
 
