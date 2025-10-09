@@ -95,6 +95,7 @@ class DtmOdt(models.Model):
     permiso_ingenieria = fields.Boolean()
     costo_material = fields.Float(string="Costo",readonly = True)
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
+    firma_date = fields.Datetime()
 
     #----------------Tracking----------------------------
     lista_material_id_tracking = fields.Char(compute='_compute_lista_material_id_tracking', store=True, tracking = True)
@@ -295,6 +296,8 @@ class DtmOdt(models.Model):
         if any(not m.almacen for m in self.materials_ids):
             self.almacen_rev = True
             self.firma_almacen = 'Pendiente'
+            self.firma_date = datetime.today()
+
 
         if not self.materials_ids:
             self.firma_almacen = None
@@ -658,7 +661,7 @@ class DtmOdt(models.Model):
                         "documentos":file.archivo,
                         "nombre":file.nombre,
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.id} - {file.material_ids.nombre} {file.material_ids.medida}",
+                        "lamina":f"{file.material_ids.materials_list.id} - {file.material_ids.materials_list.nombre} {file.material_ids.materials_list.medida}",
                         "cantidad":file.cantidad,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
