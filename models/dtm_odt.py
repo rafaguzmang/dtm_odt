@@ -95,13 +95,13 @@ class DtmOdt(models.Model):
     permiso_ingenieria = fields.Boolean()
     costo_material = fields.Float(string="Costo",readonly = True)
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
-    firma_date = fields.Datetime()
 
     #----------------Tracking----------------------------
     lista_material_id_tracking = fields.Char(compute='_compute_lista_material_id_tracking', store=True, tracking = True)
     materials_ids_tracking = fields.Char(compute='_compute_materials_ids_tracking', store=True, tracking = True)
     maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
     anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
+    firma_date = fields.Datetime()
 
 
     # Se revisa si hay archivos con el mismo nombre
@@ -297,7 +297,6 @@ class DtmOdt(models.Model):
             self.almacen_rev = True
             self.firma_almacen = 'Pendiente'
             self.firma_date = datetime.today()
-
 
         if not self.materials_ids:
             self.firma_almacen = None
@@ -620,7 +619,7 @@ class DtmOdt(models.Model):
 
             # si el archivo es primera pieza y no ha sido cortado
             elif get_encorte_primera and not get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
-                # print("Primera pieza solo en corte")
+                print("Primera pieza solo en corte")
                 get_corte = get_encorte_primera
                 get_corte.write(vals)
                 # recolecta los archivos de las dos cortadoras
@@ -661,7 +660,7 @@ class DtmOdt(models.Model):
                         "documentos":file.archivo,
                         "nombre":file.nombre,
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.materials_list.id} - {file.material_ids.materials_list.nombre} {file.material_ids.materials_list.medida}",
+                        "lamina":f"{file.material_ids.id} - {file.material_ids.nombre} {file.material_ids.medida}",
                         "cantidad":file.cantidad,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
@@ -801,7 +800,7 @@ class DtmOdt(models.Model):
                 'tipo_orden':self.tipe_order,
                 'disenador':self.disenador,
             }
-             # si existe se actualiza la información si no se crea
+             # si existe se actualiza la información si no se crea la orden
             if maquinado:
                 maquinado.write(vals)
             else:
@@ -818,7 +817,7 @@ class DtmOdt(models.Model):
                         'model_id':maquinado.id,
                         'anexos_id':servicio.anexos_id
                     }
-                    servicio = self.env['dtm.maquinados.temporales'].search([('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
+                    servicio = self.env['dtm.maquinados.temporales'].search([('model_id','=',maquinado.id),('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
                     servicio.write(vals_servicios) if servicio else servicio.create(vals_servicios)
 
     def action_retrabajo(self):

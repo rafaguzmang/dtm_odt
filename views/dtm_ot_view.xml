@@ -70,8 +70,8 @@
                         <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
                         <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
                         <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
-<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />-->
+<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
+                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />
                         <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
                     </header>
 
@@ -165,8 +165,7 @@
                                 </div>
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-<!--                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">-->
-                                <field name="materials_ids"  >
+                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
