@@ -101,6 +101,7 @@ class DtmOdt(models.Model):
     materials_ids_tracking = fields.Char(compute='_compute_materials_ids_tracking', store=True, tracking = True)
     maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
     anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
+    firma_date = fields.Datetime()
 
 
     # Se revisa si hay archivos con el mismo nombre
@@ -295,6 +296,7 @@ class DtmOdt(models.Model):
         if any(not m.almacen for m in self.materials_ids):
             self.almacen_rev = True
             self.firma_almacen = 'Pendiente'
+            self.firma_date = datetime.today()
 
         if not self.materials_ids:
             self.firma_almacen = None
@@ -801,7 +803,7 @@ class DtmOdt(models.Model):
                 'tipo_orden':self.tipe_order,
                 'disenador':self.disenador,
             }
-             # si existe se actualiza la información si no se crea
+             # si existe se actualiza la información si no se crea la orden
             if maquinado:
                 maquinado.write(vals)
             else:
@@ -818,7 +820,7 @@ class DtmOdt(models.Model):
                         'model_id':maquinado.id,
                         'anexos_id':servicio.anexos_id
                     }
-                    servicio = self.env['dtm.maquinados.temporales'].search([('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
+                    servicio = self.env['dtm.maquinados.temporales'].search([('model_id','=',maquinado.id),('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
                     servicio.write(vals_servicios) if servicio else servicio.create(vals_servicios)
 
     def action_retrabajo(self):
