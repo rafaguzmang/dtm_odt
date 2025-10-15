@@ -619,7 +619,7 @@ class DtmOdt(models.Model):
 
             # si el archivo es primera pieza y no ha sido cortado
             elif get_encorte_primera and not get_cortado_primera and not get_encorte_segunda and not get_cortado_segunda:
-                print("Primera pieza solo en corte")
+                # print("Primera pieza solo en corte")
                 get_corte = get_encorte_primera
                 get_corte.write(vals)
                 # recolecta los archivos de las dos cortadoras
@@ -654,13 +654,12 @@ class DtmOdt(models.Model):
             # Se agregan los archivos correspondientes al modulo de corte
             for file in nesteos:
                if file.nombre not in get_final.cortadora_id.mapped('nombre'):
-
                     vals = {
                         "model_id": get_corte.id,
                         "documentos":file.archivo,
                         "nombre":file.nombre,
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.id} - {file.material_ids.nombre} {file.material_ids.medida}",
+                        "lamina":f"{file.material_ids.materials_list.id} - {file.material_ids.nombre} {file.material_ids.medida}",
                         "cantidad":file.cantidad,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
