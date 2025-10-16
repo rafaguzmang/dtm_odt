@@ -165,7 +165,8 @@
                                 </div>
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">
+<!--                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">-->
+                                <field name="materials_ids">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
