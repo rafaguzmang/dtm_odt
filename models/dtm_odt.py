@@ -959,6 +959,7 @@ class TestModelLine(models.Model):
     #         result.costo = result.unitario * result.cantidad
     def _compute_revision(self):
         for record in self:
+            print(record)
             get_requerido = self.env['dtm.compras.requerido'].search([
                 ('codigo','=',record.materials_list.id),
                 ('nombre','ilike',record.materials_list.nombre),
@@ -972,6 +973,7 @@ class TestModelLine(models.Model):
             record.revision = False
             if get_realizado or get_requerido:
                 record.revision = True
+
 
     def _compute_usuario(self):
         for result in self:

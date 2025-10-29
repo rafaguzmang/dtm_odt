@@ -111,25 +111,61 @@
 <!--                                    </tree>-->
 <!--                               </field>-->
 <!--                           </page>-->
-                           <page string="PLANOS">
+                            <page string="PLANOS">
                                <field name="anexos_id"/>
-                           </page>
-                           <page string="MITSUBISHI">
-                               <div style="display:flex;">
-                                    <div style="display:flex;width: 50%">
-                                        <field name="primera_pieza_id" widget="many2many_binary"/>
-                                        <field name="cortadora_id" widget="many2many_binary"/>
-                                    </div>
-                                    <div style="width: 50%">
-                                        <field name="ligas_id"  >
-                                            <tree editable="bottom">
-                                                <field name="liga"/>
+                            </page>
+                            <page string="CORTADORA">
+                                <group>
+                                    <group class="d-flex flex-column">
+                                        <field name="primera_pieza_id">
+                                            <tree>
+                                                <field name="nombre"/>
+                                                <field name="material_ids"/>
+                                                <field name="cantidad"/>
+                                                <field name="maquina" />
                                             </tree>
+                                            <form>
+                                                <group>
+                                                    <field name="archivo" filename="nombre" />
+                                                    <field name="nombre" invisible="1"/>
+                                                    <field name="material_ids" create="0"/>
+                                                    <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="maquina" />
+                                                </group>
+                                            </form>
                                         </field>
-                                    </div>
+                                    </group>
+
+                                    <group class="d-flex flex-column">
+                                        <field name="cortadora_id">
+                                            <tree>
+                                                <field name="nombre"/>
+                                                <field name="material_ids"/>
+                                                <field name="cantidad"/>
+                                                <field name="maquina" />
+                                            </tree>
+                                            <form>
+                                                <group editable="bottom">
+                                                    <field name="archivo" filename="nombre" />
+                                                    <field name="nombre" invisible="1"/>
+                                                    <field name="material_ids" create="0"/>
+                                                    <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="maquina" />
+                                                </group>
+                                            </form>
+                                        </field>
+                                    </group>
+                                </group>
+
+                                <div class="o_row">
+                                    <field name="ligas_id">
+                                        <tree editable="bottom">
+                                            <field name="liga"/>
+                                        </tree>
+                                    </field>
                                 </div>
-                           </page>
-                           <page string="LTP 6032">
+                            </page>
+                            <page string="LTP 6032">
                                  <div style="display:flex;">
                                     <div style="display:flex;width: 50%">
                                         <field name="tubos_id" widget="many2many_binary"  />
@@ -145,11 +181,11 @@
                            </page>
                             <page string="NOTAS">
                                <field name="notes"/>
-                           </page>
-                           <page string="PO">
+                            </page>
+                            <page string="PO">
                               <field name="orden_compra_pdf"/>
-                           </page>
-                           <page string="ARCHIVOS">
+                            </page>
+                            <page string="ARCHIVOS">
                                 <field name="anexos_ventas_id" >
                                      <tree>
                                             <field name="name" invisible="0"></field>
@@ -161,10 +197,10 @@
                                         </group>
                                      </form>
                                 </field>
-                           </page>
-                           <page string="ANEXOS">
+                            </page>
+                            <page string="ANEXOS">
                                <field name="archivos_id"/>
-                           </page>
+                            </page>
                        </notebook>
                    </sheet>
 

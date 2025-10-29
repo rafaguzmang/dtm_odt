@@ -40,19 +40,34 @@ class Revisiones(models.Model):
     ligas_id = fields.Many2many("dtm.odt.ligas",readonly=True)
 
     orden_compra_pdf = fields.Many2many("ir.attachment", string='File', readonly=True)
-    #
-    # # Lista de materiales
-    # materials_ids = fields.Many2many("dtm.materials.line", string="Lista", readonly=True)
-    # # Archivos mandados por ventas
+    # Lista de materiales
+    # Archivos mandados por ventas
     anexos_ventas_id = fields.Many2many("ir.attachment", "anexos_ventas_id2", string="Archivos", readonly=True)
     anexos_id = fields.Many2many("ir.attachment",'anexos_id2', string="Archivos", readonly=True)
-    cortadora_id = fields.Many2many("ir.attachment", "cortadora_id2", string="Segundas piezas", readonly=True)
+    cortadora_id = fields.One2many("dtm.odt.revisionescortadora", "model_id", string="Segundas piezas", readonly=True)
     tubos_id = fields.Many2many("ir.attachment", "tubos_id2", readonly=True)
     # # Planos
     archivos_id = fields.Many2many('dtm.documentos.anexos', readonly=True)
     # maquinados_id = fields.One2many("dtm.odt.servicios", "extern_id")
-    primera_pieza_id = fields.Many2many("ir.attachment", "primera_pieza_id2", string="Primeras piezas", readonly=True)
+    primera_pieza_id = fields.One2many("dtm.odt.revisionescortadora", "model_id2", string="Primeras piezas", readonly=True)
     ligas_tubos_id = fields.Many2many("dtm.odt.ligas", "model_tubo_id", readonly=True)
 
     def action_pasive(self):
         pass
+
+class Cortadora(models.Model):
+    _name = 'dtm.odt.revisionescortadora'
+    _description = 'Modelo para guardar el historial de las ordenes devueltas por calidad'
+
+    model_id = fields.Many2one('dtm.odt.revisiones')
+    model_id2 = fields.Many2one('dtm.odt.revisiones')
+
+    # Documento
+    archivo = fields.Binary(string="Archivo", readonly=True)
+    nombre = fields.Char(string="Nombre", readonly=True)
+    # Material Cantidad
+    material_ids = fields.Char(string='Material',readonly=True)
+    cantidad = fields.Integer(string="Cantidad", readonly=True)
+    maquina = fields.Char(string="Cortadora", readonly=True)
+
+
