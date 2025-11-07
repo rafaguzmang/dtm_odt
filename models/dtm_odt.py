@@ -312,8 +312,6 @@ class DtmOdt(models.Model):
                 result.permiso_ingenieria = True
                 result.permiso_diseno = False
 
-
-
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
         # Pone el nombre del diseñador
@@ -661,6 +659,7 @@ class DtmOdt(models.Model):
                         "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
                         "lamina":f"{file.material_ids.materials_list.id} - {file.material_ids.nombre} {file.material_ids.medida}",
                         "cantidad":file.cantidad,
+                        "tiempo_teorico":file.tiempo_teorico,
                     }
                     get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
                     # print(get_documentos)
@@ -757,10 +756,7 @@ class DtmOdt(models.Model):
             if codigo.materials_required > 0 and buscar.find('Maquinado') == -1 and codigo.almacen:
                 # Busca los materiales solicitados en el apartado de requerido
                 get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
-                codigo.model_id.ot_number == 958 and print(get_requerido)
                 get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
-                codigo.model_id.ot_number == 958 and print(get_realizado)
-                codigo.model_id.ot_number == 958 and print(codigo.materials_required,get_realizado.cantidad,get_requerido.cantidad)
                 vals = {
                         'orden_trabajo':self.ot_number,
                         'codigo':codigo.materials_list.id,
@@ -771,10 +767,8 @@ class DtmOdt(models.Model):
                         'revision_ot':self.revision_ot,
                         'nesteo': True if self.firma_ingenieria else False
                     }
-                codigo.model_id.ot_number == 958 and print(vals)
                 if not get_requerido and not get_realizado:
                     get_requerido.create(vals)
-                    codigo.model_id.ot_number == 958 and print('Se crea por primera ves')
                 elif get_requerido and not get_realizado:
                     get_requerido.write(vals)
                     codigo.model_id.ot_number == 958 and print('Se actualiza si ya existe')
@@ -1164,6 +1158,7 @@ class MaterialNesteo(models.Model):
     filtro = fields.Integer()
     cantidad = fields.Integer(string="Cantidad",required=True)
     maquina = fields.Selection(string="Cortadora",selection=[('mitsubishi','MITSUBISHI'),('bfc6025','BFC6025')],required=True)
+    tiempo_teorico = fields.Float(string="Tiempo/min")
 
 
     @api.constrains('cantidad')

@@ -206,6 +206,7 @@
                                                 <field name="nombre"/>
                                                 <field name="material_ids"/>
                                                 <field name="cantidad"/>
+                                                <field name="tiempo_teorico" />
                                                 <field name="maquina" />
                                             </tree>
                                             <form>
@@ -215,6 +216,7 @@
                                                     <field name="material_ids" create="0"/>
                                                     <field name="filtro" invisible="1"/>
                                                     <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="tiempo_teorico" />
                                                     <field name="maquina" />
                                                 </group>
                                             </form>
@@ -228,6 +230,7 @@
                                                 <field name="nombre"/>
                                                 <field name="material_ids"/>
                                                 <field name="cantidad"/>
+                                                <field name="tiempo_teorico" />
                                                 <field name="maquina" />
                                             </tree>
                                             <form>
@@ -237,6 +240,7 @@
                                                     <field name="material_ids" create="0"/>
                                                     <field name="filtro" invisible="1"/>
                                                     <field name="cantidad" options='{"type": "number"}'/>
+                                                    <field name="tiempo_teorico" />
                                                     <field name="maquina" />
                                                 </group>
                                             </form>
