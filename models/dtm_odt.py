@@ -51,6 +51,13 @@ class DtmOdt(models.Model):
     po_fecha = fields.Date(string="Fecha PO", readonly=True)
     planos = fields.Boolean(string="Planos",default=False)
     nesteos = fields.Boolean(string="Nesteos",default=False)
+    prioridad = fields.Selection([
+        ('0', 'Muy baja'),
+        ('1', 'Baja'),
+        ('2', 'Media'),
+        ('3', 'Alta'),
+        ('4', 'Muy alta'),
+    ], string="Prioridad")
 
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
     anexos_ventas_id = fields.Many2many("ir.attachment" ,"anexos_ventas_id",string="Archivos")
@@ -771,10 +778,8 @@ class DtmOdt(models.Model):
                     get_requerido.create(vals)
                 elif get_requerido and not get_realizado:
                     get_requerido.write(vals)
-                    codigo.model_id.ot_number == 958 and print('Se actualiza si ya existe')
-                if get_realizado and get_realizado.cantidad < codigo.materials_required:
+                if get_realizado and (get_realizado.cantidad + get_requerido.cantidad) < codigo.materials_cuantity:
                     get_requerido.write(vals) if get_requerido else get_requerido.create(vals)
-                    codigo.model_id.ot_number == 958 and print('Se crea si se necesita mas')
 
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados

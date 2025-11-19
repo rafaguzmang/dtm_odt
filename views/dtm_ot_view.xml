@@ -56,6 +56,8 @@
                     <field name="firma_ventas"/>
                     <field name="manufactura"/>
                     <field name="nesteo_chk" />
+                    <field name="prioridad" widget="priority" attrs="{'invisible':[('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}"/>
+                    <field name="usuario" invisible="1"/>
                 </tree>
             </field>
         </record>
