@@ -56,7 +56,7 @@
                     <field name="firma_ventas"/>
                     <field name="manufactura"/>
                     <field name="nesteo_chk" />
-                    <field name="prioridad" widget="priority" attrs="{'invisible':[('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}"/>
+                    <field name="prioridad_date" attrs="{'invisible':[('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}"/>
                     <field name="usuario" invisible="1"/>
                 </tree>
             </field>
@@ -112,6 +112,11 @@
                                     <h4>
                                         <field name="name_client"  attrs="{'readonly': [('tipe_order', '!=', 'NPI')]}"/>
                                     </h4>
+                                </div>
+                                <div class="col-6 d-flex justify-content-end">
+                                    <group>
+                                        <field name="prioridad_date" attrs="{'invisible':[('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}"/>
+                                    </group>
                                 </div>
 
                             </div>
