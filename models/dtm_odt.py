@@ -335,6 +335,8 @@ class DtmOdt(models.Model):
                 medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
+            if row.materials_list.id == 1:
+                row.write({'almacen':True})
 
     def prediseño_terminado(self):
         cotizacion = self.env['dtm.cotizaciones.predisenos'].search([('od_number','=',self.od_number),('product_name','=',self.product_name),('description','=',self.description)],limit=1)
@@ -652,24 +654,27 @@ class DtmOdt(models.Model):
 
             # Se agregan los archivos correspondientes al modulo de corte
             for file in nesteos:
-               if file.nombre not in get_final.cortadora_id.mapped('nombre'):
-                    vals = {
-                        "model_id": get_corte.id,
-                        "documentos":file.archivo,
-                        "nombre":file.nombre,
-                        "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
-                        "lamina":f"{file.material_ids.materials_list.id} - {file.material_ids.nombre} {file.material_ids.medida}",
-                        "cantidad":file.cantidad,
-                        "tiempo_teorico":file.tiempo_teorico,
-                    }
-                    get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
-                    # print(get_documentos)
-                    if get_documentos:
-                        get_documentos.write(vals)
-                    else:
-                        vals["start"] = False
-                        vals["cortado"] = False
-                        get_documentos.create(vals)
+                if file.sobrante_material or file.material_ids:
+                    if file.nombre not in get_final.cortadora_id.mapped('nombre'):
+                        vals = {
+                            "model_id": get_corte.id,
+                            "documentos":file.archivo,
+                            "nombre":file.nombre,
+                            "cortadora":dict(file._fields['maquina'].selection).get(file.maquina),
+                            "lamina":file.sobrante_material if file.sobrante_uso else f"{file.material_ids.materials_list.id} - {file.material_ids.nombre} {file.material_ids.medida}",
+                            "cantidad":file.cantidad,
+                            "tiempo_teorico":file.tiempo_teorico,
+                        }
+                        get_documentos = self.env['dtm.documentos.cortadora'].search([('nombre','=',file.nombre),('model_id','=',get_corte.id)])
+                        # print(get_documentos)
+                        if get_documentos:
+                            get_documentos.write(vals)
+                        else:
+                            vals["start"] = False
+                            vals["cortado"] = False
+                            get_documentos.create(vals)
+                else:
+                    raise ValidationError(f"{file.nombre} no tiene asignado material")
 
             # Se quitan los archivos que fueron borrados
             list_borrar = [doc for doc in  get_corte.cortadora_id.mapped('nombre') if doc not in nesteos.mapped('nombre')]
@@ -754,7 +759,7 @@ class DtmOdt(models.Model):
             # print(codigo.materials_list.nombre)
             buscar = codigo.materials_list.nombre # Se quita la leyenda Maquinado Externo
             buscar = buscar.replace("Maquinado Externo", "")
-            if codigo.materials_required > 0 and buscar.find('Maquinado') == -1 and codigo.almacen:
+            if codigo.materials_required > 0 and buscar.find('Maquinado') == -1 and codigo.almacen and codigo.materials_list.id != 1:
                 # Busca los materiales solicitados en el apartado de requerido
                 get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
                 get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
@@ -774,6 +779,7 @@ class DtmOdt(models.Model):
                     get_requerido.write(vals)
                 elif get_realizado and (get_realizado.cantidad + get_requerido.cantidad) < codigo.materials_cuantity:
                     get_requerido.write(vals) if get_requerido else get_requerido.create(vals)
+            codigo.write({'materials_availabe':1,'materials_required':0}) if codigo.materials_list.id == 1 else None
 
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados
@@ -1153,7 +1159,9 @@ class MaterialNesteo(models.Model):
     archivo = fields.Binary(string="Archivo", required = True)
     nombre = fields.Char(string="Nombre", required = True)
     # Material Cantidad
-    material_ids = fields.Many2one("dtm.materials.line",string="LISTADO DE MATERIALES",domain="[('model_id', '=', filtro),('materials_list.nombre', 'like', 'Lámina%')]",required=True)
+    sobrante_uso = fields.Boolean(string="Sobrante")
+    sobrante_material = fields.Char(string="Material Sobrante")
+    material_ids = fields.Many2one("dtm.materials.line",string="LISTADO DE MATERIALES",domain="[('model_id', '=', filtro),('materials_list.nombre', 'like', 'Lámina%')]")
     filtro = fields.Integer()
     cantidad = fields.Integer(string="Cantidad",required=True)
     maquina = fields.Selection(string="Cortadora",selection=[('mitsubishi','MITSUBISHI'),('bfc6025','BFC6025')],required=True)
@@ -1166,7 +1174,7 @@ class MaterialNesteo(models.Model):
             if record.cantidad == 0:
                 lista = "Primera pieza" if record.model_id else "Segundas piezas"
                 raise ValidationError(f"CORTADORA DE LÁMINAS\nCantidad debe ser mayor a cero en:\nArchivo: {record.nombre} de la tabla {lista}")
-
+    # Se obtiene la lista de materiales para poder ingresarla por nesteos
     @api.model
     def default_get(self, fields_list):
         # Filtro para solo ver la lista de materiales relacionados
