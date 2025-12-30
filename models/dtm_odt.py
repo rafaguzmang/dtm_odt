@@ -94,7 +94,7 @@ class DtmOdt(models.Model):
     usuario = fields.Char(string="Usuario", compute = "_compute_usuario")
     permiso_diseno = fields.Boolean()
     permiso_ingenieria = fields.Boolean()
-    costo_material = fields.Float(string="Costo",readonly = True)
+    costo_material = fields.Float(string="Costo",compute = 'compute_costo_material')
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
 
     #----------------Tracking----------------------------
@@ -103,6 +103,10 @@ class DtmOdt(models.Model):
     maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
     anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
     firma_date = fields.Datetime()
+
+    def compute_costo_material(self):
+        for record in self:
+            record.costo_diseno = record.materials_ids.mapped('costo')
 
 
     # Se revisa si hay archivos con el mismo nombre
@@ -941,8 +945,12 @@ class TestModelLine(models.Model):
     cant_entregada = fields.Integer()
     recibe = fields.Char()
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
-    costo = fields.Float(string="Precio",readonly=True)
+    costo = fields.Float(string="Precio",readonly=True,compute="compute_precio")
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+
+    def compute_precio(self):
+        for record in self:
+            record.costo = record.materials_list.mostrador * record.materials_cuantity
 
 
     # Onchange
