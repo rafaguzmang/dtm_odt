@@ -1,6 +1,6 @@
 from email.policy import default
 from re import search
-
+import json
 from odoo import api,models,fields
 from datetime import datetime
 from odoo.exceptions import ValidationError
@@ -354,9 +354,9 @@ class DtmOdt(models.Model):
 
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
-        self.materiales_check() # Pone verdadero la casilla de ventas si esta es mayor a cero y está revisado por almacén
+        self.env['bus.bus']._sendone((self._cr.dbname, "mi_canal"), "notification", {"message": "Hola desde el servidor"})        # self.disenador = self.firma  and not self.disenador else None
         email = self.env.user.partner_id.email
-        # self.disenador = self.firma  and not self.disenador else None
+
         if self.tipe_order == 'NPI' and not self.disenador and email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             self.disenador = self.env.user.partner_id.name
         if self.intervencion_calidad: # Solo si se solicita la intervención de calidad
@@ -390,7 +390,7 @@ class DtmOdt(models.Model):
                     self.firma_ingenieria = self.env.user.partner_id.name
 
 
-        if self.firma in ['Luis Donaldo García Rayos','Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
+        if self.firma in ['Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
@@ -483,6 +483,10 @@ class DtmOdt(models.Model):
                     'materials_availabe':max(0,nuevo_apartado),
                     'materials_required':max(0,requerido)
                 }
+
+                if item.material_id.nombre.find('Maquinado')==0:
+                    vals['materials_availabe'] = item.cantidad
+                    vals['materials_required'] = 0
 
                 to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
                 to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
@@ -845,6 +849,14 @@ class DtmOdt(models.Model):
         return record
 
     def write(self, vals):
+        for item in self.materials_ids:
+            if item.materials_list.nombre.find('Maquinado') == 0:
+                item.write({
+                    'materials_availabe':item.materials_cuantity,
+                    'materials_required':0,
+                })
+
+
         res = super().write(vals)
         self._sync_maquinados_to_materiales()
         return res
