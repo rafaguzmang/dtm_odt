@@ -855,10 +855,13 @@ class DtmOdt(models.Model):
                     'materials_availabe':item.materials_cuantity,
                     'materials_required':0,
                 })
-
-
         res = super().write(vals)
         self._sync_maquinados_to_materiales()
+        self.env['bus.bus']._sendone(
+            'canal_ots',
+            'diseno',
+            {'mensaje':'Actualizado por diseño'}
+        )
         return res
 
     def _sync_maquinados_to_materiales(self):
