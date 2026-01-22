@@ -421,6 +421,14 @@ class DtmOdt(models.Model):
             self.permiso_ingenieria = True
             self.permiso_diseno = False
 
+        # Manda la actualización a owl
+        self.env['bus.bus']._sendone(
+            'canal_ots',
+            'diseno',
+            {'mensaje': 'Actualizado por diseño'}
+        )
+
+
     def materiales_nesteo(self):
         lista = []
 
@@ -857,11 +865,7 @@ class DtmOdt(models.Model):
                 })
         res = super().write(vals)
         self._sync_maquinados_to_materiales()
-        self.env['bus.bus']._sendone(
-            'canal_ots',
-            'diseno',
-            {'mensaje':'Actualizado por diseño'}
-        )
+
         return res
 
     def _sync_maquinados_to_materiales(self):
