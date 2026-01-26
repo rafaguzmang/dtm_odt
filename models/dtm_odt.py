@@ -348,15 +348,13 @@ class DtmOdt(models.Model):
         if cotizacion:
             cotizacion.write({
                 'prediseno_id':[(6,0,self.prediseno_id.ids)],
-                'liga_id':[(6,0,self.liga_id.ids)]
+                # 'liga_id':[(6,0,self.liga_id.ids)]
             })
-            self.unlink()
+            # self.unlink()
 
     # Metodo para controlar el paso a proceso
     def action_firma(self,parcial=False):
-        self.env['bus.bus']._sendone((self._cr.dbname, "mi_canal"), "notification", {"message": "Hola desde el servidor"})        # self.disenador = self.firma  and not self.disenador else None
         email = self.env.user.partner_id.email
-
         if self.tipe_order == 'NPI' and not self.disenador and email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             self.disenador = self.env.user.partner_id.name
         if self.intervencion_calidad: # Solo si se solicita la intervención de calidad
@@ -422,11 +420,7 @@ class DtmOdt(models.Model):
             self.permiso_diseno = False
 
         # Manda la actualización a owl
-        self.env['bus.bus']._sendone(
-            'canal_ots',
-            'diseno',
-            {'mensaje': 'Actualizado por diseño'}
-        )
+
 
 
     def materiales_nesteo(self):
@@ -568,8 +562,6 @@ class DtmOdt(models.Model):
             get_doc = self.env['dtm.proceso.primer'].search([('model_id','=',get_ot.id)]).mapped('nombre')
             borrar = [doc for doc in get_doc if doc not in self.primera_pieza_id.mapped('nombre') ]
             self.env['dtm.proceso.primer'].search([('model_id','=',get_ot.id),('nombre','in',borrar)]).unlink()
-
-
 
 
         get_ot.write({'tubos_id': [(5, 0, {})]})

@@ -125,12 +125,15 @@
                                     <field name="date_rel" attrs="{'invisible': [('tipe_order', '!=', 'NPI')]}"/>
                                     <field name="version_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
                                     <field name="revision_ot"  options='{"type": "number"}' attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
-                                    <field name="cuantity" options='{"type": "number"}' attrs="{'readonly': ['|',('ot_number', 'in', ['OT','Pre']),('retrabajo', '=', True)]}"/>
+                                    <field name="cuantity" options='{"type": "number"}' attrs="{
+                                                                                                'readonly': ['|',('ot_number', 'in', ['OT','Pre']),('retrabajo', '=', True)],
+                                                                                                'invisible': [('tipe_order', 'in', ['Pre'])]
+                                                                                                }"/>
                                     <field name="color" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])],
                                                                 'readonly': [('retrabajo', '=', True)]
                                                                 }"/>
                                     <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
-                                    <field name="permiso_ingenieria" invisible="0"/>
+                                    <field name="permiso_ingenieria" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"  />
                             </group>
                             <group class="col-4">
                                     <field name="diseno_terminado" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
@@ -371,11 +374,11 @@
                             <page string="ANEXOS" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="archivos_id"/>
                             </page>
-<!--                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-6">-->
-<!--                                        <field name="prediseno_id" widget="many2many_binary"/>-->
-<!--                                    </div>-->
+                            <page string="PREDISEÑO" attrs="{'invisible': [('tipe_order','not in',['Pre'])]}">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <field name="prediseno_id" widget="many2many_binary"/>
+                                    </div>
 <!--                                    <div class="col-6">-->
 <!--                                        <field name="liga_id">-->
 <!--                                            <tree>-->
@@ -383,9 +386,8 @@
 <!--                                            </tree>-->
 <!--                                        </field>-->
 <!--                                    </div>-->
-<!--                                </div>-->
-
-<!--                            </page>-->
+                                </div>
+                            </page>
                             <page string="RETRABAJO" attrs="{'invisible': [('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}">
                                 <field name="bitacora_id"/>
                             </page>
