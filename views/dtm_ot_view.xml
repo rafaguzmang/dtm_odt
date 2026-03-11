@@ -379,16 +379,16 @@
                                     <div class="col-6">
                                         <field name="prediseno_id" widget="many2many_binary"/>
                                     </div>
-<!--                                    <div class="col-6">-->
-<!--                                        <field name="liga_id">-->
-<!--                                            <tree>-->
-<!--                                                <field name="liga"/>-->
-<!--                                            </tree>-->
-<!--                                        </field>-->
-<!--                                    </div>-->
+                                    <div class="col-6">
+                                        <field name="prediseno_liga_id">
+                                            <tree editable="buttom">
+                                                <field name="liga"/>
+                                            </tree>
+                                        </field>
+                                    </div>
                                 </div>
                             </page>
-                            <page string="RETRABAJO" attrs="{'invisible': [('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}">
+                            <page string="RETRABAJO" attrs="{'invisible': ['|',('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order','in',['Pre'])]}">
                                 <field name="bitacora_id"/>
                             </page>
                         </notebook>

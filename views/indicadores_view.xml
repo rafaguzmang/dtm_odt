@@ -4,10 +4,6 @@
         <field  name="name">Indicadores</field>
         <field name="tag">dtm_odt.indicadores</field>
     </record>
-
 <!-- Menú principal -->
 <!--    <menuitem id="dtm_odt_indicadores_menu" action="dtm_odt_indicadores_action"/>-->
-
-
-
 </odoo>

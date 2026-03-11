@@ -77,7 +77,7 @@ class DtmOdt(models.Model):
     tiempo_nesteo = fields.Float(string='Tiempo de Nesteo/hrs',readonly=True)
     # Prediseño
     prediseno_id = fields.Many2many('ir.attachment', 'prediseno_final_diseno', string="Prediseño")
-    # liga_id = fields.Many2many('dtm.necesidades.prediseno.ligas', string="Ligas")
+    prediseno_liga_id = fields.One2many('dtm.necesidades.prediseno.ligas','model_id', string="Ligas")
 
     #---------------------Resumen de descripción------------
     description = fields.Text(string="DESCRIPCIÓN",tracking=True)
@@ -350,6 +350,10 @@ class DtmOdt(models.Model):
                 'prediseno_id':[(6,0,self.prediseno_id.ids)],
                 # 'liga_id':[(6,0,self.liga_id.ids)]
             })
+
+            for liga in self.prediseno_liga_id:
+                ligas_id = self.env["dtm.client.needs.liga"].search([('liga','=',liga.liga),('model_id','=',cotizacion.id)],limit=1)
+                ligas_id.write({'model_id':cotizacion.id,'liga':liga.liga}) if ligas_id else self.env["dtm.client.needs.liga"].create({'model_id':cotizacion.id,'liga':liga.liga})
             # self.unlink()
 
     # Metodo para controlar el paso a proceso
@@ -418,14 +422,10 @@ class DtmOdt(models.Model):
         if self.usuario in ['ingenieria1@dtmindustry.com'] and not self.firma_ingenieria and self.firma_ventas:
             self.permiso_ingenieria = True
             self.permiso_diseno = False
-
         # Manda la actualización a owl
-
-
 
     def materiales_nesteo(self):
         lista = []
-
         if self.env['dtm.odt'].search([('ot_number','=',self.revision_ot)],limit=1):
             for item in self.lista_material_id:
                 vals = {
@@ -1129,6 +1129,13 @@ class OtFile(models.Model):
     model_id = fields.Many2one("dtm.odt")
     model_tubo_id = fields.Many2one("dtm.odt")
     liga = fields.Char(string="Ligas")
+
+class PredisenoLigas(models.Model):
+    _name="dtm.necesidades.prediseno.ligas"
+    _description = "Modelo para almacenar el archivo de las ligas de los prediseños"
+
+    model_id = fields.Many2one("dtm.odt")
+    liga = fields.Char(string="Liga")
 
 class ListaMateriales(models.Model):
     _name = 'dtm.odt.listamateriales'

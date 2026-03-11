@@ -1,5 +1,4 @@
-
-.flex-fechas{
+.flex-fechas {
     display: flex;
     border: 1px, solid rgba(0, 0, 0, 0.1);
     margin: -21px 0px 20px;
@@ -8,7 +7,7 @@
     align-items: center;
 }
 
-.flex-fecha{
+.flex-fecha {
     display: flex;
     align-items: center;
     width: 12%;
@@ -16,7 +15,7 @@
     font-size: 12px;
 }
 
-.fa-calendar{
+.fa-calendar {
     font-size: 25px;
     width: 30%;
 
@@ -30,46 +29,47 @@
     color: #71649c;
 }
 
-p{
-    margin:0;
-    padding:0;
-}
-
-.o_form_view .o_field_widget{
-    margin:0;
-    padding:0;
-}
-
-/*--------------------------------------------Tabla seguimiento-----------------------------------------*/
-
-body{
+p {
     margin: 0;
     padding: 0;
 }
 
-.container-fluid{
+.o_form_view .o_field_widget {
+    margin: 0;
+    padding: 0;
+}
+
+/*--------------------------------------------Tabla seguimiento-----------------------------------------*/
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.container-fluid {
     width: 100%;
 }
 
-.tabla-ordenes{
-    border: 1px solid rgba(0,0,0,0.1);
+.tabla-ordenes {
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 3px;
 }
 
-.header-ordenes{
-    border: 1px solid rgba(0,0,0,0.1);
+.header-ordenes {
+    border: 1px solid rgba(0, 0, 0, 0.1);
     width: 13%;
 }
 
 
-.header-container{
+.header-container {
     width: 100%;
 }
-.container-info{
+
+.container-info {
     width: 15%;
 }
 
-.container-manufactura{
+.container-manufactura {
     width: 80%;
     z-index: 10;
     right: 4%;
@@ -78,73 +78,82 @@ body{
     justify-content: space-around;
 }
 
-.vals-container{
+.vals-container {
     padding: 0;
     position: sticky;
 }
 
-.search-list{
-   width: 100%;
+.search-list {
+    width: 100%;
 }
 
-.li-orden{
+.li-orden {
     width: 10%;
 }
-.li-orden input{
+
+.li-orden input {
     width: 80%;
 }
 
 .li-cliente {
     width: 25%;
 }
-#cliente{
+
+#cliente {
     width: 90%;
 }
 
 
-.li-producto{
+.li-producto {
     width: 25%;
 }
 
-.li-status{
+.li-status {
     width: 15%;
 }
 
-@media (max-width:930px){
-    .header-container{
+@media (max-width:930px) {
+    .header-container {
         position: static;
         width: 170%;
     }
-    .container-table{
+
+    .container-table {
         margin-top: 0%;
         position: static;
     }
-    .vals-container{
+
+    .vals-container {
         width: 100%;
         flex-direction: column;
     }
-    .container-tittle{
+
+    .container-tittle {
         order: 1;
     }
-    .container-info{
+
+    .container-info {
         width: 50%;
         order: 2;
     }
-    .container-manufactura{
+
+    .container-manufactura {
         width: 50%;
         right: 0%;
         display: flex;
         position: static;
         order: 3;
         flex-direction: column;
-        top:25%;
+        top: 25%;
     }
-    .card-hover{
+
+    .card-hover {
         width: 100%;
         padding-bottom: 0.2%;
         height: 3.2em;
     }
-    .card-body{
+
+    .card-body {
         width: 100%;
         padding: 0;
         display: flex;
@@ -152,46 +161,56 @@ body{
         margin-bottom: 5.7%;
         padding-right: 5%;
     }
-    .search-list{
+
+    .search-list {
         flex-direction: column;
     }
-    li{
+
+    li {
         justify-content: space-between;
     }
-    .li-orden{
+
+    .li-orden {
         width: 100%;
     }
-    .li-orden p{
+
+    .li-orden p {
         width: 50%;
     }
-    .li-orden input{
+
+    .li-orden input {
         width: 60%;
     }
+
     .li-cliente {
         width: 100%;
     }
+
     .li-cliente p {
         width: 50%;
     }
+
     #cliente {
         width: 60%;
     }
 
-    .li-producto{
+    .li-producto {
         width: 100%;
     }
-    .li-producto p{
+
+    .li-producto p {
         width: 50%;
     }
 
-    .li-status{
+    .li-status {
         width: 100%;
     }
-    .li-status p{
+
+    .li-status p {
         width: 50%;
     }
-    .header-container{
+
+    .header-container {
         width: 43em;
     }
 }
-

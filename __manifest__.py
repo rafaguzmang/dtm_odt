@@ -14,6 +14,7 @@
         'views/dtm_odt_retrabajo_view.xml',
         #Menú
         'views/dtm_menu.xml',
+        'views/dtm_modulo_diseno.xml',
         #Reports
         'reports/npi.xml',
         'reports/orden_de_trabajo.xml',
@@ -32,6 +33,11 @@
             'dtm_odt/static/src/js/indicadores.js',
             'dtm_odt/static/lib/chart.js',  # Ruta local que usarás para Chart.js
             'dtm_odt/static/lib/chartjs-plugin-annotation.js',
+
+            #Modulo de Diseño
+            'dtm_odt/static/src/xml/modulo_diseno.xml',
+            'dtm_odt/static/src/js/modulo_diseno.js',
+            'dtm_odt/static/src/css/modulo_diseno.css',
             ],
     },
 }
