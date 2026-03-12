@@ -1,0 +1,252 @@
+<template xml:space="preserve">
+    <t t-name="dtm_odt.modulo_diseno" owl="1">
+      <div class="dc-wrapper">
+
+        <!-- HEADER -->
+        <header class="dc-header">
+            <div class="dc-header__left">
+            <div class="dc-logo-row">
+                <div class="dc-logo-dot"></div>
+                <h1 class="dc-header__title">Design Control</h1>
+            </div>
+            <span class="dc-subtitle">Panel de seguimiento · Área de Diseño</span>
+            </div>
+            <div class="dc-header__meta">
+            <div class="dc-badge">
+                <span class="dc-badge__dot"></span>
+                Sistema activo
+            </div>
+            <!-- Fecha dinámica: reemplazar con t-out en OWL -->
+            <div class="dc-badge"><t t-esc="new Date().toLocaleDateString()"/></div>
+            </div>
+        </header>
+
+        <!-- KPIs -->
+        <div class="dc-kpi-grid">
+
+            <div class="dc-kpi">
+                <div class="dc-kpi__label">Total ODs</div>
+                <!-- t-out="state.kpiTotal" -->
+                <div class="dc-kpi__value"><t t-esc="this.state.kpiTotal"/></div>
+                <div class="dc-kpi__sub">registros activos</div>
+                <div class="dc-kpi__bar">
+                    <div class="dc-kpi__bar-fill" style="background:var(--dc-accent); width:100%"></div>
+                </div>
+            </div>
+
+            <div class="dc-kpi">
+                <div class="dc-kpi__label">En Tiempo</div>
+                <div class="dc-kpi__value"><t t-esc="this.state.kpiOdTiempo"/></div>
+                <div class="dc-kpi__sub">órdenes de trabajo</div>
+                <div class="dc-kpi__bar">
+                    <div class="dc-kpi__bar-fill" t-att-style="state.styleBarraTiempo"></div>
+                </div>
+            </div>
+
+            <div class="dc-kpi">
+                <div class="dc-kpi__label">Fuera de Tiempo</div>
+                <div class="dc-kpi__value"><t t-esc="this.state.kpiOdFueraTiempo"/></div>
+                <div class="dc-kpi__sub">órdenes de trabajo</div>
+                <div class="dc-kpi__bar">
+                    <div class="dc-kpi__bar-fill" t-att-style="state.styleBarraFueraTiempo"></div>
+                </div>
+            </div>
+
+            <div class="dc-kpi">
+                <div class="dc-kpi__label">Clientes</div>
+                <div class="dc-kpi__value"><t t-esc="this.state.kpiClientes"/></div>
+                <div class="dc-kpi__sub">distintos</div>
+                <div class="dc-kpi__bar">
+                    <div class="dc-kpi__bar-fill" style="background:var(--dc-green); width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW
+        <div class="dc-charts-row">
+
+            Bar: por cliente 
+            <div class="dc-chart-card">
+            <div class="dc-chart-card__title">ODs por Cliente</div>
+          Generado dinámicamente con OWL/JS
+            <div class="dc-bar-chart" id="dc-bar-clients">
+               ejemplo de barra estática 
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="14" style="height:90%; background:#3b82f6; opacity:.85"></div>
+                <span class="dc-bar-label">Dart</span>
+                </div>
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="6" style="height:38%; background:#06b6d4; opacity:.85"></div>
+                <span class="dc-bar-label">AQ</span>
+                </div>
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="1" style="height:7%; background:#22c55e; opacity:.85"></div>
+                <span class="dc-bar-label">VTC</span>
+                </div>
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="1" style="height:7%; background:#f59e0b; opacity:.85"></div>
+                <span class="dc-bar-label">Coca</span>
+                </div>
+            </div>
+            </div>
+
+            Bar: por diseñador 
+            <div class="dc-chart-card">
+            <div class="dc-chart-card__title">ODs por Diseñador</div>
+            <div class="dc-bar-chart" id="dc-bar-designers">
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="18" style="height:90%; background:#3b82f6; opacity:.85"></div>
+                <span class="dc-bar-label">Andrés</span>
+                </div>
+                <div class="dc-bar-wrap">
+                <div class="dc-bar" data-val="3" style="height:15%; background:#06b6d4; opacity:.85"></div>
+                <span class="dc-bar-label">Bryan</span>
+                </div>
+            </div>
+            </div>
+
+            Donut: distribución tipo
+            <div class="dc-chart-card">
+            <div class="dc-chart-card__title">Distribución por Tipo</div>
+            <div class="dc-donut-wrap">
+                 SVG generado dinámicamente 
+                <svg class="dc-donut-svg" id="dc-donut-svg" width="110" height="110" viewBox="0 0 110 110">
+                Arco OT (~95%)
+                <path d="M55,13 A42,42 0 1,1 52.4,13.01 L52.8,27.01 A28,28 0 1,0 55,27 Z"
+                        fill="#3b82f6" opacity=".85"/>
+                Arco NPI (~5%)
+                <path d="M55,13 A42,42 0 0,0 75.6,22.4 L67.7,32.3 A28,28 0 0,1 55,27 Z"
+                        fill="#f59e0b" opacity=".85"/>
+                <text x="55" y="60" text-anchor="middle"
+                        fill="#e2e8f0" font-family="Syne,sans-serif"
+                        font-size="14" font-weight="700">21</text>
+                </svg>
+                <div class="dc-donut-legend" id="dc-donut-legend">
+                <div class="dc-legend-item">
+                    <div class="dc-legend-dot" style="background:#3b82f6"></div>
+                    <span>OT — <strong style="color:var(dc-text)">20</strong></span>
+                </div>
+                <div class="dc-legend-item">
+                    <div class="dc-legend-dot" style="background:#f59e0b"></div>
+                    <span>NPI — <strong style="color:var(dc-text)">1</strong></span>
+                </div>
+                </div>
+            </div>
+            </div>
+
+        </div> -->
+
+        <!-- TABLE SECTION -->
+        <div class="dc-table-section">
+
+            <div class="dc-table-header">
+                <h2 class="dc-table-header__title">Registro de Órdenes de Diseño</h2>
+                <div class="dc-controls">
+                    <input class="dc-search" type="number" id="dc-search-input"
+                        t-on-change="(ev) => this.searchODT(ev)"
+                        placeholder="Buscar Órden de Diseño"/>                 
+
+                    <select class="dc-select" id="dc-filter-client"
+                        name="cliente_filtro" 
+                        t-on-change="(ev) => this.clienteFiltro(ev)"  >
+                        <option value="">Todos los clientes</option>
+                        <t t-foreach="state.clients" t-as="cliente" t-key="cliente">
+                            <option t-att-value="cliente">
+                                <t t-esc="cliente"/>
+                            </option>
+                        </t>
+                    </select>
+                    <select class="dc-select" id="dc-filter-producto"
+                        name="producto_filtro" 
+                        t-on-change="(ev) => this.productoFiltro(ev)"  >
+                        <option value="">Todos los productos</option>
+                        <t t-foreach="state.productos" t-as="producto" t-key="producto">
+                            <option t-att-value="producto">
+                                <t t-esc="producto"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dc-table-wrap">
+            <table class="dc-table">
+                <thead>
+                <tr>
+                    <th t-on-click="() => this.sortColumn('orden_diseno')">OD <span class="dc-sort-icon">↕</span></th>                    
+                    <th t-on-click="() => this.sortColumn('cliente')">Cliente <span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('producto')">Producto <span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('cantidad')">Cantidad <span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('po_number')">PO<span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('precio')">Precio<span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('fecha_llegada')">En Diseño<span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('fecha_termino_diseno')">Fecha Estimada <span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('fecha_entrega_cliente')">Fecha Entrega<span class="dc-sort-icon">↕</span></th>
+                </tr>
+                </thead>
+                <tbody id="dc-tbody">
+                    <t t-foreach="state.ordenes" t-as="orden" t-key="orden.id">
+                        <tr>
+                            <td><span class="dc-od-badge"><t t-esc="orden.orden_diseno"/></span></td>
+                            <td><span class="dc-cliente-chip"><t t-esc="orden.cliente"/></span></td>
+                            <td class="dc-td--product"><t t-esc="orden.producto"/></td>                     
+                            <td><t t-esc="orden.cantidad"/></td>                     
+                            <td class="dc-td--po dc-td-popdf " t-on-click="()=> this.openPDF(orden.po_file)"><t t-esc="orden.po_number"/></td>
+                            <td class="dc-td--po"><t t-esc="orden.precio"/></td>
+                            <td class="dc-td--date"><t t-esc="orden.fecha_llegada"/></td>
+                            <td class="dc-td--date">
+                                <t t-if="orden.fecha_termino_diseno">
+                                    <span t-att-class="new Date(orden.fecha_termino_diseno) &lt; new Date() 
+                                        ? 'dc-fecha-badge dc-fecha-badge--vencida' 
+                                        : 'dc-fecha-badge dc-fecha-badge--ok'">
+                                        <t t-if="new Date(orden.fecha_termino_diseno) &lt; new Date()">⚠</t>
+                                        <t t-else="">✓</t>
+                                        <t t-esc="orden.fecha_termino_diseno"/>
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span style="color: var(--dc-muted)">—</span>
+                                </t>
+                            </td>
+                            <td class="dc-td--date"><t t-esc="orden.fecha_entrega_cliente"/></td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            </div>
+
+         <t t-if="state.showPDF">
+            <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">PO</h5>
+                        <button type="button" class="btn-close" aria-label="Close" t-on-click="closePDF"></button>
+                    </div>
+                    <div class="modal-body">
+                        <iframe 
+                            t-att-src="'data:application/pdf;base64,' + state.currentPDF"
+                            class="pdf-iframe"
+                            type="application/pdf">
+                        </iframe>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" t-on-click="closePDF">Cerrar</button> 
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+
+          
+
+        </div><!-- /dc-table-section -->
+
+        </div><!-- /dc-wrapper -->
+
+
+
+
+        
+    </t>
+</template>

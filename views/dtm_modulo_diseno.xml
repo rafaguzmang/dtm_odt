@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_modulo_diseno" model="ir.actions.client">
+            <field name="name">Seguimiento</field>
+            <field name="tag">dtm_odt.modulo_diseno</field>
+        </record>
+
+        <menuitem id="modulo_diseno_menu" action="action_modulo_diseno"/>
+    </data>
+</odoo>
