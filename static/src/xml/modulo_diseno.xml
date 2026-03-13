@@ -178,7 +178,7 @@
                     <th t-on-click="() => this.sortColumn('producto')">Producto <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('cantidad')">Cantidad <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('po_number')">PO<span class="dc-sort-icon">↕</span></th>
-                    <th t-on-click="() => this.sortColumn('precio')">Precio<span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('precio')">Precio MXN<span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_llegada')">En Diseño<span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_termino_diseno')">Fecha Estimada <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_entrega_cliente')">Fecha Entrega<span class="dc-sort-icon">↕</span></th>

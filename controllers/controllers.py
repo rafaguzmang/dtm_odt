@@ -1,7 +1,7 @@
 from datetime import datetime
 from odoo import http
 from odoo.http import request,Response
-import json
+import json,requests
 import datetime
 
 
@@ -45,9 +45,16 @@ class WebSiteDirections(http.Controller):
     @http.route('/dtm_diseno', type='http', auth='public',  csrf=False)
     def get_diseno(self):
 
+        precio_dolar_json = self.precioDollar()
+        precio_dolar = float(precio_dolar_json['bmx']['series'][0]['datos'][0]['dato'])
+
         get_diseno = request.env['dtm.odt'].sudo().search([('ot_number','=',0)])
-        result = [
-            {
+        result = []
+        for material in get_diseno:
+            get_cotizacion = request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.no_cotizacion_id.precotizacion
+            get_cotizacion = request.env['dtm.cotizaciones'].sudo().search([('no_cotizacion','=',get_cotizacion)],limit=1).curency
+            dolar = precio_dolar if get_cotizacion == 'us' else 1
+            result.append({
                 'id': material.id,
                 'orden_diseno': material.od_number,
                 'tipo_orden': material.tipe_order,
@@ -57,14 +64,12 @@ class WebSiteDirections(http.Controller):
                 'cantidad': material.cuantity,
                 'po_number': material.po_number,
                 'po_file': request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id[0].datas.decode('utf-8') if request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id.datas else '',
-                'precio': round(request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).mapped('precio_total')[0],2),
+                'precio': round((request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).mapped('precio_total')[0])*dolar,2),
                 'disenador': material.disenador,
                 'fecha_llegada':material.create_date.strftime('%Y-%m-%d') if material.create_date else '--/--/----',
                 'fecha_termino_diseno':material.date_disign_finish.strftime('%Y-%m-%d') if material.date_disign_finish else '--/--/----',
                 'fecha_entrega_cliente': material.date_rel.strftime('%Y-%m-%d') if material.date_rel else '--/--/----',
-            }
-            for material in get_diseno
-        ]
+            })
         return request.make_response(
             json.dumps(result),
                 headers={
@@ -72,3 +77,11 @@ class WebSiteDirections(http.Controller):
                     'Access-Control-Allow-Origin': '*',
                 }
             )
+
+    def precioDollar(self):
+        try:
+            result = requests.get("https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF60653/datos/oportuno?token=48ae5fcf525e8658eb784d0c4030054d7aa97bf2b5859747015820245978f739",timeout=5)
+            result.raise_for_status()
+            return result.json()
+        except  Exception as e:
+            return {"error": str(e)}
