@@ -3,7 +3,7 @@
     <data>
 
         <record id="dtm_odt.dtm_ot_action" model="ir.actions.act_window">
-            <field name="name">Diseño</field>
+            <field name="name">Ordenes</field>
             <field name="res_model">dtm.odt</field>
             <field name="view_mode">tree,form</field>
             <field name="context">{'search_default_diseno': True}</field>

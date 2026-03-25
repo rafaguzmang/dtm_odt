@@ -429,12 +429,13 @@
 
 .dc-wrapper .dc-table-header {
     display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    flex-direction: row !important;
+    align-items: center !important;
     padding: 18px 22px !important;
     border-bottom: 1px solid var(--dc-border) !important;
     gap: 12px !important;
     background: transparent !important;
+    width: 100% !important;
 }
 
 .dc-wrapper .dc-table-header__title {
@@ -446,6 +447,7 @@
     color: var(--dc-text) !important;
     background: none !important;
     border: none !important;
+    width: 25% !important;
 }
 
 .dc-wrapper .dc-controls {
@@ -454,7 +456,7 @@
     align-items: center !important;
     gap: 10px !important;
     flex-wrap: wrap !important;
-    width: 100% !important;
+    width: 75% !important;
 }
 
 .dc-wrapper .dc-search {
@@ -490,7 +492,7 @@
     border: 1px solid var(--dc-border) !important;
     border-radius: 8px !important;
     padding: 7px 12px !important;
-    color: var(--dc-bg) !important;
+    color: var(--dc-text) !important;
     font-family: 'DM Mono', monospace !important;
     font-size: .75rem !important;
     outline: none !important;

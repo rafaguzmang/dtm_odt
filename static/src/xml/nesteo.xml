@@ -1,0 +1,69 @@
+<template id="template" xml:space="preserve">
+    <t t-name="dtm_odt.modulo_nesteo" owl="1">
+       <div class="dc-wrapper">
+
+            <!-- HEADER -->
+            <header class="dc-header">
+                <div class="dc-header__left">
+                <div class="dc-logo-row">
+                    <div class="dc-logo-dot"></div>
+                    <h1 class="dc-header__title">Nesteo</h1>
+                </div>
+                <span class="dc-subtitle">Panel de seguimiento · Área de Diseño</span>
+                </div>
+                <div class="dc-header__meta">
+                <div class="dc-badge">
+                    <span class="dc-badge__dot"></span>
+                    Sistema activo
+                </div>
+                <!-- Fecha dinámica: reemplazar con t-out en OWL -->
+                <div class="dc-badge"><t t-esc="new Date().toLocaleDateString()"/></div>
+                </div>
+            </header>          
+
+            <!-- TABLE SECTION -->
+            <div class="dc-table-section">
+
+                <div class="dc-table-header">
+                    <h2 class="dc-table-header__title">Registro de Órdenes de Diseño</h2>                   
+                </div>
+
+                <div class="dc-table-wrap">
+                <table class="dc-table">
+                    <thead>
+                    <tr>
+                        <th>OT<span class="dc-sort-icon">↕</span></th>                    
+                        <th>Version<span class="dc-sort-icon">↕</span></th>
+                        <th>Tipo<span class="dc-sort-icon">↕</span></th>
+                        <th>Cliente<span class="dc-sort-icon">↕</span></th>
+                        <th>Producto<span class="dc-sort-icon">↕</span></th>
+                        <th>Cantidad<span class="dc-sort-icon">↕</span></th>
+                        <th>Diseñador<span class="dc-sort-icon">↕</span></th>
+                        <th>En Nesteo<span class="dc-sort-icon">↕</span></th>
+                        
+                    </tr>
+                    </thead>
+                    <tbody id="dc-tbody">
+                        <t t-foreach="state.data" t-as="item" t-key="item.id">
+                            <tr>
+                                <td><span class="dc-od-badge"><t t-esc="item.ot_number"/></span></td>
+                                <td><span class="dc-cliente-chip"><t t-esc="item.version_ot"/></span></td>
+                                <td class="dc-td--product"><t t-esc="item.tipo_orden"/></td>                     
+                                <td><t t-esc="item.cliente"/></td>                     
+                                <td class="dc-td--po"><t t-esc="item.producto"/></td>
+                                <td class="dc-td--po"><t t-esc="item.cantidad"/></td>
+                                <td class="dc-td--date"><t t-esc="item.disenador"/></td>
+                                <td class="dc-td--date"><t t-esc="item.fecha_llegada"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                </div>       
+
+            
+
+            </div><!-- /dc-table-section -->
+
+            </div><!-- /dc-wrapper -->
+    </t>
+</template>

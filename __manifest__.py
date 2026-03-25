@@ -38,6 +38,10 @@
             'dtm_odt/static/src/xml/modulo_diseno.xml',
             'dtm_odt/static/src/js/modulo_diseno.js',
             'dtm_odt/static/src/css/modulo_diseno.css',
+
+            #Nesteo
+            'dtm_odt/static/src/xml/nesteo.xml',
+            'dtm_odt/static/src/js/nesteo.js',
             ],
     },
 }
