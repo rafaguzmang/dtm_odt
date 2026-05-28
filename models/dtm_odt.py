@@ -45,6 +45,7 @@ class DtmOdt(models.Model):
     firma_almacen = fields.Char(string="Firma Almacén",readonly = True)
     almacen_rev = fields.Boolean()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
+    fecha_ventas = fields.Datetime()
     firma_calidad = fields.Char(string='Revisado',readonly=True)
     firma_ingenieria = fields.Char(string="Nesteo", readonly = True)
     po_fecha_creacion = fields.Date(string="Creación PO", readonly=True)
@@ -378,6 +379,7 @@ class DtmOdt(models.Model):
                 self.maquinados()  # Manda los servicios a maquinados
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
+                self.fecha_ventas = datetime.today()
 
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
@@ -423,6 +425,11 @@ class DtmOdt(models.Model):
             self.permiso_ingenieria = True
             self.permiso_diseno = False
         # Manda la actualización a owl
+        self.env['bus.bus']._sendone(
+            'canal_diseno', 
+            'actualizar_almacen', 
+            {'mensaje': 'Actualiza Almacén'}
+        )
 
     def materiales_nesteo(self):
         lista = []
@@ -858,6 +865,7 @@ class DtmOdt(models.Model):
         res = super().write(vals)
         self._sync_maquinados_to_materiales()
 
+       
         return res
 
     def _sync_maquinados_to_materiales(self):
@@ -958,6 +966,7 @@ class TestModelLine(models.Model):
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True,compute="compute_precio")
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+    notas = fields.Char(string="Notas")
 
     def compute_precio(self):
         for record in self:
