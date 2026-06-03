@@ -769,32 +769,63 @@ class DtmOdt(models.Model):
                   get_corte.write({"materiales_id":[(6, 0,lines)]})
 
     def compras_odt(self):
-       # Vamos a mandar a comprar
         for codigo in self.materials_ids:
-            # print(codigo.materials_list.nombre)
-            buscar = codigo.materials_list.nombre # Se quita la leyenda Maquinado Externo
-            buscar = buscar.replace("Maquinado Externo", "")
-            if codigo.materials_required > 0 and buscar.find('Maquinado') == -1 and codigo.almacen and codigo.materials_list.id != 1:
-                # Busca los materiales solicitados en el apartado de requerido
-                get_requerido = self.env['dtm.compras.requerido'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
-                get_realizado = self.env['dtm.compras.realizado'].search([("orden_trabajo","ilike",str(self.ot_number)),('revision_ot','=',self.revision_ot),("codigo","=",codigo.materials_list.id)], limit=1)
-                vals = {
-                        'orden_trabajo':self.ot_number,
-                        'codigo':codigo.materials_list.id,
-                        'nombre':f"{codigo.materials_list.nombre} {codigo.materials_list.medida if codigo.materials_list.medida else '.'}",
-                        'cantidad':codigo.materials_required,
-                        'disenador':self.disenador,
-                        'tipo_orden':self.tipe_order,
-                        'revision_ot':self.revision_ot,
-                        'nesteo': True if self.firma_ingenieria else False
-                    }
-                if not get_requerido and not get_realizado:
-                    get_requerido.create(vals)
-                elif get_requerido and not get_realizado:
+            # Normaliza nombre quitando la leyenda
+            buscar = codigo.materials_list.nombre.replace("Maquinado Externo", "")
+            
+            # Regla 1: si cantidad requerida es cero, no hace nada
+            if codigo.materials_required <= 0:
+                continue
+
+            # Regla 2: excluir materiales con 'Maquinado', sin almacen o id=1
+            if 'Maquinado' in buscar or not codigo.almacen or codigo.materials_list.id == 1:
+                continue
+
+            # Busca registros existentes
+            get_requerido = self.env['dtm.compras.requerido'].search([
+                ("orden_trabajo", "ilike", str(self.ot_number)),
+                ('revision_ot', '=', self.revision_ot),
+                ("codigo", "=", codigo.materials_list.id)
+            ], limit=1)
+
+            get_realizado = self.env['dtm.compras.realizado'].search([
+                ("orden_trabajo", "ilike", str(self.ot_number)),
+                ('revision_ot', '=', self.revision_ot),
+                ("codigo", "=", codigo.materials_list.id)
+            ], limit=1)
+
+            # Valores base
+            vals = {
+                'orden_trabajo': self.ot_number,
+                'codigo': codigo.materials_list.id,
+                'nombre': f"{codigo.materials_list.nombre} {codigo.materials_list.medida or '.'}",
+                'disenador': self.disenador,
+                'tipo_orden': self.tipe_order,
+                'revision_ot': self.revision_ot,
+                'nesteo': bool(self.firma_ingenieria),
+            }
+
+            # Cantidades actuales
+            cant_requerido = get_requerido.cantidad if get_requerido else 0
+            cant_realizado = get_realizado.cantidad if get_realizado else 0
+            cant_total = cant_requerido + cant_realizado
+
+            # Regla 3: si no existe en requerido ni realizado → crear en requerido
+            if not get_requerido and not get_realizado:
+                vals['cantidad'] = codigo.materials_required
+                self.env['dtm.compras.requerido'].create(vals)
+                continue
+
+            # Regla 4: si ya hay realizado pero la cantidad solicitada aumentó → poner lo que falta en requerido
+            if codigo.materials_required > cant_total:
+                faltante = codigo.materials_required - cant_total
+                vals['cantidad'] = faltante
+                if get_requerido:
                     get_requerido.write(vals)
-                elif get_realizado and (get_realizado.cantidad + get_requerido.cantidad) < codigo.materials_cuantity:
-                    get_requerido.write(vals) if get_requerido else get_requerido.create(vals)
-            codigo.write({'materials_availabe':1,'materials_required':0}) if codigo.materials_list.id == 1 else None
+                else:
+                    self.env['dtm.compras.requerido'].create(vals)
+            # Si la cantidad requerida es menor o igual al total ya registrado, no hace nada
+            
 
     def maquinados(self):
         # se verifica si los servicios existen en el modulo de maquinados

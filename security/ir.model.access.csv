@@ -5,18 +5,12 @@ access_dtm_odt_rechazo,access.dtm.odt.rechazo,model_dtm_odt_rechazo,base.group_u
 access_dtm_documentos_tubos,access.dtm.documentos.tubos,model_dtm_documentos_tubos,base.group_user,1,1,1,1
 access_dtm_odt_servicios,access.dtm.odt.servicios,model_dtm_odt_servicios,base.group_user,1,1,1,1
 access_dtm_odt_ligas,access.dtm.odt.ligas,model_dtm_odt_ligas,base.group_user,1,1,1,1
-
 access_dtm_odt_revisiones,access.dtm.odt.revisiones,model_dtm_odt_revisiones,base.group_user,1,1,1,1
-
 access_dtm_odt_listamateriales,access.dtm.odt.listamateriales,model_dtm_odt_listamateriales,base.group_user,1,1,1,1
-
 access_confirm_dialog_wizard,access.confirm.dialog.wizard,model_confirm_dialog_wizard,base.group_user,1,1,1,1
 access_dtm_odt_retrabajo,access.dtm.odt.retrabajo,model_dtm_odt_retrabajo,base.group_user,1,1,1,1
-
 access_dtm_odt_laminas_nesteo,access.dtm.odt.laminas.nesteo,model_dtm_odt_laminas_nesteo,base.group_user,1,1,1,1
-
 access_dtm_odt_revisionescortadora,access.dtm.odt.revisionescortadora,model_dtm_odt_revisionescortadora,base.group_user,1,1,1,1
-
 access_dtm_necesidades_prediseno_ligas,access.dtm.necesidades.prediseno.ligas,model_dtm_necesidades_prediseno_ligas,base.group_user,1,1,1,1
 
 
