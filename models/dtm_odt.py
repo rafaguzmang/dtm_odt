@@ -997,6 +997,7 @@ class TestModelLine(models.Model):
     almacen = fields.Boolean(string="ALMACÉN",default=False,readonly=True)
     costo = fields.Float(string="Precio",readonly=True,compute="compute_precio")
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+    factura = fields.Char(string="Factura",readonly=True)
     notas = fields.Char(string="Notas")
 
     def compute_precio(self):
