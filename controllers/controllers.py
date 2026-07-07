@@ -54,6 +54,7 @@ class WebSiteDirections(http.Controller):
             get_cotizacion = request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.no_cotizacion_id.precotizacion
             get_cotizacion = request.env['dtm.cotizaciones'].sudo().search([('no_cotizacion','=',get_cotizacion)],limit=1).curency
             dolar = precio_dolar if get_cotizacion == 'us' else 1
+            precio = request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).mapped('precio_total')[0] if request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1) else 0
             result.append({
                 'id': material.id,
                 'orden_diseno': material.od_number,
@@ -64,7 +65,7 @@ class WebSiteDirections(http.Controller):
                 'cantidad': material.cuantity,
                 'po_number': material.po_number,
                 'po_file': request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id[0].datas.decode('utf-8') if request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id.datas else '',
-                'precio': round((request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).mapped('precio_total')[0])*dolar,2),
+                'precio': round(precio*dolar,2),
                 'disenador': material.disenador,
                 'fecha_llegada':material.create_date.strftime('%Y-%m-%d') if material.create_date else '--/--/----',
                 'fecha_termino_diseno':material.date_disign_finish.strftime('%Y-%m-%d') if material.date_disign_finish else '--/--/----',

@@ -818,8 +818,8 @@ class DtmOdt(models.Model):
                 continue
 
             # Regla 4: si ya hay realizado pero la cantidad solicitada aumentó → poner lo que falta en requerido
-            if codigo.materials_required > cant_total:
-                faltante = codigo.materials_required - cant_total
+            if codigo.materials_cuantity > cant_total:
+                faltante = codigo.materials_cuantity - cant_total
                 vals['cantidad'] = faltante
                 if get_requerido:
                     get_requerido.write(vals)
@@ -1021,6 +1021,12 @@ class DtmOdt(models.Model):
             if self.env['dtm.proceso'].search([('ot_number','=',odt.ot_number),('revision_ot','=',odt.revision_ot)]):
                 odt.manufactura = True
 
+        get_self = self.env['dtm.compras.realizado'].search([('tipo_orden','in',['OT','NPI'])]).mapped('orden_trabajo')
+        get_diseno = self.env['dtm.odt'].search([('ot_number','not in',get_self)]).mapped('ot_number')
+        get_list = [str(material) for material in get_diseno]
+        get_self_back = self.env['dtm.compras.realizado'].search([('orden_trabajo','in',get_self)])
+
+       
         return res
 
 
@@ -1167,7 +1173,7 @@ class PredisenoLigas(models.Model):
 
 class ListaMateriales(models.Model):
     _name = 'dtm.odt.listamateriales'
-    _description = 'Modulo para llevar la lista de los materiales para la fabricación del proyecto'
+    _description = 'Modulo para llevar la lista de los materiales para la fabricación del proyecto (diseño)'
 
     model_id = fields.Many2one('dtm.odt')
 
