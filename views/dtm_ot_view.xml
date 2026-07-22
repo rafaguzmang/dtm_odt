@@ -132,8 +132,9 @@
                                     <field name="color" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])],
                                                                 'readonly': [('retrabajo', '=', True)]
                                                                 }"/>
-                                    <field name="firma_almacen" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
-                                    <field name="permiso_ingenieria" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"  />
+                                    <!-- <field name="permiso_ingenieria" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"  /> -->
+                                    <field name="embalaje"/>
+
                             </group>
                             <group class="col-4">
                                     <field name="diseno_terminado" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}"/>
@@ -176,7 +177,7 @@
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
 <!--                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">-->
-                                <field name="materials_ids">
+                                <field name="materials_ids" attrs="{'readonly': [('permiso_compra', '=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
@@ -187,13 +188,40 @@
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
                                         <field name="almacen"/>
-                                        <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>
+                                        <!-- <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/> -->
+                                        <field name="revision"/>
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                         <field name="usuario" invisible="1"/>
                                     </tree>
                                 </field>
                                  <field name="costo_material"/>
+                                 <field name="permiso_compra" invisible="1"/>
+
+                            </page>
+                            <page string="REQUISICION" attrs="{'invisible': [('permiso_compra','!=',True)]}">
+<!--                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">-->
+                                <field name="requisicion_material_id">
+                                    <tree editable="bottom">
+                                        <field name="materials_list"/>
+                                        <field name="notas"/>
+                                        <field name="materials_cuantity" options='{"type": "number"}'/>
+                                        <field name="costo"/>
+                                        <field name="scrap"/>
+                                    </tree>
+                                </field>
+                                 <field name="costo_material"/>
+                            </page>
+                            <page string="EMBALAJE" attrs="{'invisible': [('embalaje','!=',True)]}">
+                                <field name="solicitud_embalaje_id">
+                                    <tree editable="bottom">
+                                        <field name="codigo"/>
+                                        <field name="nombre"/>
+                                        <field name="cantidad" options="{'type': 'number'}"/>
+                                        <field name="costo"/>
+                                        <field name="total"/>
+                                    </tree>
+                                </field>
                             </page>
                             <page string="RECHAZO" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre'])]}">
                                 <field name="rechazo_id" attrs="{'readonly': [('retrabajo', '=', True)]}">
@@ -390,6 +418,16 @@
                             </page>
                             <page string="RETRABAJO" attrs="{'invisible': ['|',('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order','in',['Pre'])]}">
                                 <field name="bitacora_id"/>
+                            </page>
+                            <page string="TIEMPOS" attrs="{'invisible': [('usuario','not in',['rafaguzmang@hotmail.com'])]}">
+                                <field name="tiempo_status">
+                                    <tree editable="buttom">
+                                        <field name="estacion"/>
+                                        <field name="inicial"/>
+                                        <field name="final"/>
+                                        <field name="total"/>
+                                    </tree>
+                                </field>
                             </page>
                         </notebook>
                     </sheet>

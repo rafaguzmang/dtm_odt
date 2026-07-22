@@ -12,5 +12,6 @@ access_dtm_odt_retrabajo,access.dtm.odt.retrabajo,model_dtm_odt_retrabajo,base.g
 access_dtm_odt_laminas_nesteo,access.dtm.odt.laminas.nesteo,model_dtm_odt_laminas_nesteo,base.group_user,1,1,1,1
 access_dtm_odt_revisionescortadora,access.dtm.odt.revisionescortadora,model_dtm_odt_revisionescortadora,base.group_user,1,1,1,1
 access_dtm_necesidades_prediseno_ligas,access.dtm.necesidades.prediseno.ligas,model_dtm_necesidades_prediseno_ligas,base.group_user,1,1,1,1
-
-
+access_dtm_requisicion_line,access.dtm.requisicion.line,model_dtm_requisicion_line,base.group_user,1,1,1,1
+access_dtm_solicitud_embalaje,access.dtm.solicitud.embalaje,model_dtm_solicitud_embalaje,base.group_user,1,1,1,1
+access_dtm_odt_tiempos_status,access.dtm.odt.tiempos.status,model_dtm_odt_tiempos_status,base.group_user,1,1,1,1

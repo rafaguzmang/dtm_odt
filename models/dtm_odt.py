@@ -38,12 +38,17 @@ class DtmOdt(models.Model):
     version_ot = fields.Integer(string="REVISIÓN",default=1,readonly=True)# Esto es revisión
     color = fields.Char(string="COLOR",default="N/A",tracking=True)
     cuantity = fields.Integer(string="CANTIDAD",tracking=True)
+    #Lista de materials
     materials_ids = fields.One2many("dtm.materials.line","model_id",string="Lista")
     lista_material_id = fields.One2many("dtm.odt.listamateriales","model_id")
+    requisicion_material_id = fields.One2many("dtm.requisicion.line","model_id")
+    solicitud_embalaje_id = fields.One2many("dtm.solicitud.embalaje","model_id")
+    embalaje = fields.Boolean(string="Embalaje",default=False)
+    #--------------------------------------
+    permiso_compra = fields.Boolean()
     disenador = fields.Char("Diseñador")
     firma = fields.Char(string="Firma", readonly = True)
     firma_produccion = fields.Char()
-    firma_almacen = fields.Char(string="Firma Almacén",readonly = True)
     almacen_rev = fields.Boolean()
     firma_ventas = fields.Char(string="Aprobado",readonly=True)
     fecha_ventas = fields.Datetime()
@@ -58,6 +63,7 @@ class DtmOdt(models.Model):
     rechazo_id = fields.One2many("dtm.odt.rechazo", "model_id")
     anexos_ventas_id = fields.Many2many("ir.attachment" ,"anexos_ventas_id",string="Archivos")
     anexos_id = fields.Many2many("ir.attachment" ,"anexos_id",string="Archivos")
+    tiempo_status = fields.One2many("dtm.odt.tiempos.status", "model_id", readonly=True)
     # Máquinas de corte laser
     cortadora_id = fields.One2many("dtm.odt.laminas.nesteo", "model_id2",string="Segundas piezas")
     primera_pieza_id = fields.One2many("dtm.odt.laminas.nesteo", "model_id",string="Primeras piezas")
@@ -104,11 +110,57 @@ class DtmOdt(models.Model):
     materials_ids_tracking = fields.Char(compute='_compute_materials_ids_tracking', store=True, tracking = True)
     maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
     anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
-    firma_date = fields.Datetime()
+    disenador_fecha_fin = fields.Datetime()
+
+    def solicitud_embalaje(self):
+        for material in self.solicitud_embalaje_id:
+            vals = {
+                'orden_trabajo':str(self.ot_number),
+                'tipo_orden':'Requi',
+                'codigo':material.materials_list.id,
+                'nombre':material.nombre,
+                'cantidad':material.cantidad,
+                'disenador':material.usuario,
+                'nesteo':True if self.firma_ingenieria else False,
+
+            }
+            get_cotizacion = self.env['dtm.compras.requerido'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",material.materials_list.id)])
+            get_comprado = self.env['dtm.compras.realizado'].search([("orden_trabajo","=",str(self.ot_number)),("codigo","=",material.materials_list.id)])
+            if not get_comprado:
+                get_cotizacion.write(vals) if get_cotizacion else get_cotizacion.create(vals)
+           
 
     def compute_costo_material(self):
         for record in self:
             record.costo_diseno = record.materials_ids.mapped('costo')
+
+    @api.onchange('materials_ids')
+    def _onchange_materials_ids_stock(self):
+        grupos = {}
+        for line in self.materials_ids:
+            if not line.materials_list or not line.materials_cuantity:
+                continue
+            if line.materials_list.nombre.find('Maquinado') == 0:
+                line.materials_availabe = line.materials_cuantity
+                line.materials_required = 0
+                continue
+            grupos.setdefault(line.materials_list, []).append(line)
+
+        for material, lineas in grupos.items():
+            disponible = material.cantidad
+            for line in lineas:
+                cantidad = line.materials_cuantity
+                if disponible >= cantidad:
+                    line.materials_availabe = cantidad
+                    line.materials_required = 0
+                    disponible -= cantidad
+                elif disponible > 0:
+                    line.materials_availabe = disponible
+                    line.materials_required = cantidad - disponible
+                    disponible = 0
+                else:
+                    line.materials_availabe = 0
+                    line.materials_required = cantidad
 
 
     # Se revisa si hay archivos con el mismo nombre
@@ -137,8 +189,36 @@ class DtmOdt(models.Model):
                 else:
                     items[nombre] = 1
     #-----------------------------------------------
+    def requisicion_material(self):
+        Line = self.env['dtm.materials.line']
+        for item in self.requisicion_material_id:
+            if not item.materials_cuantity:
+                continue
 
+            vals = {
+                'model_id': self.id,
+                'materials_list': item.materials_list.id,
+                'materials_cuantity': item.materials_cuantity,
+                'notas': item.notas,
+                'extra_materials': True,
+                'scrap': item.scrap,
+            }
 
+            if item.scrap:
+                # Siempre línea nueva: duplicado intencional (reposición por daño)
+                vals.update(Line._consumir_stock(item.materials_list, item.materials_cuantity))
+                Line.create(vals)
+                continue
+
+            existente = self.materials_ids.search([
+                ('model_id', '=', self.id),
+                ('materials_list', '=', item.materials_list.id),
+                ('extra_materials', '=', True),
+                ('scrap', '=', False),
+            ], limit=1)
+            # Actializa vals con las lineas faltantes materials_availabe y materials_required
+            vals.update(Line._consumir_stock(item.materials_list, item.materials_cuantity, existente))
+            existente.write(vals) if existente else Line.create(vals)
 
     @api.depends('anexos_id')
     def _compute_anexos_id_tracking(self):
@@ -298,16 +378,6 @@ class DtmOdt(models.Model):
             }
         }
 
-    def action_almacen(self):
-        self.firma_almacen = 'almacen@dtmindustry.com'
-        if any(not m.almacen for m in self.materials_ids):
-            self.almacen_rev = True
-            self.firma_almacen = 'Pendiente'
-            self.firma_date = datetime.today()
-
-        if not self.materials_ids:
-            self.firma_almacen = None
-
     def action_pasive(self):
         pass
 
@@ -387,12 +457,14 @@ class DtmOdt(models.Model):
             # Firma de diseño
             if not self.firma:
                 self.firma_diseno(email, parcial)
+                self.disenador_fecha_fin = datetime.today()
 
 
             # Solo ingenieria1 puede liberar oficialmente
             if email == 'ingenieria1@dtmindustry.com' and self.firma_ventas and not self.firma_ingenieria:
                 if not self.firma_ingenieria:
                     self.firma_ingenieria = self.env.user.partner_id.name
+                    self.permiso_compra = True
 
 
         if self.firma in ['Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
@@ -412,6 +484,8 @@ class DtmOdt(models.Model):
             self.manufactura = True
             self.maquinados()
             self.proceso(parcial)
+            self.requisicion_material()
+            self.solicitud_embalaje()
             # print(self.nesteo_final ,self.cortadora_id ,self.primera_pieza_id , self.tubos_id)
             if not self.nesteo_final and (self.cortadora_id or self.primera_pieza_id or self.tubos_id):
                 self.nesteo_final = fields.Datetime.now()
@@ -419,7 +493,6 @@ class DtmOdt(models.Model):
         if self.nesteo_final and self.nesteo_inicio :
             self.tiempo_nesteo = round((self.nesteo_final - self.nesteo_inicio ).total_seconds() / 3600.0,2)
             # print(self.tiempo_nesteo,self.nesteo_final,self.nesteo_inicio)
-        self.action_almacen()
 
         self.permiso_ingenieria = False
         if self.usuario in ['ingenieria1@dtmindustry.com'] and not self.firma_ingenieria and self.firma_ventas:
@@ -433,8 +506,8 @@ class DtmOdt(models.Model):
         )
 
     def materiales_nesteo(self):
-        lista = []
-        if self.env['dtm.odt'].search([('ot_number','=',self.revision_ot)],limit=1):
+        Line = self.env['dtm.materials.line']
+        if self.env['dtm.odt'].search([('ot_number', '=', self.revision_ot)], limit=1):
             for item in self.lista_material_id:
                 vals = {
                     'model_id': item.model_id.id,
@@ -444,62 +517,29 @@ class DtmOdt(models.Model):
                     'materials_cuantity': 0,
                     'usuario': item.usuario,
                     'materials_availabe': 0,
-                    'materials_required':0
+                    'materials_required': 0
                 }
-                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
+                to_materiales = self.materials_ids.search([('model_id', '=', item.model_id.id), ('materials_list', '=', item.material_id.id)])
                 to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
 
         else:
             for item in self.lista_material_id:
-                # Obtener stock
-                stock = self.env['dtm.materiales'].browse(item.material_id.id)
-                stock_total = stock.cantidad  # Campo float
-
-                # Obtener total apartado (ordenado pero aún no entregado)
-                apartado = sum(
-                    self.env['dtm.materials.line']
-                    .search([
-                        ('materials_list', '=', item.material_id.id),
-                        ('entregado', '!=', True),
-                        ('materials_availabe', '>', 0)
-                    ])
-                    .mapped('materials_availabe')
-                )
-
-                # Calcular disponible
-                disponible = stock_total - apartado
-
-                # Inicializar
-                requerido = 0
-                nuevo_apartado = 0
-
-                if disponible >= item.cantidad:
-                    nuevo_apartado = item.cantidad
-                    requerido = 0
-                elif 0 < disponible < item.cantidad:
-                    nuevo_apartado = disponible
-                    requerido = item.cantidad - disponible
-                else:
-                    nuevo_apartado = 0
-                    requerido = item.cantidad
+                to_materiales = self.materials_ids.search([
+                    ('model_id', '=', item.model_id.id),
+                    ('materials_list', '=', item.material_id.id),
+                ], limit=1)
 
                 vals = {
-                    'model_id':item.model_id.id,
-                    'nombre':item.material_id.nombre,
-                    'medida':item.material_id.medida,
-                    'materials_list':item.material_id.id,
-                    'materials_cuantity':item.cantidad,
-                    'usuario':item.usuario,
-                    'materials_availabe':max(0,nuevo_apartado),
-                    'materials_required':max(0,requerido)
+                    'model_id': item.model_id.id,
+                    'nombre': item.material_id.nombre,
+                    'medida': item.material_id.medida,
+                    'materials_list': item.material_id.id,
+                    'materials_cuantity': item.cantidad,
+                    'usuario': item.usuario,
                 }
+                vals.update(Line._consumir_stock(item.material_id, item.cantidad, to_materiales))
 
-                if item.material_id.nombre.find('Maquinado')==0:
-                    vals['materials_availabe'] = item.cantidad
-                    vals['materials_required'] = 0
-
-                to_materiales = self.materials_ids.search([('model_id','=',item.model_id.id),('materials_list','=',item.material_id.id)])
-                to_materiales.write(vals) if to_materiales else  to_materiales.create(vals)
+                to_materiales.write(vals) if to_materiales else Line.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)],limit=1)#Busca en procesos la orden
@@ -1026,6 +1066,95 @@ class DtmOdt(models.Model):
         get_list = [str(material) for material in get_diseno]
         get_self_back = self.env['dtm.compras.realizado'].search([('orden_trabajo','in',get_self)])
 
+        for odt in get_this:
+            get_po = self.env['dtm.compras.items'].search([('orden_diseno', '=', odt.od_number)], limit=1).model_id
+            necesidad = self.env['dtm.client.needs'].search([('no_cotizacion', '=', get_po.no_cotizacion)], limit=1)
+            cotizacion = self.env['dtm.cotizaciones'].search([('no_cotizacion', '=', get_po.no_cotizacion)], limit=1)
+            if not get_po or not necesidad or not cotizacion:
+                continue
+            # Necesidades del cliente
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'Necesidades del Cliente'),('model_id', '=', odt.id)])
+            horas = (cotizacion.create_date - necesidad.create_date).total_seconds() / 3600.0
+            vals = {
+            'estacion': 'Necesidades del Cliente',
+            'inicial': necesidad.create_date,
+            'final': cotizacion.create_date,
+            'total': horas,
+            'model_id': odt.id,
+            }
+            registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            # Cotización
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'Cotización'),('model_id', '=', odt.id)],limit=1)
+            horas = (get_po.create_date - cotizacion.create_date).total_seconds() / 3600.0
+            vals = {
+            'estacion': 'Cotización',
+            'inicial': cotizacion.create_date,
+            'final': get_po.create_date,
+            'total': horas,
+            'model_id': odt.id,
+            }
+            registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            # PO Recibida
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'PO Recibida'),('model_id', '=', odt.id)],limit=1)
+            horas = (odt.create_date - get_po.create_date).total_seconds() / 3600.0
+            vals = {
+            'estacion': 'PO Recibida',
+            'inicial': get_po.create_date,
+            'final': odt.create_date,
+            'total': horas,
+            'model_id': odt.id,
+            }
+            registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            # Orden de diseño
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'Orden de diseño'),('model_id', '=', odt.id)],limit=1)
+            if odt.disenador_fecha_fin:
+                horas = (odt.disenador_fecha_fin - odt.create_date).total_seconds() / 3600.0
+                vals = {
+                'estacion': 'Orden de diseño',
+                'inicial': odt.create_date,
+                'final': odt.disenador_fecha_fin,
+                'total': horas,
+                'model_id': odt.id,
+                }
+                registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            # Orden de trabajo
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'Orden de trabajo'),('model_id', '=', odt.id)],limit=1)
+            if odt.nesteo_inicio:
+                horas = (odt.nesteo_inicio - odt.create_date).total_seconds() / 3600.0
+                vals = {
+                'estacion': 'Orden de trabajo',
+                'inicial': odt.create_date,
+                'final': odt.nesteo_inicio,
+                'total': horas,
+                'model_id': odt.id,
+                }
+                registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            # Nesteo
+            registro = self.env['dtm.odt.tiempos.status'].search([('estacion', 'like', 'Nesteo'),('model_id', '=', odt.id)],limit=1)
+            if odt.nesteo_final:
+                horas = (odt.nesteo_final - odt.nesteo_inicio).total_seconds() / 3600.0
+                vals = {
+                'estacion': 'Nesteo',
+                'inicial': odt.nesteo_inicio,
+                'final': odt.nesteo_final,
+                'total': horas,
+                'model_id': odt.id,
+                }
+                registro.write(vals) if registro else self.env['dtm.odt.tiempos.status'].create(vals)
+
+            
+
+                
+                
+              
+            
+            
+
        
         return res
 
@@ -1058,44 +1187,8 @@ class TestModelLine(models.Model):
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
     factura = fields.Char(string="Factura",readonly=True)
     notas = fields.Char(string="Notas")
-
-    def compute_precio(self):
-        for record in self:
-            record.costo = record.materials_list.mostrador * record.materials_cuantity
-
-
-    # Onchange
-    @api.onchange('materials_cuantity')
-    def _onchenge_materials_cuantity(self):
-        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
-            raise ValidationError("Material agotado")
-    #---------------------------------
-    # Compute
-    # @api.depends('materials_cuantity')
-    # def compute_precio(self):
-    #     for result in self:
-    #         result.costo = result.unitario * result.cantidad
-    def _compute_revision(self):
-        for record in self:
-            print(record)
-            get_requerido = self.env['dtm.compras.requerido'].search([
-                ('codigo','=',record.materials_list.id),
-                ('nombre','ilike',record.materials_list.nombre),
-                ('orden_trabajo','=',record.model_id.ot_number)
-            ])
-            get_realizado = self.env['dtm.compras.realizado'].search([
-                ('codigo','=',record.materials_list.id),
-                ('nombre','ilike',record.materials_list.nombre),
-                ('orden_trabajo','=',record.model_id.ot_number)
-            ])
-            record.revision = False
-            if get_realizado or get_requerido:
-                record.revision = True
-
-
-    def _compute_usuario(self):
-        for result in self:
-            result.usuario = self.env.user.partner_id.email
+    extra_materials = fields.Boolean()
+    scrap = fields.Boolean(string="SCRAP", default=False) #para saber si el material es scrap (reposición de material por un mal uso)
 
     @api.onchange('materials_cuantity')
     def _onchange_materials_inventory(self):
@@ -1116,11 +1209,156 @@ class TestModelLine(models.Model):
                 self.materials_required = cantidad - stock
                 self.materials_availabe = stock
         else:
-            self.materials_required = max(cantidad - apartado, 0)  
-
-        
-
+            self.materials_required = max(cantidad - apartado, 0)
     
+
+    def compute_precio(self):
+        for record in self:
+            record.costo = record.materials_list.mostrador * record.materials_cuantity
+
+
+    # Onchange
+    @api.onchange('materials_cuantity')
+    def _onchenge_materials_cuantity(self):
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
+            raise ValidationError("Material agotado")
+    #---------------------------------
+    # Compute
+    # @api.depends('materials_cuantity')
+    # def compute_precio(self):
+    #     for result in self:
+    #         result.costo = result.unitario * result.cantidad
+    def _compute_revision(self):
+        for record in self:
+            get_requerido = self.env['dtm.compras.requerido'].search([
+                ('codigo','=',record.materials_list.id),
+                ('nombre','ilike',record.materials_list.nombre),
+                ('orden_trabajo','=',record.model_id.ot_number),
+                ('extra_materials','=',record.extra_materials),
+            ])
+            get_realizado = self.env['dtm.compras.realizado'].search([
+                ('codigo','=',record.materials_list.id),
+                ('nombre','ilike',record.materials_list.nombre),
+                ('orden_trabajo','=',record.model_id.ot_number),
+                ('extra_materials','=',record.extra_materials),
+            ])
+            record.revision = False
+            if get_realizado or get_requerido:
+                record.revision = True
+
+
+    def _compute_usuario(self):
+        for result in self:
+            result.usuario = self.env.user.partner_id.email
+
+    @api.model
+    def _consumir_stock(self, material, cantidad, registro_existente=False):
+        """
+        Calcula materials_availabe / materials_required contra el stock real de
+        dtm.materiales, consumiendo o regresando directamente esa cantidad.
+        material: recordset dtm.materiales del material solicitado
+        cantidad: cantidad nueva solicitada
+        registro_existente: recordset dtm.materials.line ya existente (corrección)
+                             o False si es la primera vez que se pide
+        """
+        # material viene del stock dtm_materiales
+        stock_actual = material.cantidad
+        # Si es un máquinado lo manda completo para que no vaya a compras
+        if material.nombre.find('Maquinado') == 0:
+            return {'materials_availabe': cantidad, 'materials_required': 0}
+
+        if not registro_existente:
+            if stock_actual >= cantidad:
+                material.write({'cantidad': stock_actual - cantidad})
+                return {'materials_availabe': cantidad, 'materials_required': 0}
+            else:
+                #Se consume todo lo que hay en stock y la diferencia se manda a compras
+                material.write({'cantidad': 0})
+                return {'materials_availabe': stock_actual, 'materials_required': cantidad - stock_actual}
+
+        apartado_anterior = registro_existente.materials_availabe
+        cantidad_anterior = registro_existente.materials_cuantity
+
+        if cantidad == cantidad_anterior:
+            return {
+                'materials_availabe': registro_existente.materials_availabe,
+                'materials_required': registro_existente.materials_required,
+            }
+
+        if cantidad < apartado_anterior:
+            diferencia = apartado_anterior - cantidad
+            material.write({'cantidad': stock_actual + diferencia})
+            return {'materials_availabe': cantidad, 'materials_required': 0}
+        else:
+            falta = cantidad - apartado_anterior
+            if stock_actual >= falta:
+                material.write({'cantidad': stock_actual - falta})
+                return {'materials_availabe': cantidad, 'materials_required': 0}
+            else:
+                material.write({'cantidad': 0})
+                return {'materials_availabe': apartado_anterior + stock_actual, 'materials_required': falta - stock_actual}
+    
+   
+    #-------------------------------------------
+class RequisicionMaterial(models.Model):
+    _name = "dtm.requisicion.line"
+    _description = "Tabla de requisicion para material faltante o scrap"
+
+    # Campos inversos
+    model_id = fields.Many2one("dtm.odt")
+
+    nombre = fields.Char(compute="_compute_material_list",store=True,related='materials_list.nombre')
+    medida = fields.Char(store=True, related='materials_list.medida')
+    notas = fields.Selection([
+        ('Material Faltante','Material Faltante'),
+        ('Material Dañado','Material Dañado'),
+        ('Material Perdido','Material Perdido'),
+    ],string="Notas",required=True)
+
+    materials_list = fields.Many2one("dtm.materiales", string="LISTADO DE MATERIALES",required=True)
+    materials_cuantity = fields.Integer("CANTIDAD", required=True)
+    costo = fields.Float(string="Precio",readonly=True,compute="compute_precio")
+    usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+    scrap = fields.Boolean(string="SCRAP", default=False)
+
+    def compute_precio(self):
+        for record in self:
+            record.costo = record.materials_list.mostrador * record.materials_cuantity
+
+    def _compute_usuario(self):
+        for result in self:
+            result.usuario = self.env.user.partner_id.email    
+   
+    #-------------------------------------------
+class SolicitudEmbalaje(models.Model):
+    _name = "dtm.solicitud.embalaje"
+    _description = "Tabla de solicitud de embalaje"
+
+    # Campos inversos
+    model_id = fields.Many2one("dtm.odt")
+
+    # nombre = fields.Char(compute="_compute_material_list",store=True,related='materials_list.nombre')
+    nombre = fields.Char(related='materials_list.nombre')
+    codigo = fields.Integer(related='materials_list.id')
+    materials_list = fields.Many2one("dtm.consumibles", string="LISTADO DE MATERIALES",required=True)
+    cantidad = fields.Integer("CANTIDAD", required=True)
+    costo = fields.Float(string="Unitario",compute="compute_unitario")
+    total = fields.Float(string="Total",readonly=True,compute="compute_precio")
+    usuario = fields.Char(string="Usuario", compute="_compute_usuario")
+
+    def compute_unitario(self):
+        for record in self:
+            get_cost = self.env['dtm.compras.realizado'].search([('codigo','=',record.materials_list.id),('tipo_orden','=','Requi')],limit=1).unitario
+            record.costo = get_cost
+
+    api.depends('cantidad')
+    def compute_precio(self):
+        for record in self:
+            record.total = record.costo * record.cantidad
+
+    def _compute_usuario(self):
+        for result in self:
+            result.usuario = self.env.user.partner_id.email    
    
     #-------------------------------------------
 
@@ -1139,6 +1377,20 @@ class Rechazo(models.Model):
     def _action_fecha(self):
         self.fecha = datetime.now()
         self.hora = datetime.now(pytz.timezone('America/Mexico_City')).strftime("%H:%M")
+
+class TiemposStatus(models.Model):
+    _name = "dtm.odt.tiempos.status"
+    _description = "Tabla para llevar el historial de los tiempos por estatus de la ODT"
+
+    model_id = fields.Many2one("dtm.odt")
+
+    estacion = fields.Char(string="Estación")
+    inicial = fields.Datetime(string="Inicial")
+    final = fields.Datetime(string="Final")
+    total = fields.Float(string="Total")
+
+  
+           
 
 class Servicios(models.Model):
     _name = "dtm.odt.servicios"
