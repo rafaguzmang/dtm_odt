@@ -176,8 +176,7 @@
                                 </div>
                             </page>
                             <page string="INGENIERÍA" attrs="{'invisible': [('tipe_order','in',['SK','PD','Pre','COT'])]}">
-<!--                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">-->
-                                <field name="materials_ids" attrs="{'readonly': [('permiso_compra', '=', True)]}">
+                               <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info="revision and not entregado"
                                         decoration-bf="revision or entregado" >
@@ -187,16 +186,16 @@
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
                                         <field name="materials_required" options='{"type": "number"}'/>
                                         <field name="costo"/>
-                                        <field name="almacen"/>
-                                        <!-- <field name="revision" attrs="{'readonly': [('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/> -->
-                                        <field name="revision"/>
+                                        <field name="almacen" readonly="1"/>
+                                        <field name="revision" readonly="0"/>
+                                        <!-- <field name="revision"/> -->
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                         <field name="usuario" invisible="1"/>
                                     </tree>
                                 </field>
                                  <field name="costo_material"/>
-                                 <field name="permiso_compra" invisible="1"/>
+                                 <field name="permiso_ingenieria" invisible="1"/>
 
                             </page>
                             <page string="REQUISICION" attrs="{'invisible': [('permiso_compra','!=',True)]}">
@@ -211,6 +210,7 @@
                                     </tree>
                                 </field>
                                  <field name="costo_material"/>
+                                 <field name="permiso_compra" invisible="1"/>
                             </page>
                             <page string="EMBALAJE" attrs="{'invisible': [('embalaje','!=',True)]}">
                                 <field name="solicitud_embalaje_id">

@@ -385,9 +385,13 @@ class DtmOdt(models.Model):
         for result in self:
             result.usuario = self.env.user.partner_id.email
             result.permiso_ingenieria = False
+
             if result.usuario in ['ingenieria1@dtmindustry.com'] and not result.firma_ingenieria:
                 result.permiso_ingenieria = True
                 result.permiso_diseno = False
+
+           
+            
 
     # ----------------------------------- Funciones ----------------------------------------------------------
     def firma_diseno(self,email,parcial):
@@ -811,31 +815,33 @@ class DtmOdt(models.Model):
 
     def compras_odt(self):
         for codigo in self.materials_ids:
-            # Normaliza nombre quitando la leyenda
             buscar = codigo.materials_list.nombre.replace("Maquinado Externo", "")
-            
-            # Regla 1: si cantidad requerida es cero, no hace nada
-            if codigo.materials_required <= 0:
-                continue
 
-            # Regla 2: excluir materiales con 'Maquinado', sin almacen o id=1
+            # Excluir materiales con 'Maquinado', sin almacen o id=1
             if 'Maquinado' in buscar or not codigo.almacen or codigo.materials_list.id == 1:
                 continue
 
-            # Busca registros existentes
             get_requerido = self.env['dtm.compras.requerido'].search([
                 ("orden_trabajo", "ilike", str(self.ot_number)),
                 ('revision_ot', '=', self.revision_ot),
                 ("codigo", "=", codigo.materials_list.id)
             ], limit=1)
-
             get_realizado = self.env['dtm.compras.realizado'].search([
                 ("orden_trabajo", "ilike", str(self.ot_number)),
                 ('revision_ot', '=', self.revision_ot),
                 ("codigo", "=", codigo.materials_list.id)
             ], limit=1)
 
-            # Valores base
+            cant_realizado = get_realizado.cantidad if get_realizado else 0
+            # Lo que falta por comprar ahora, descontando lo ya comprado
+            pendiente = max(codigo.materials_required - cant_realizado, 0)
+
+            if pendiente <= 0:
+                # Ya no hace falta comprar nada (se cubrió con stock o con lo ya comprado)
+                if get_requerido:
+                    get_requerido.unlink()
+                continue
+
             vals = {
                 'orden_trabajo': self.ot_number,
                 'codigo': codigo.materials_list.id,
@@ -844,28 +850,10 @@ class DtmOdt(models.Model):
                 'tipo_orden': self.tipe_order,
                 'revision_ot': self.revision_ot,
                 'nesteo': bool(self.firma_ingenieria),
+                'cantidad': pendiente,
             }
 
-            # Cantidades actuales
-            cant_requerido = get_requerido.cantidad if get_requerido else 0
-            cant_realizado = get_realizado.cantidad if get_realizado else 0
-            cant_total = cant_requerido + cant_realizado
-
-            # Regla 3: si no existe en requerido ni realizado → crear en requerido
-            if not get_requerido and not get_realizado:
-                vals['cantidad'] = codigo.materials_required
-                self.env['dtm.compras.requerido'].create(vals)
-                continue
-
-            # Regla 4: si ya hay realizado pero la cantidad solicitada aumentó → poner lo que falta en requerido
-            if codigo.materials_cuantity > cant_total:
-                faltante = codigo.materials_cuantity - cant_total
-                vals['cantidad'] = faltante
-                if get_requerido:
-                    get_requerido.write(vals)
-                else:
-                    self.env['dtm.compras.requerido'].create(vals)
-            # Si la cantidad requerida es menor o igual al total ya registrado, no hace nada
+            get_requerido.write(vals) if get_requerido else self.env['dtm.compras.requerido'].create(vals)
             
 
     def maquinados(self):
@@ -911,6 +899,7 @@ class DtmOdt(models.Model):
             self.retrabajo = False
             self.firma_ingenieria = None
             self.firma = None
+            self.permiso_ingenieria = False
         else:
             raise ValidationError("Bitácora de retrabajo vacía")
 
@@ -931,8 +920,8 @@ class DtmOdt(models.Model):
         for item in self.materials_ids:
             if item.materials_list.nombre.find('Maquinado') == 0:
                 item.write({
-                    'materials_availabe':item.materials_cuantity,
-                    'materials_required':0,
+                    'materials_availabe': item.materials_cuantity,
+                    'materials_required': 0,
                 })
         # 1. Capturar estado ANTES de escribir
         estado_previo = {}
@@ -958,7 +947,6 @@ class DtmOdt(models.Model):
 
         # 4. Recalcular stock con valores correctos
         for line in self.materials_ids:
-            # Saltar Maquinados, ya fueron procesados
             if line.materials_list.nombre.startswith('Maquinado'):
                 continue
 
@@ -968,18 +956,14 @@ class DtmOdt(models.Model):
             stock_actual = line.materials_list.cantidad
 
             if cantidad_nueva == prev.get('cantidad', cantidad_nueva):
-                # Sin cambio en cantidad, no tocar nada
                 continue
 
             if cantidad_nueva < apartado_anterior:
-                # ROLLBACK: devolver diferencia al almacén
                 diferencia = apartado_anterior - cantidad_nueva
                 line.materials_availabe = cantidad_nueva
                 line.materials_required = 0
                 line.materials_list.write({'cantidad': stock_actual + diferencia})
-
             elif cantidad_nueva > apartado_anterior:
-                # SUBIDA: cubrir diferencia con stock disponible
                 falta = cantidad_nueva - apartado_anterior
                 if stock_actual >= falta:
                     line.materials_availabe = cantidad_nueva
@@ -989,6 +973,18 @@ class DtmOdt(models.Model):
                     line.materials_availabe = apartado_anterior + stock_actual
                     line.materials_required = falta - stock_actual
                     line.materials_list.write({'cantidad': 0})
+
+        # 5. Limpiar de compras.requerido los materiales que ya no están en la lista
+        for record in self:
+            if not record.ot_number:
+                continue
+            codigos_actuales = record.materials_ids.mapped('materials_list').ids
+            huerfanos = self.env['dtm.compras.requerido'].search([
+                ('orden_trabajo', 'ilike', str(record.ot_number)),
+                ('revision_ot', '=', record.revision_ot),
+                ('codigo', 'not in', codigos_actuales),
+            ])
+            huerfanos.unlink()
 
         return res
 
