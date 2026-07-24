@@ -182,9 +182,9 @@
                                         decoration-bf="revision or entregado" >
                                         <field name="materials_list" attrs="{'readonly': [('revision', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
-                                        <field name="materials_cuantity" options='{"type": "number"}' attrs="{'readonly': [('revision', '=', True)]}"/>
+                                        <field name="materials_cuantity" attrs="{'readonly': [('revision', '=', True)]}"/>
                                         <field name="materials_availabe" options="{'no_create': True, 'no_delete': True}"/>
-                                        <field name="materials_required" options='{"type": "number"}'/>
+                                        <field name="materials_required" />
                                         <field name="costo"/>
                                         <field name="almacen" readonly="1"/>
                                         <field name="revision" readonly="0"/>

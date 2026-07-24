@@ -412,7 +412,7 @@ class DtmOdt(models.Model):
             row.write({'revision':True}) if row.almacen and row.materials_required > 0 else row.write({'revision':False})
             # Se verifica si es una lámina
             if row.materials_list.nombre.find("Lámina") != -1: #Se verifica que no sea pedacería
-                medidas_validas = ["120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"]
+                medidas_validas = ["240.0 x 96.0","120.0 x 72.0","120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"]
                 if not any(medida in row.materials_list.medida for medida in medidas_validas):#Se pone falso si la lámina no se encuentra en las medidas de la lista
                     row.write({'revision':False})
             if row.materials_list.id == 1:
@@ -818,7 +818,7 @@ class DtmOdt(models.Model):
             buscar = codigo.materials_list.nombre.replace("Maquinado Externo", "")
 
             # Excluir materiales con 'Maquinado', sin almacen o id=1
-            if 'Maquinado' in buscar or not codigo.almacen or codigo.materials_list.id == 1:
+            if 'Maquinado' in buscar or not codigo.almacen or codigo.materials_list.id == 1 or codigo.materials_list.id == 2:
                 continue
 
             get_requerido = self.env['dtm.compras.requerido'].search([
@@ -918,11 +918,20 @@ class DtmOdt(models.Model):
 
     def write(self, vals):
         for item in self.materials_ids:
-            if item.materials_list.nombre.find('Maquinado') == 0:
+            material = item.materials_list
+            es_maquinado = material.nombre.find('Maquinado') == 0
+            es_codigo_1_o_2 = material.id in (1, 2)
+            es_lamina_fuera_de_medida = (
+                material.nombre.startswith("Lámina")
+                    and material.medida.split('@')[0].strip() not in ["240.0 x 96.0","120.0 x 72.0","120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"]
+                )
+
+            if es_maquinado or es_codigo_1_o_2 or es_lamina_fuera_de_medida:
                 item.write({
                     'materials_availabe': item.materials_cuantity,
                     'materials_required': 0,
                 })
+
         # 1. Capturar estado ANTES de escribir
         estado_previo = {}
         for line in self.materials_ids:
@@ -931,6 +940,8 @@ class DtmOdt(models.Model):
                 'requerido': line.materials_required,
                 'cantidad': line.materials_cuantity,
                 'stock': line.materials_list.cantidad,
+                'material': line.materials_list,   # <-- para poder regresar stock si se borra
+                'es_maquinado': line.materials_list.nombre.startswith('Maquinado'),
             }
 
         # 2. Lógica de Maquinados (antes del super)
@@ -945,7 +956,18 @@ class DtmOdt(models.Model):
         res = super().write(vals)
         self._sync_maquinados_to_materiales()
 
-        # 4. Recalcular stock con valores correctos
+        # 3.5 Regresar al stock las líneas que fueron ELIMINADAS
+        ids_actuales = set(self.materials_ids.ids)
+        for line_id, prev in estado_previo.items():
+            if line_id in ids_actuales:
+                continue  # sigue existiendo, se maneja en el paso 4
+            if prev['es_maquinado']:
+                continue  # maquinados no tocan stock real
+            if prev['apartado']:
+                material = prev['material']
+                material.write({'cantidad': material.cantidad + prev['apartado']})
+
+       # 4. Recalcular stock con valores correctos
         for line in self.materials_ids:
             if line.materials_list.nombre.startswith('Maquinado'):
                 continue
@@ -955,15 +977,20 @@ class DtmOdt(models.Model):
             cantidad_nueva = line.materials_cuantity
             stock_actual = line.materials_list.cantidad
 
-            if cantidad_nueva == prev.get('cantidad', cantidad_nueva):
+            # Línea nueva (no existía antes del write): forzar recálculo real,
+            # no confiar únicamente en lo que haya mandado el onchange del front.
+            es_linea_nueva = line.id not in estado_previo
+
+            if not es_linea_nueva and cantidad_nueva == prev.get('cantidad'):
                 continue
 
-            if cantidad_nueva < apartado_anterior:
+            if not es_linea_nueva and cantidad_nueva <= apartado_anterior:
                 diferencia = apartado_anterior - cantidad_nueva
                 line.materials_availabe = cantidad_nueva
                 line.materials_required = 0
-                line.materials_list.write({'cantidad': stock_actual + diferencia})
-            elif cantidad_nueva > apartado_anterior:
+                if diferencia:
+                    line.materials_list.write({'cantidad': stock_actual + diferencia})
+            elif cantidad_nueva > apartado_anterior or es_linea_nueva:
                 falta = cantidad_nueva - apartado_anterior
                 if stock_actual >= falta:
                     line.materials_availabe = cantidad_nueva
@@ -974,13 +1001,31 @@ class DtmOdt(models.Model):
                     line.materials_required = falta - stock_actual
                     line.materials_list.write({'cantidad': 0})
 
+        # 4.5 Validación: línea con cantidad capturada pero nunca procesada
+        # contra el stock (típicamente porque el usuario escribió la cantidad
+        # sin confirmar primero la línea con el ícono de guardar/nube).
+        lineas_mal = self.materials_ids.filtered(
+            lambda l: l.materials_cuantity > 0
+            and l.materials_availabe == 0
+            and l.materials_required == 0
+            and not l.materials_list.nombre.startswith('Maquinado')
+        )
+        if lineas_mal:
+            nombres = ', '.join(lineas_mal.mapped('nombre'))
+            raise ValidationError(
+                "Las siguientes líneas de material tienen cantidad capturada pero "
+                "no fueron procesadas contra el stock: %s.\n\n"
+                "Esto ocurre cuando se escribe la cantidad antes de confirmar la línea "
+                "(ícono de guardar/nube). Bórrala, agrégala de nuevo, confírmala primero "
+                "y después captura la cantidad." % nombres
+            )
         # 5. Limpiar de compras.requerido los materiales que ya no están en la lista
         for record in self:
             if not record.ot_number:
                 continue
             codigos_actuales = record.materials_ids.mapped('materials_list').ids
             huerfanos = self.env['dtm.compras.requerido'].search([
-                ('orden_trabajo', 'ilike', str(record.ot_number)),
+                ('orden_trabajo', '=', str(record.ot_number)),
                 ('revision_ot', '=', record.revision_ot),
                 ('codigo', 'not in', codigos_actuales),
             ])
@@ -1216,7 +1261,7 @@ class TestModelLine(models.Model):
     # Onchange
     @api.onchange('materials_cuantity')
     def _onchenge_materials_cuantity(self):
-        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["120.0 x 48.0", "96.0 x 48.0", "96.0 x 36.0", "60.0 x 48.0"] and self.materials_required > 0:
+        if self.materials_list and self.materials_list.nombre.startswith("Lámina") and self.materials_list.medida.split('@')[0].strip() not in ["240.0 x 96.0","120.0 x 72.0","120.0 x 48.0", "96.0 x 48.0", "120.0 x 36.0", "96.0 x 36.0", "60.0 x 48.0","12.0 x 12.0"] and self.materials_required > 0:
             raise ValidationError("Material agotado")
     #---------------------------------
     # Compute
