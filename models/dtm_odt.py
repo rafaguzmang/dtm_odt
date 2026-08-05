@@ -1270,13 +1270,7 @@ class TestModelLine(models.Model):
     #     for result in self:
     #         result.costo = result.unitario * result.cantidad
     def _compute_revision(self):
-        for record in self:
-            get_requerido = self.env['dtm.compras.requerido'].search([
-                ('codigo','=',record.materials_list.id),
-                ('nombre','ilike',record.materials_list.nombre),
-                ('orden_trabajo','=',record.model_id.ot_number),
-                ('extra_materials','=',record.extra_materials),
-            ])
+        for record in self:           
             get_realizado = self.env['dtm.compras.realizado'].search([
                 ('codigo','=',record.materials_list.id),
                 ('nombre','ilike',record.materials_list.nombre),
@@ -1284,7 +1278,7 @@ class TestModelLine(models.Model):
                 ('extra_materials','=',record.extra_materials),
             ])
             record.revision = False
-            if get_realizado or get_requerido:
+            if get_realizado:
                 record.revision = True
 
 
