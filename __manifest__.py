@@ -5,6 +5,7 @@
     # 'depends': ['base', 'mail'],
     "data":[
         #Security
+        'security/res_groups.xml',
         'security/ir.model.access.csv',
         #Views
         'views/dtm_ot_view.xml',

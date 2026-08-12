@@ -13,6 +13,5 @@
             <field name="tag">dtm_odt.modulo_nesteo</field>
         </record>
 
-        <menuitem id="modulo_nesteo_menu" action="action_modulo_nesteo"/>
     </data>
 </odoo>

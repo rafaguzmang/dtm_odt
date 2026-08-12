@@ -1,0 +1,28 @@
+<odoo>
+    <!-- Categoría primero -->
+    <record id="module_category_diseno_admin" model="ir.module.category">
+        <field name="name">Diseño</field>
+        <field name="description">Da permisos de administrador para los conceptos</field>
+        <field name="sequence">52</field>
+    </record>
+
+    <!-- Grupo admin -->
+    <record id="group_diseno_admin" model="res.groups">
+        <field name="name">Diseño Administración</field>
+        <field name="category_id" ref="module_category_diseno_admin"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+    </record>      
+
+    <record id="group_diseno_user" model="res.groups">
+        <field name="name">Diseño Usuario</field>
+        <field name="category_id" ref="module_category_diseno_admin"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>      
+
+    <record id="group_diseno_restriccion" model="res.groups">
+        <field name="name">Diseño Restriccion</field>
+        <field name="category_id" ref="module_category_diseno_admin"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>      
+</odoo>

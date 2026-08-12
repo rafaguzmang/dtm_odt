@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-     <menuitem name="Diseño" id="menu_root_dtm_diseno">
-        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action"/>
-        <menuitem id="odt_revisiones_action_menu" action="dtm_odt.dtm_revisiones_action"/>
-        <menuitem id="dtm_odt_segumiento_menu" action="dtm_odt.dtm_odt_segumiento_action"/>
-        <menuitem id="modulo_diseno_menu" action="action_modulo_diseno"/>
-
-
+     <menuitem name="Diseño" id="menu_root_dtm_diseno" groups="dtm_odt.group_diseno_user,dtm_odt.group_diseno_admin">
+        <menuitem id="modulo_diseno_menu" action="action_modulo_diseno" sequence="0"/>
+        <menuitem id="dtm_ot_action_menu" action="dtm_odt.dtm_ot_action" sequence="1"/>
+        <menuitem id="odt_revisiones_action_menu" action="dtm_odt.dtm_revisiones_action" sequence="2"/>
+        <menuitem id="dtm_odt_segumiento_menu" action="dtm_odt.dtm_odt_segumiento_action" sequence="3"/>
      </menuitem>
 </odoo>
