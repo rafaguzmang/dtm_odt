@@ -63,3 +63,6 @@ access_dtm_odt_tiempos_status_admin,access.dtm.odt.tiempos.status,model_dtm_odt_
 access_dtm_odt_tiempos_status_user,access.dtm.odt.tiempos.status,model_dtm_odt_tiempos_status,group_diseno_user,1,1,1,0
 access_dtm_odt_tiempos_status_restriccion,access.dtm.odt.tiempos.status,model_dtm_odt_tiempos_status,group_diseno_restriccion,1,1,1,1
 
+access_dtm_odt_tiempos_admin,access.dtm.odt.tiempos.admin,model_dtm_odt_tiempos,group_diseno_admin,1,1,1,1
+access_dtm_odt_tiempos_user,access.dtm.odt.tiempos.user,model_dtm_odt_tiempos,group_diseno_user,1,1,1,0
+access_dtm_odt_tiempos_restriccion,access.dtm.odt.tiempos.restriccion,model_dtm_odt_tiempos,group_diseno_restriccion,1,1,1,1

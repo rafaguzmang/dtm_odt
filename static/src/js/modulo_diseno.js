@@ -40,7 +40,6 @@ export class ModuloDiseno extends Component {
     async loadOrdenes() {
         const response = await fetch("/dtm_diseno");
         const data = await response.json();
-        console.log(data);
         data.sort((a, b) => {
             const parseDate = (str) => {
                 if (!str || str === "--/--/--") return null;

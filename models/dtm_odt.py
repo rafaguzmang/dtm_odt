@@ -75,7 +75,7 @@ class DtmOdt(models.Model):
     ligas_tubos_id = fields.One2many("dtm.odt.ligas","model_tubo_id")
     archivos_id = fields.Many2many('dtm.documentos.anexos')
     date_disign_finish = fields.Datetime(string="Fecha Diseño",readonly =True)
-    diseno_terminado = fields.Datetime(string="Diseño Terminado/hrs", readonly = True)
+    diseno_terminado = fields.Datetime(string="Terminado", readonly = True)
     diseno_duracion = fields.Float(string="Tiempo de diseño",compute= '_compute_duracion', readonly = True)
     manufactura = fields.Boolean(string="P",default=False)
     nesteo_chk = fields.Boolean(string="N",default=False)
@@ -111,6 +111,26 @@ class DtmOdt(models.Model):
     maquinados_id_tracking = fields.Char(compute='_compute_maquinados_id_tracking', store=True, tracking = True)
     anexos_id_tracking = fields.Char(compute='_compute_anexos_id_tracking', store=True, tracking = True)
     disenador_fecha_fin = fields.Datetime()
+
+    # Tiempos
+    tiempos_id = fields.One2many("dtm.odt.tiempos","model_id")
+    play_bool = fields.Boolean()    
+
+    def action_play(self):
+        current = self.tiempos_id.create({
+            'model_id': self.id,
+            'start': datetime.today()
+        })
+        self.play_bool = True
+
+    def action_stop(self):
+        self.play_bool = False
+        get_tiempos = self.tiempos_id.search([('model_id','=',self.id)],order='id desc',limit=1)
+        get_tiempos.write({
+            'end': datetime.today(),
+            'tiempo': round((datetime.today() - get_tiempos.start).total_seconds() / 3600.0,2)
+        })
+       
 
     def solicitud_embalaje(self):
         for material in self.solicitud_embalaje_id:
@@ -188,6 +208,10 @@ class DtmOdt(models.Model):
                     raise ValidationError(f'CORTADORA DE LÁMINAS\nDocumento repetido {nombre} en Segundas piezas')
                 else:
                     items[nombre] = 1
+
+ 
+            
+           
     #-----------------------------------------------
     def requisicion_material(self):
         Line = self.env['dtm.materials.line']
@@ -254,8 +278,8 @@ class DtmOdt(models.Model):
     def _compute_duracion(self):
         for result in self:
             # print(result.id,result.diseno_terminado)
-            if result.diseno_terminado:
-                result.diseno_duracion = round((result.diseno_terminado - result.create_date).total_seconds() / 3600.0, 2)
+            if result.tiempos_id:
+                result.diseno_duracion = sum(result.tiempos_id.mapped('tiempo'))
             else:
                 result.diseno_duracion = 0
 
@@ -459,6 +483,8 @@ class DtmOdt(models.Model):
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
             # Firma de diseño
+            if not self.lista_material_id:
+                raise ValidationError('No se han agregado materiales')
             if not self.firma:
                 self.firma_diseno(email, parcial)
                 self.disenador_fecha_fin = datetime.today()
@@ -471,7 +497,7 @@ class DtmOdt(models.Model):
                     self.permiso_compra = True
 
 
-        if self.firma in ['Andrés Alberto Orozco Martínez','Bryan Banda'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
+        if self.firma in ['Andrés Alberto Orozco Martínez','Bryan Banda','Oscar Alberto Estrada Carrillo'] and self.firma_ventas in ['Alejandro Erives Chavez','Hugo Chacon','Administrator'] and self.tipe_order != 'COT':
             self.nesteo_chk = True
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
@@ -484,7 +510,8 @@ class DtmOdt(models.Model):
                 self.prediseño_terminado()
         # Ejecutar proceso automáticamente si Toda las Firmas(3) están listas
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
-            self.nesteo_chk = False
+            if not self.materials_ids:
+                raise ValidationError("No se han agregado materiales")
             self.manufactura = True
             self.maquinados()
             self.proceso(parcial)
@@ -857,15 +884,12 @@ class DtmOdt(models.Model):
             
 
     def maquinados(self):
-        # se verifica si los servicios existen en el modulo de maquinados
         if 'maquinado' in self.maquinados_id.mapped('tipo_servicio'):
-            # Se busca si la orden ya tiene maquinados terminados
             terminados = self.env['dtm.maquinados.terminados'].search([
                 ('orden_trabajo','=',self.ot_number),
                 ('revision_ot','=',self.version_ot),
                 ('tipo_orden','=',self.tipe_order)
             ],limit=1)
-            # Se revisa si la orden ya existe en maquinados para actualizarla y de no ser así la crea
             maquinado = self.env['dtm.maquinados'].search([('orden_trabajo','=',self.ot_number),('revision_ot','=',self.revision_ot),('tipo_orden','=',self.tipe_order)],limit=1)
             vals = {
                 'orden_trabajo':self.ot_number,
@@ -873,14 +897,12 @@ class DtmOdt(models.Model):
                 'tipo_orden':self.tipe_order,
                 'disenador':self.disenador,
             }
-             # si existe se actualiza la información si no se crea la orden
             if maquinado:
                 maquinado.write(vals)
             else:
                 maquinado = self.env['dtm.maquinados'].create(vals)
-            # se pasan todos los servicios de la orden a la tabla de la orden que esta en el modulo de maquinados
+
             for servicio in self.maquinados_id:
-                # print(self.env['dtm.maquinados.servicios'].search([('model2_id','=',terminados.id),('nombre','=',servicio.nombre)]))
                 if servicio.tipo_servicio == 'maquinado' and not self.env['dtm.maquinados.servicios'].search([('model2_id','=',terminados.id),('nombre','=',servicio.nombre)]):
                     vals_servicios = {
                         'nombre':servicio.nombre,
@@ -888,10 +910,24 @@ class DtmOdt(models.Model):
                         'cantidad':servicio.cantidad,
                         'fecha_solicitud':servicio.fecha_solicitud,
                         'model_id':maquinado.id,
-                        'anexos_id':servicio.anexos_id
+                        'anexos_id':[(6, 0, servicio.anexos_id.ids)],
                     }
-                    servicio = self.env['dtm.maquinados.temporales'].search([('model_id','=',maquinado.id),('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
-                    servicio.write(vals_servicios) if servicio else servicio.create(vals_servicios)
+                    registro = self.env['dtm.maquinados.temporales'].search([('model_id','=',maquinado.id),('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')])
+                    registro = registro.write(vals_servicios) or registro if registro else self.env['dtm.maquinados.temporales'].create(vals_servicios)
+
+                    # --- FIX de acceso a adjuntos ---
+                    # Forzamos res_model/res_id en los attachments para que el
+                    # control de acceso valide contra dtm.maquinados.temporales
+                    # (donde el ir.model.access.csv sí da permiso a los usuarios)
+                    # en vez de caer en la regla "solo el creador puede verlo".
+                    target = registro if isinstance(registro, models.Model) else self.env['dtm.maquinados.temporales'].search(
+                        [('model_id','=',maquinado.id),('nombre','=',servicio.nombre),('tipo_servicio','=','Maquinado')], limit=1)
+                    for attachment in target.anexos_id:
+                        if not attachment.res_model:
+                            attachment.sudo().write({
+                                'res_model': 'dtm.maquinados.temporales',
+                                'res_id': target.id,
+                            })
 
     def action_retrabajo(self):
 
@@ -1373,10 +1409,9 @@ class SolicitudEmbalaje(models.Model):
     model_id = fields.Many2one("dtm.odt")
 
     # nombre = fields.Char(compute="_compute_material_list",store=True,related='materials_list.nombre')
-    nombre = fields.Char(related='materials_list.nombre')
-    codigo = fields.Integer(related='materials_list.id')
+    codigo = fields.Integer(related='materials_list.id',string="Código")
     materials_list = fields.Many2one("dtm.consumibles", string="LISTADO DE MATERIALES",required=True)
-    cantidad = fields.Integer("CANTIDAD", required=True)
+    cantidad = fields.Integer("Cantidad", required=True)
     costo = fields.Float(string="Unitario",compute="compute_unitario")
     total = fields.Float(string="Total",readonly=True,compute="compute_precio")
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
@@ -1532,9 +1567,16 @@ class MaterialNesteo(models.Model):
         return defaults
 
 
+class Tiempos(models.Model):
+    _name = "dtm.odt.tiempos"
+    _description = "Modelo para llevar el historial de los tiempos por estatus de la ODT"
+    
 
-
-
+    model_id = fields.Many2one("dtm.odt")
+    tiempo = fields.Float(string="Tiempo/hrs", readonly=True)
+    start = fields.Datetime(string="Fecha Inicio", readonly=True)
+    end = fields.Datetime(string="Fecha Final", readonly=True)
+    
 
 
 

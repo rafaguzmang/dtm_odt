@@ -29,7 +29,7 @@
                     <filter string="Nesteo" name="nesteo" domain="[('nesteo_chk','=',True)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
-                    <filter string="En diseño" name="diseno" domain="[ ('manufactura', '=', False)]"/>
+                    <filter string="En diseño" name="diseno" domain="[ '|',('version_ot', '>', 1),('ot_number', '=', 0)]"/>
 
 
                </search>
@@ -68,14 +68,30 @@
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
                 <form delete="false">
+                    <style>
+                        .o_statusbar_buttons {
+                            width: 100%;
+                            justify-content: space-between;
+                        }
+                        .dtm-header-left,
+                        .dtm-header-right {
+                            display: flex;
+                            gap: 4px;
+                        }
+                    </style>
                     <header>
-                        <button type="object" name="action_version" string="Nueva versión"  icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" />
-                        <button type="object" name="action_orden_hijo" string="OT Parcial"  icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
-                        <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
-                        <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print"  class="btn btn-primary" title="print"/>
-<!--                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" attrs="{'invisible': ['|',('firma_ingenieria', '!=', False),'&amp;',('retrabajo', '=', True),('usuario', '!=', 'ingenieria1@dtmindustry.com')]}"/>-->
-                        <button type="object" name="action_firma" string="Firma"  icon="fa-pencil" title="pencil" class="btn btn-primary" />
-                        <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
+                        <div class="dtm-header-left">
+                            <button type="object" name="action_version" string="Nueva versión" icon="fa-file-text-o" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', '!=', 'calidad2@dtmindustry.com')]}" />
+                            <button type="object" name="action_orden_hijo" string="OT Parcial" icon="fa-clone" title="pencil" class="btn btn-warning" attrs="{'invisible': ['|',('usuario', 'not in', ['ventas1@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order', '!=', 'COT')]}"/>
+                            <button type="object" name="action_imprimir_formato" string="ODT" icon="fa-print" class="btn btn-primary"/>
+                            <button type="object" name="action_imprimir_materiales" string="Lista de Materiales" icon="fa-print" class="btn btn-primary" title="print"/>
+                            <button type="object" name="action_firma" string="Firma" icon="fa-pencil" title="pencil" class="btn btn-primary" />
+                            <button type="object" name="action_retrabajo" string="Retrabajo" title="pencil" class="btn btn-warning" attrs="{'invisible': [('usuario', 'not in', ['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}" />
+                        </div>
+                        <div class="dtm-header-right">
+                            <button type="object" name="action_play" icon="fa-play" string="Play" title="pencil" class="btn btn-success" attrs="{'invisible': ['|',('play_bool','=',True),('firma', '!=', False)]}" />
+                            <button type="object" name="action_stop" icon="fa-stop" string="Stop" title="pencil" class="btn btn-warning" attrs="{'invisible': [('play_bool','=',False)]}" />
+                        </div>
                     </header>
 
                     <sheet>
@@ -154,6 +170,7 @@
                                 <field name="ot_number" invisible="1"/>
                                 <field name="retrabajo" invisible="1"/>
                                 <field name="firma" invisible="1"/>
+                                <field name="play_bool" invisible="1"/>
                         <notebook>
                             <page string="RESUMEN">
                                 <group>
@@ -217,7 +234,7 @@
                                 <field name="solicitud_embalaje_id">
                                     <tree editable="bottom">
                                         <field name="codigo"/>
-                                        <field name="nombre"/>
+                                        <field name="materials_list"/>
                                         <field name="cantidad" options="{'type': 'number'}"/>
                                         <field name="costo"/>
                                         <field name="total"/>
@@ -420,13 +437,22 @@
                             <page string="RETRABAJO" attrs="{'invisible': ['|',('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com']),('tipe_order','in',['Pre'])]}">
                                 <field name="bitacora_id"/>
                             </page>
-                            <page string="TIEMPOS" attrs="{'invisible': [('usuario','not in',['rafaguzmang@hotmail.com'])]}">
+                            <page string="TIEMPOS STATUS" attrs="{'invisible': [('usuario','not in',['rafaguzmang@hotmail.com'])]}">
                                 <field name="tiempo_status">
                                     <tree editable="buttom">
                                         <field name="estacion"/>
                                         <field name="inicial"/>
                                         <field name="final"/>
                                         <field name="total"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="TIEMPOS DISEÑO" attrs="{'invisible': [('usuario','not in',['rafaguzmang@hotmail.com'])]}">
+                                <field name="tiempos_id">
+                                    <tree editable="buttom" delete="False" create="False">
+                                        <field name="start"/>
+                                        <field name="end"/>
+                                        <field name="tiempo"/>
                                     </tree>
                                 </field>
                             </page>

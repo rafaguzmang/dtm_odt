@@ -70,6 +70,7 @@ class WebSiteDirections(http.Controller):
                 'fecha_llegada':material.create_date.strftime('%Y-%m-%d') if material.create_date else '--/--/----',
                 'fecha_termino_diseno':material.date_disign_finish.strftime('%Y-%m-%d') if material.date_disign_finish else '--/--/----',
                 'fecha_entrega_cliente': material.date_rel.strftime('%Y-%m-%d') if material.date_rel else '--/--/----',
+                'diseno_duracion': material.diseno_duracion,
             })
         return request.make_response(
             json.dumps(result),

@@ -177,11 +177,13 @@
                     <th t-on-click="() => this.sortColumn('cliente')">Cliente <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('producto')">Producto <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('cantidad')">Cantidad <span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('disenador')">Diseñador <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('po_number')">PO<span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('precio')">Precio MXN<span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_llegada')">En Diseño<span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_termino_diseno')">Fecha Estimada <span class="dc-sort-icon">↕</span></th>
                     <th t-on-click="() => this.sortColumn('fecha_entrega_cliente')">Fecha Entrega<span class="dc-sort-icon">↕</span></th>
+                    <th t-on-click="() => this.sortColumn('diseno_duracion')">Duración<span class="dc-sort-icon">↕</span></th>
                 </tr>
                 </thead>
                 <tbody id="dc-tbody">
@@ -190,7 +192,8 @@
                             <td><span class="dc-od-badge"><t t-esc="orden.orden_diseno"/></span></td>
                             <td><span class="dc-cliente-chip"><t t-esc="orden.cliente"/></span></td>
                             <td class="dc-td--product"><t t-esc="orden.producto"/></td>                     
-                            <td><t t-esc="orden.cantidad"/></td>                     
+                            <td><t t-esc="orden.cantidad"/></td>    
+                            <td><t t-esc="orden.disenador"/></td>                     
                             <td class="dc-td--po dc-td-popdf " t-on-click="()=> this.openPDF(orden.po_file)"><t t-esc="orden.po_number"/></td>
                             <td class="dc-td--po"><t t-esc="orden.precio"/></td>
                             <td class="dc-td--date"><t t-esc="orden.fecha_llegada"/></td>
@@ -209,6 +212,7 @@
                                 </t>
                             </td>
                             <td class="dc-td--date"><t t-esc="orden.fecha_entrega_cliente"/></td>
+                            <td class="dc-fecha-badge"><t t-esc="orden.diseno_duracion"/></td>
                         </tr>
                     </t>
                 </tbody>
