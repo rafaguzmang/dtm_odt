@@ -126,10 +126,11 @@ class DtmOdt(models.Model):
     def action_stop(self):
         self.play_bool = False
         get_tiempos = self.tiempos_id.search([('model_id','=',self.id)],order='id desc',limit=1)
-        get_tiempos.write({
-            'end': datetime.today(),
-            'tiempo': round((datetime.today() - get_tiempos.start).total_seconds() / 3600.0,2)
-        })
+        if get_tiempos:
+            get_tiempos.write({
+                'end': datetime.today(),
+                'tiempo': (round((datetime.today() - get_tiempos.start).total_seconds() / 3600.0,2))
+            })
        
 
     def solicitud_embalaje(self):
@@ -216,6 +217,8 @@ class DtmOdt(models.Model):
     def requisicion_material(self):
         Line = self.env['dtm.materials.line']
         for item in self.requisicion_material_id:
+            if item.solicitado:
+                continue
             if not item.materials_cuantity:
                 continue
 
@@ -227,6 +230,7 @@ class DtmOdt(models.Model):
                 'extra_materials': True,
                 'scrap': item.scrap,
             }
+            item.write({'solicitado':True})
 
             if item.scrap:
                 # Siempre línea nueva: duplicado intencional (reposición por daño)
@@ -488,6 +492,7 @@ class DtmOdt(models.Model):
             if not self.firma:
                 self.firma_diseno(email, parcial)
                 self.disenador_fecha_fin = datetime.today()
+            self.action_stop()
 
 
             # Solo ingenieria1 puede liberar oficialmente
@@ -851,12 +856,14 @@ class DtmOdt(models.Model):
             get_requerido = self.env['dtm.compras.requerido'].search([
                 ("orden_trabajo", "ilike", str(self.ot_number)),
                 ('revision_ot', '=', self.revision_ot),
-                ("codigo", "=", codigo.materials_list.id)
+                ("codigo", "=", codigo.materials_list.id),
+                ('extra_materials', '=', codigo.extra_materials)
             ], limit=1)
             get_realizado = self.env['dtm.compras.realizado'].search([
                 ("orden_trabajo", "ilike", str(self.ot_number)),
                 ('revision_ot', '=', self.revision_ot),
-                ("codigo", "=", codigo.materials_list.id)
+                ("codigo", "=", codigo.materials_list.id),
+                ('extra_materials', '=', codigo.extra_materials)
             ], limit=1)
 
             cant_realizado = get_realizado.cantidad if get_realizado else 0
@@ -878,6 +885,7 @@ class DtmOdt(models.Model):
                 'revision_ot': self.revision_ot,
                 'nesteo': bool(self.firma_ingenieria),
                 'cantidad': pendiente,
+                'extra_materials':codigo.extra_materials
             }
 
             get_requerido.write(vals) if get_requerido else self.env['dtm.compras.requerido'].create(vals)
@@ -1084,12 +1092,12 @@ class DtmOdt(models.Model):
         for rec in self:
             for servicio in rec.maquinados_id:
                 # Busca el material correspondiente
-                servicio_search = self.env['dtm.materiales'].search([
+                servicio_search = self.env['dtm.materiales'].sudo().search([
                     ('nombre', '=', f"Maquinado {servicio.nombre}")
                 ], limit=1)
                 # Si no existe, lo crea
                 if not servicio_search:
-                    servicio_search = self.env['dtm.materiales'].create({
+                    servicio_search = self.env['dtm.materiales'].sudo().create({
                         'nombre': f"Maquinado {servicio.nombre}",
                         'medida': '.'
                     })
@@ -1391,6 +1399,7 @@ class RequisicionMaterial(models.Model):
     costo = fields.Float(string="Precio",readonly=True,compute="compute_precio")
     usuario = fields.Char(string="Usuario", compute="_compute_usuario")
     scrap = fields.Boolean(string="SCRAP", default=False)
+    solicitado = fields.Boolean(default=False)
 
     def compute_precio(self):
         for record in self:
