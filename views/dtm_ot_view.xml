@@ -26,12 +26,10 @@
                     <filter string="ODT-I" name="odt-i" domain="[('tipe_order','=','ODT-I')]"/>
                     <filter string="PD" name="PD" domain="[('tipe_order','=','PD')]"/>
                     <filter string="Versión" name="PD" domain="[('version_ot','>',1)]"/>
-                    <filter string="Nesteo" name="nesteo" domain="[('nesteo_chk','=',True)]"/>
+                    <filter string="Nesteo" name="nesteo" domain="[('nesteo_chk','=',True),('manufactura','=',False)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[ '|',('version_ot', '>', 1),('ot_number', '=', 0)]"/>
-
-
                </search>
             </field>
         </record>
@@ -186,6 +184,7 @@
                                         <field name="currency_id" invisible="1"/>
                                         <field name="unitario"/>
                                         <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <button name="action_agregar"  type="object" icon="fa-plus"/>
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">

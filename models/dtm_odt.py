@@ -543,39 +543,39 @@ class DtmOdt(models.Model):
 
     def materiales_nesteo(self):
         Line = self.env['dtm.materials.line']
-        if self.env['dtm.odt'].search([('ot_number', '=', self.revision_ot)], limit=1):
-            for item in self.lista_material_id:
-                vals = {
-                    'model_id': item.model_id.id,
-                    'nombre': item.material_id.nombre,
-                    'medida': item.material_id.medida,
-                    'materials_list': item.material_id.id,
-                    'materials_cuantity': 0,
-                    'usuario': item.usuario,
-                    'materials_availabe': 0,
-                    'materials_required': 0
-                }
-                to_materiales = self.materials_ids.search([('model_id', '=', item.model_id.id), ('materials_list', '=', item.material_id.id)])
-                to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
+        # if self.env['dtm.odt'].search([('ot_number', '=', self.ot_number)], limit=1):
+        #     for item in self.lista_material_id:
+        #         vals = {
+        #             'model_id': item.model_id.id,
+        #             'nombre': item.material_id.nombre,
+        #             'medida': item.material_id.medida,
+        #             'materials_list': item.material_id.id,
+        #             'materials_cuantity': 0,
+        #             'usuario': item.usuario,
+        #             'materials_availabe': 0,
+        #             'materials_required': 0,
+        #         }
+        #         to_materiales = self.materials_ids.search([('model_id', '=', item.model_id.id), ('materials_list', '=', item.material_id.id)])
+        #         to_materiales.write(vals) if to_materiales else to_materiales.create(vals)
 
-        else:
-            for item in self.lista_material_id:
-                to_materiales = self.materials_ids.search([
-                    ('model_id', '=', item.model_id.id),
-                    ('materials_list', '=', item.material_id.id),
-                ], limit=1)
+        # else:
+        for item in self.lista_material_id:
+            to_materiales = self.materials_ids.search([
+                ('model_id', '=', item.model_id.id),
+                ('materials_list', '=', item.material_id.id),
+            ], limit=1)
 
-                vals = {
-                    'model_id': item.model_id.id,
-                    'nombre': item.material_id.nombre,
-                    'medida': item.material_id.medida,
-                    'materials_list': item.material_id.id,
-                    'materials_cuantity': item.cantidad,
-                    'usuario': item.usuario,
-                }
-                vals.update(Line._consumir_stock(item.material_id, item.cantidad, to_materiales))
+            vals = {
+                'model_id': item.model_id.id,
+                'nombre': item.material_id.nombre,
+                'medida': item.material_id.medida,
+                'materials_list': item.material_id.id,
+                'materials_cuantity': item.cantidad,
+                'usuario': item.usuario,
+            }
+            vals.update(Line._consumir_stock(item.material_id, item.cantidad, to_materiales))
 
-                to_materiales.write(vals) if to_materiales else Line.create(vals)
+            to_materiales.write(vals) if to_materiales else Line.create(vals)
 
     def proceso(self,parcial=False):
         get_ot = self.env['dtm.proceso'].search([("ot_number","=",self.ot_number),('revision_ot','=',self.revision_ot),("tipe_order","=",self.tipe_order)],limit=1)#Busca en procesos la orden
@@ -618,16 +618,15 @@ class DtmOdt(models.Model):
             attachment = self.env['ir.attachment'].browse(anexo.id)
             vals = {
                 "documentos":attachment.datas,
-                "nombre":attachment.name
+                "nombre":attachment.name,
+                "origin_attachment_id": attachment.id,
             }
-            get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
+            get_anexos = self.env['dtm.proceso.anexos'].search([("origin_attachment_id","=",attachment.id)])
             if get_anexos:
                 get_anexos.write(vals)
-                lines.append(get_anexos.id)
             else:
-                get_anexos.create(vals)
-                get_anexos = self.env['dtm.proceso.anexos'].search([("nombre","=",attachment.name),("documentos","=",attachment.datas)])
-                lines.append(get_anexos.id)
+                get_anexos = self.env['dtm.proceso.anexos'].create(vals)
+            lines.append(get_anexos.id)
         get_ot.write({'anexos_id': [(6, 0, lines)]})
         lines = []
 
@@ -893,6 +892,8 @@ class DtmOdt(models.Model):
 
     def maquinados(self):
         if 'maquinado' in self.maquinados_id.mapped('tipo_servicio'):
+            # Busca si existe el registro en dtm.maquinados.terminados y dtm.maquinados 
+            # Si existe se actualiza, si no se crea
             terminados = self.env['dtm.maquinados.terminados'].search([
                 ('orden_trabajo','=',self.ot_number),
                 ('revision_ot','=',self.version_ot),
@@ -905,11 +906,13 @@ class DtmOdt(models.Model):
                 'tipo_orden':self.tipe_order,
                 'disenador':self.disenador,
             }
+            # Actualiza o crea la orden en servicios "Maquinados"
+            # Se envia el id del modelo "maquinado" y "terminados"
             if maquinado:
                 maquinado.write(vals)
             else:
                 maquinado = self.env['dtm.maquinados'].create(vals)
-
+            # Carga todos los maquinados de la orden de trabajo
             for servicio in self.maquinados_id:
                 if servicio.tipo_servicio == 'maquinado' and not self.env['dtm.maquinados.servicios'].search([('model2_id','=',terminados.id),('nombre','=',servicio.nombre)]):
                     vals_servicios = {
@@ -1529,6 +1532,27 @@ class ListaMateriales(models.Model):
         for record in self:
             record.unitario = record.material_id.mostrador
             record.precio = record.material_id.mostrador * record.cantidad
+
+    def action_agregar(self):
+        get_stock = self.env['dtm.materiales'].search([('id', '=', self.material_id.id)],limit=1)
+        cantidad = 0
+        if get_stock.cantidad > self.cantidad:
+            cantidad = get_stock.cantidad - self.cantidad
+        get_stock.write({
+            "cantidad": cantidad
+        })
+        apartado = self.cantidad if get_stock.cantidad >= self.cantidad else max(self.cantidad - get_stock.cantidad, 0)
+        requerido = max(self.cantidad - apartado,0)
+
+        vals = {
+            "model_id": self.model_id.id,
+            "materials_list": self.material_id.id,
+            "materials_cuantity": self.cantidad,
+            "materials_availabe": apartado,
+            "materials_required": requerido,
+        }
+        self.model_id.materials_ids.create(vals)
+        
 
 class ConfirmDialog(models.TransientModel):
     _name = 'confirm.dialog.wizard'
