@@ -114,7 +114,7 @@ class DtmOdt(models.Model):
 
     # Tiempos
     tiempos_id = fields.One2many("dtm.odt.tiempos","model_id")
-    play_bool = fields.Boolean()    
+    play_bool = fields.Boolean()  
 
     def action_play(self):
         current = self.tiempos_id.create({
@@ -507,8 +507,9 @@ class DtmOdt(models.Model):
             if not self.nesteo_inicio:
                 self.nesteo_inicio = fields.Datetime.now()
 
-            if not self.materials_ids:
-                self.materiales_nesteo()
+            self.materiales_nesteo() # Pasa los materiales de la lista de diseño a ingeniería
+            if not self.materials_ids: # Verifica que se hayan agregado materiales
+                raise ValidationError("No se han agregado materiales")
             self.compras_odt()
         # Si la orden es un prediseño
             if self.tipe_order == 'Pre':
@@ -560,6 +561,13 @@ class DtmOdt(models.Model):
 
         # else:
         for item in self.lista_material_id:
+            if item.solicitado:
+                # Ya se mandó antes a ingeniería; no se vuelve a mandar
+                # aunque el ingeniero lo haya borrado de ahí después.
+                continue
+
+            item.write({'solicitado': True})
+
             to_materiales = self.materials_ids.search([
                 ('model_id', '=', item.model_id.id),
                 ('materials_list', '=', item.material_id.id),
@@ -1517,6 +1525,16 @@ class ListaMateriales(models.Model):
     precio = fields.Float(string='Total',readonly = True, compute = 'compute_precio')
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id)
     usuario = fields.Char(string="Usuario", compute="_compute_usuario",store=True,readonly=True)
+    solicitado = fields.Boolean(default=False, readonly=True, string="Solicitado") #Bandera para indicar que este material si paso por ingeniería
+    retirado = fields.Boolean(default=False, readonly=True, string="Retirado", compute="_compute_retirado") #Bandera para indicar que este material si paso por ingeniería
+
+    def _compute_retirado(self):
+        for record in self:
+            record.retirado = False
+            get_ingenieria = record.model_id.materials_ids.filtered_domain([('materials_list', '=', record.material_id.id),('materials_cuantity', '=', record.cantidad)])[:1]
+            if not get_ingenieria and record.solicitado:
+                record.retirado = True
+
 
     @api.constrains('cantidad')
     def _check_cantidad(self):

@@ -184,7 +184,9 @@
                                         <field name="currency_id" invisible="1"/>
                                         <field name="unitario"/>
                                         <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                        <button name="action_agregar"  type="object" icon="fa-plus"/>
+                                        <field name="solicitado"/>
+                                        <field name="retirado"/>
+
                                     </tree>
                                 </field>
                                 <div class="d-flex justify-content-between">
