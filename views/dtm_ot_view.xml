@@ -127,6 +127,9 @@
                                     <h4>
                                         <field name="name_client"  attrs="{'readonly': [('tipe_order', '!=', 'NPI')]}"/>
                                     </h4>
+                                    <h4>
+                                        <field name="disenador"  attrs="{'readonly': [('tipe_order', '!=', 'NPI')],'invisible':[('tipe_order','in',['SK','PD','Pre','OT'])]}"/>
+                                    </h4>
                                 </div>
                                 <div class="col-6 d-flex justify-content-end">
                                     <group>

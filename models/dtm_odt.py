@@ -46,7 +46,7 @@ class DtmOdt(models.Model):
     embalaje = fields.Boolean(string="Embalaje",default=False)
     #--------------------------------------
     permiso_compra = fields.Boolean()
-    disenador = fields.Char("Diseñador")
+    disenador = fields.Char("Diseñador",default='Nombre del Diseñador')
     firma = fields.Char(string="Firma", readonly = True)
     firma_produccion = fields.Char()
     almacen_rev = fields.Boolean()
@@ -1354,7 +1354,7 @@ class TestModelLine(models.Model):
         # material viene del stock dtm_materiales
         stock_actual = material.cantidad
         # Si es un máquinado lo manda completo para que no vaya a compras
-        if material.nombre.find('Maquinado') == 0:
+        if material.nombre.strip().startswith('Maquinado'):
             return {'materials_availabe': cantidad, 'materials_required': 0}
 
         if not registro_existente:
