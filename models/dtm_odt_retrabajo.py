@@ -9,7 +9,7 @@ class Retrabajo(models.Model):
 
     model_id = fields.Many2one('dtm.odt')
 
-    name = fields.Selection(string='Diseñador', selection=[('andres','Andrés Alberto Orozco Martínez'),('luis','Luis Donaldo García Rayos'),('bryan','Bryan Alejandro Banda Moreno')])
+    name = fields.Selection(string='Diseñador', selection=[('andres','Andrés Alberto Orozco Martínez'), ("oscar","Oscar Estrada"), ('bryan','Bryan Alejandro Banda Moreno')])
     motivo = fields.Text(string="Motivo")
     version = fields.Integer(string='Versión', readonly=True, related='model_id.revision_ot',)
     revision = fields.Integer(string='Revisión', readonly=True, related='model_id.version_ot',)
