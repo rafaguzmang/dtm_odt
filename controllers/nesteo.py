@@ -6,7 +6,7 @@ class NesteoController(http.Controller):
     @http.route('/dtm_odt/get_nesteo_data', type='http', auth='public', csrf=False)
     def get_nesteo_data(self, **kw):
 
-        get_nesteo = request.env['dtm.odt'].sudo().search([('nesteo_chk','=',True),('manufactura','=',False)])
+        get_nesteo = request.env['dtm.odt'].sudo().search([('firma', '!=', False), ('firma_ventas', '!=', False), ('firma_ingenieria', '=', False)])
         result = []
         for item in get_nesteo:
             result.append({
@@ -18,7 +18,7 @@ class NesteoController(http.Controller):
                 'producto': item.product_name,
                 'cantidad': item.cuantity,
                 'disenador': item.disenador,
-                'fecha_llegada':item.nesteo_inicio.strftime('%Y-%m-%d'),
+                'fecha_llegada':item.nesteo_inicio.strftime('%d-%m-%Y') if item.nesteo_inicio else '',
             })
         
        

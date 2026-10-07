@@ -23,7 +23,7 @@
 
             <!-- TABLE SECTION -->
             <div class="dc-table-section">
-
+|
                 <div class="dc-table-header">
                     <h2 class="dc-table-header__title">Registro de Órdenes de Diseño</h2>                   
                 </div>
@@ -58,10 +58,7 @@
                         </t>
                     </tbody>
                 </table>
-                </div>       
-
-            
-
+            </div>       
             </div><!-- /dc-table-section -->
 
             </div><!-- /dc-wrapper -->
