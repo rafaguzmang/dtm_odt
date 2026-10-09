@@ -105,6 +105,8 @@ class DtmOdt(models.Model):
     costo_material = fields.Float(string="Costo",compute = 'compute_costo_material')
     costo_diseno = fields.Float(string="Costo Diseno", compute = 'compute_costo_diseno')
 
+    material_no_autorizado = fields.Boolean(default=False) #Al estar en verdadero se manda a nesteo y se pinta rojo para indicar revición
+
     #----------------Tracking----------------------------
     lista_material_id_tracking = fields.Char(compute='_compute_lista_material_id_tracking', store=True, tracking = True)
     materials_ids_tracking = fields.Char(compute='_compute_materials_ids_tracking', store=True, tracking = True)
@@ -518,6 +520,24 @@ class DtmOdt(models.Model):
         if self.firma and self.firma_ventas and self.firma_ingenieria and self.tipe_order not in ['COT','Pre'] :
             if not self.materials_ids:
                 raise ValidationError("No se han agregado materiales")
+            if self.cortadora_id or self.primera_pieza_id:
+                listo = True
+                for corte in self.cortadora_id:
+                    if not corte.sobrante_uso and not corte.material_ids:
+                        listo = False
+                        break                
+                for corte in self.primera_pieza_id:
+                    if not corte.sobrante_uso and not corte.material_ids:
+                        listo = False
+                        break   
+                if listo:
+                    self.material_no_autorizado = False
+                    get_cortadora = self.env['dtm.materiales.laser'].search([('orden_trabajo', '=', self.ot_number)], limit=1)
+                    get_cortadora.write({'material_no_autorizado': False})
+                    [documento.write({'material_no_autorizado': False}) for documento in get_cortadora.cortadora_id]
+                    get_corte = self.env['dtm.cortadora.laser'].search([('orden_trabajo', '=', self.ot_number)], limit=1)
+                    get_corte.write({'material_no_autorizado': False})
+
             self.manufactura = True
             self.maquinados()
             self.proceso(parcial)

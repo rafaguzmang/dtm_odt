@@ -26,7 +26,7 @@
                     <filter string="ODT-I" name="odt-i" domain="[('tipe_order','=','ODT-I')]"/>
                     <filter string="PD" name="PD" domain="[('tipe_order','=','PD')]"/>
                     <filter string="Versión" name="PD" domain="[('version_ot','>',1)]"/>
-                    <filter string="Nesteo" name="nesteo" domain="[('nesteo_chk','=',True),('manufactura','=',False)]"/>
+                    <filter string="Nesteo" name="nesteo" domain="['|', '&amp;', ('nesteo_chk','=',True), ('manufactura','=',False), ('material_no_autorizado','=',True)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
                     <filter string="En diseño" name="diseno" domain="[ '|',('version_ot', '>', 1),('ot_number', '=', 0)]"/>
@@ -38,7 +38,7 @@
             <field name="name">dtm.odt.tree</field>
             <field name="model">dtm.odt</field>
             <field name="arch" type="xml">
-                <tree  delete="false" >
+                <tree  delete="false" decoration-danger="material_no_autorizado" >
                     <field name="od_number"/>
                     <field name="ot_number"/>
                     <field name="revision_ot"/>
@@ -57,6 +57,7 @@
                     <field name="nesteo_chk" />
                     <field name="prioridad_date" attrs="{'invisible':[('usuario','not in',['calidad2@dtmindustry.com','rafaguzmang@hotmail.com'])]}"/>
                     <field name="usuario" invisible="1"/>
+                    <field name="material_no_autorizado" invisible="1"/>
                 </tree>
             </field>
         </record>
@@ -179,19 +180,27 @@
                                 </group>
                             </page>
                             <page string="MATERIALES" attrs="{'invisible': [('tipe_order','in',['Pre','PD','SK'])]}">
-                                <field name="lista_material_id"  attrs="{'readonly': [('retrabajo', '=', True)]}">
-<!--                                <field name="lista_material_id">-->
-                                    <tree editable="bottom" >
-                                        <field name="material_id"  create="false" delete="false"/>
-                                        <field name="cantidad" options='{"type": "number"}' />
+                               <field name="lista_material_id"
+                                    attrs="{'readonly': [
+                                        '&amp;',
+                                            ('retrabajo', '=', True),
+                                            '|',
+                                                ('firma', '=', False),
+                                                '|',
+                                                    ('firma', '=', None),
+                                                    ('firma', '=', '')
+                                    ]}">
+                                    <tree editable="bottom">
+                                        <field name="material_id" create="false" delete="false"/>
+                                        <field name="cantidad" options='{"type": "number"}'/>
                                         <field name="currency_id" invisible="1"/>
                                         <field name="unitario"/>
                                         <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                         <field name="solicitado"/>
                                         <field name="retirado"/>
-
                                     </tree>
                                 </field>
+
                                 <div class="d-flex justify-content-between">
 <!--                                    <button type="object" name="action_almacen" string=""  icon="fa-eye" title="pencil" class="btn btn-primary" attrs="{'invisible': [('firma_ingenieria', '!=', 'Bryan Banda')]}"/>-->
                                     <field name="costo_diseno"/>
@@ -201,7 +210,8 @@
                                <field name="materials_ids"  attrs="{'readonly': [('permiso_ingenieria', '!=', True)]}">
                                     <tree editable="bottom" decoration-success="entregado"
                                         decoration-info = "revision and not entregado"
-                                        decoration-bf="revision or entregado" >
+                                        decoration-bf="revision or entregado"
+                                        >
                                         <field name="materials_list" attrs="{'readonly': [('almacen', '=', True)]} " create="false" delete="false"/>
                                         <field name="notas"/>
                                         <field name="materials_cuantity" />
@@ -214,10 +224,12 @@
                                         <field name="entregado" invisible="1"/>
                                         <field name="recibe" invisible="1"/>
                                         <field name="usuario" invisible="1"/>
+                                        
                                     </tree>
                                 </field>
                                  <field name="costo_material"/>
                                  <field name="permiso_ingenieria" invisible="1"/>
+                                 
 
                             </page>
                             <page string="REQUISICION" attrs="{'invisible': [('permiso_compra','!=',True)]}">
