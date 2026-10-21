@@ -215,7 +215,7 @@ class DtmOdt(models.Model):
  
             
            
-    #-----------------------------------------------
+    #-----------------------------------------------    
     def requisicion_material(self):
         Line = self.env['dtm.materials.line']
         for item in self.requisicion_material_id:
@@ -485,6 +485,8 @@ class DtmOdt(models.Model):
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
                 self.fecha_ventas = datetime.today()
+                self.requisicion_material()
+
 
         # Firma Diseñador
         elif email in ['ingenieria@dtmindustry.com', 'ingenieria2@dtmindustry.com', 'ingenieria1@dtmindustry.com']:
@@ -510,6 +512,7 @@ class DtmOdt(models.Model):
                 self.nesteo_inicio = fields.Datetime.now()
 
             self.materiales_nesteo() # Pasa los materiales de la lista de diseño a ingeniería
+            self.maquinados()  # Manda los servicios a maquinados
             if not self.materials_ids: # Verifica que se hayan agregado materiales
                 raise ValidationError("No se han agregado materiales")
             self.compras_odt()
