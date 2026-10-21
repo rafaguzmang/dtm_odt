@@ -29,7 +29,7 @@
                     <filter string="Nesteo" name="nesteo" domain="['|', '&amp;', ('nesteo_chk','=',True), ('manufactura','=',False), ('material_no_autorizado','=',True)]"/>
                     <separator/>
                     <!-- Filtros por firma de ventas -->
-                    <filter string="En diseño" name="diseno" domain="[ '|',('version_ot', '>', 1),('ot_number', '=', 0)]"/>
+                    <filter string="En diseño" name="diseno" domain="[('firma', '=', False)]"/>
                </search>
             </field>
         </record>

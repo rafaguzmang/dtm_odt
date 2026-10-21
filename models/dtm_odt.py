@@ -482,6 +482,7 @@ class DtmOdt(models.Model):
             # Firma de aprobación de OT
                 self.firma_ventas = self.env.user.partner_id.name
                 self.maquinados()  # Manda los servicios a maquinados
+                self.materiales_nesteo() # Pasa los materiales de la lista de diseño a ingeniería
                 self.diseno_terminado = datetime.today()
                 self.retrabajo = True
                 self.fecha_ventas = datetime.today()

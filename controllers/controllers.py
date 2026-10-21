@@ -48,7 +48,7 @@ class WebSiteDirections(http.Controller):
         precio_dolar_json = self.precioDollar()
         precio_dolar = float(precio_dolar_json['bmx']['series'][0]['datos'][0]['dato'])
 
-        get_diseno = request.env['dtm.odt'].sudo().search(['|', '&', ('version_ot', '>', 1), ('firma', '=', False), ('ot_number', '=', 0)])
+        get_diseno = request.env['dtm.odt'].sudo().search([('firma', '=', False)])
         result = []
         for material in get_diseno:
             get_cotizacion = request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.no_cotizacion_id.precotizacion
@@ -64,7 +64,7 @@ class WebSiteDirections(http.Controller):
                 'producto': material.product_name,
                 'cantidad': material.cuantity,
                 'po_number': material.po_number,
-                'po_file': request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id[0].datas.decode('utf-8') if request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id.datas else '',
+                'po_file': request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id[0].datas.decode('utf-8') if request.env['dtm.compras.items'].sudo().search([('orden_diseno','=',material.od_number)],limit=1).model_id.archivos_id else '',
                 'precio': round(precio*dolar,2),
                 'disenador': material.disenador,
                 'fecha_llegada':material.create_date.strftime('%Y-%m-%d') if material.create_date else '--/--/----',
